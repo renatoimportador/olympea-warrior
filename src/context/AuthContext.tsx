@@ -77,20 +77,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function loginDemo(email: string) {
-    const demoUsers: Record<string, AuthUser> = {
-      'admin@olympea.com': { id: 'u-admin', nome: 'Renato Souza', email: 'admin@olympea.com', role: 'admin' },
-      'coach@olympea.com': { id: 'u-coach1', nome: 'Coach Rafael', email: 'coach@olympea.com', role: 'coach' },
-      'aluno@olympea.com': { id: 'u-aluno1', nome: 'Bruno Almeida', email: 'aluno@olympea.com', role: 'aluno' },
-      'carla@olympea.com': { id: 'u-aluno2', nome: 'Carla Mendes', email: 'carla@olympea.com', role: 'aluno' },
-      'diego@olympea.com': { id: 'u-aluno3', nome: 'Diego Costa', email: 'diego@olympea.com', role: 'aluno' },
-    }
-    const found = demoUsers[email]
-    if (found) {
-      setUser(found)
-    } else {
-      throw new Error('Credenciais invalidas')
-    }
+  // Buscar usuario no banco pelo email para obter ID real do Supabase
+  const { data: usuarioDb, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (usuarioDb && !error) {
+    setUser({
+      id: usuarioDb.id,
+      nome: usuarioDb.nome,
+      email: usuarioDb.email,
+      role: usuarioDb.role as UserRole,
+      foto_url: usuarioDb.foto_url,
+      telefone: usuarioDb.telefone,
+    })
+    setLoading(false)
+    return
   }
+
+  // Fallback hardcoded apenas se nao encontrar no banco
+  const demoUsers: Record<string, AuthUser> = {
+    'admin@olympea.com': { id: 'u-admin', nome: 'Renato Souza', email: 'admin@olympea.com', role: 'admin' },
+    'coach@olympea.com': { id: 'u-coach1', nome: 'Coach Rafael', email: 'coach@olympea.com', role: 'coach' },
+    'aluno@olympea.com': { id: 'u-aluno1', nome: 'Bruno Almeida', email: 'aluno@olympea.com', role: 'aluno' },
+    'carla@olympea.com': { id: 'u-aluno2', nome: 'Carla Mendes', email: 'carla@olympea.com', role: 'aluno' },
+    'diego@olympea.com': { id: 'u-aluno3', nome: 'Diego Costa', email: 'diego@olympea.com', role: 'aluno' },
+  }
+
+  const found = demoUsers[email]
+
+  if (found) {
+    setUser(found)
+  } else {
+    throw new Error('Credenciais invalidas')
+  }
+
+  setLoading(false)
+}
 
   async function logout() {
     await supabase.auth.signOut()
