@@ -60,7 +60,7 @@ export function CriarFase() {
         await atualizarFase(editId, form as any)
         toast.success('Fase atualizada!')
       } else {
-        await criarFase({ ...form, ativa: true, created_by: user.id } as any)
+        await criarFase({ ...form, ativa: true, created_by: user?.id } as any)
         toast.success('Fase criada!')
       }
       await loadData()
