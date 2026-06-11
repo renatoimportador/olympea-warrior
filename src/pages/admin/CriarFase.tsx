@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/context/AuthContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -13,6 +14,7 @@ import { Layers, Plus, Edit2, Copy, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export function CriarFase() {
+  const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [fases, setFases] = useState<Fase[]>([])
   const [semanasMap, setSemanasMap] = useState<Record<string, Semana[]>>({})
