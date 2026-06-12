@@ -329,4 +329,3 @@ export function getTipoBlocoIcon(tipo: string) {
   }
   return map[tipo] || 'Circle'
 }
-Alibaba Lens
