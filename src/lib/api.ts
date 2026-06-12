@@ -225,7 +225,6 @@ export async function getTreinoCompletoByDia(diaTreinoId: string) {
 
   return { ...treino, blocos } as Treino
 }
-}
 export async function criarTreino(treino: Partial<Treino>) {
   const { data, error } = await supabase.from('treinos').insert(treino).select().single()
   if (error) throw error
