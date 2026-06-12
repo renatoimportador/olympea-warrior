@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import {
   getAlunoByUsuarioId, getPRsByAluno, getFrequenciasByAluno,
   listarResultadosByAluno, getProgramacoesByAluno,
-  listarDiasBySemana, getTreinoByDia,
+  listarDiasBySemana, getTreinoCompletoByDia,
 } from '@/lib/api'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
