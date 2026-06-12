@@ -54,23 +54,43 @@ export function CriarTreino() {
   }
 
   async function handleSalvar() {
-    if (!titulo.trim()) { toast.error('Digite o titulo do treino'); return }
-    if (!diaTreinoId) { toast.error('Selecione o dia do treino'); return }
-    try {
-      const blocosOrdenados = ordenarBlocosPorTipo(blocos.filter(b => b.ativo))
-      console.log('SALVANDO TREINO:', { diaTreinoId, titulo })
-      await criarTreino({
-        dia_treino_id: diaTreinoId, titulo, descricao: '', tipo_wod: 'FOR_TIME', ativo: true,
-      } as any)
-      toast.success('Treino criado com sucesso!')
-      navigate('/admin/treinos')
-    } catch (e) {
-  console.error('ERRO AO CRIAR TREINO:', e)
-  toast.error('Erro ao criar treino')
-}
-    }
+  if (!titulo.trim()) {
+    toast.error('Digite o titulo do treino')
+    return
   }
 
+  if (!diaTreinoId) {
+    toast.error('Selecione o dia do treino')
+    return
+  }
+
+  try {
+    const blocosOrdenados = ordenarBlocosPorTipo(
+      blocos.filter(b => b.ativo)
+    )
+
+    console.log('SALVANDO TREINO:', {
+      diaTreinoId,
+      titulo,
+      blocosOrdenados
+    })
+
+    await criarTreino({
+      dia_treino_id: diaTreinoId,
+      titulo: titulo.trim(),
+      descricao: '',
+      tipo_wod: 'FOR_TIME',
+      ativo: true
+    } as any)
+
+    toast.success('Treino criado com sucesso!')
+    navigate('/admin/treinos')
+
+  } catch (e) {
+    console.error('ERRO AO CRIAR TREINO:', e)
+    toast.error('Erro ao criar treino')
+  }
+}
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
