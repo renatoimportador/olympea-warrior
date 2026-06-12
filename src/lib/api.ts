@@ -218,7 +218,7 @@ export async function getTreinoById(id: string) {
   return data as Treino
 }
 export async function getTreinoCompletoByDia(diaTreinoId: string) {
-  const treino = await getTreinoByDia(diaTreinoId)
+  const treino = await getTreinoById(diaTreinoId)
   if (!treino) return null
 
   const blocos = await listarBlocosByTreino(treino.id)
