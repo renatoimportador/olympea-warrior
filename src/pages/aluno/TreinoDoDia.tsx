@@ -91,14 +91,13 @@ export function TreinoDoDia() {
 
       {/* Conteúdo do treino */}
       {treino ? (
-        <div className="space-y-4">
-          <BlocoViewer blocos={treino.blocos || []} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center text-text-secondary py-10">
-          Nenhum treino encontrado para este dia.
-        </div>
+  <div className="space-y-4">
+    <BlocoViewer blocos={treino.blocos || []} />
+  </div>
+) : (
+  <div className="text-center text-text-secondary py-10">
+    Nenhum treino encontrado para este dia.
+  </div>
       )}
     </div>
   )
