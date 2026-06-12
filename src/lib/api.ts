@@ -217,10 +217,14 @@ export async function getTreinoById(id: string) {
   if (error) return null
   return data as Treino
 }
-export async function getTreinoByDia(diaTreinoId: string) {
-  const { data, error } = await supabase.from('treinos').select('*').eq('dia_treino_id', diaTreinoId).eq('ativo', true).single()
-  if (error) return null
-  return data as Treino
+export async function getTreinoCompletoByDia(diaTreinoId: string) {
+  const treino = await getTreinoByDia(diaTreinoId)
+  if (!treino) return null
+
+  const blocos = await listarBlocosByTreino(treino.id)
+
+  return { ...treino, blocos } as Treino
+}
 }
 export async function criarTreino(treino: Partial<Treino>) {
   const { data, error } = await supabase.from('treinos').insert(treino).select().single()
