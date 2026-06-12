@@ -58,13 +58,16 @@ export function CriarTreino() {
     if (!diaTreinoId) { toast.error('Selecione o dia do treino'); return }
     try {
       const blocosOrdenados = ordenarBlocosPorTipo(blocos.filter(b => b.ativo))
+      console.log('SALVANDO TREINO:', { diaTreinoId, titulo })
       await criarTreino({
         dia_treino_id: diaTreinoId, titulo, descricao: '', tipo_wod: 'FOR_TIME', ativo: true,
       } as any)
       toast.success('Treino criado com sucesso!')
       navigate('/admin/treinos')
     } catch (e) {
-      toast.error('Erro ao criar treino')
+  console.error('ERRO AO CRIAR TREINO:', e)
+  toast.error('Erro ao criar treino')
+}
     }
   }
 
