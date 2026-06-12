@@ -92,8 +92,7 @@ export function TreinoDoDia() {
       {/* Conteúdo do treino */}
       {treino ? (
         <div className="space-y-4">
-          {treino.blocos?.map((bloco) => (
-            <BlocoViewer key={bloco.id} bloco={bloco} />
+          <BlocoViewer blocos={treino.blocos || []} />
           ))}
         </div>
       ) : (
