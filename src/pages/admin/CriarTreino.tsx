@@ -87,7 +87,7 @@ export function CriarTreino() {
     navigate('/admin/treinos')
 
   } catch (e) {
-    console.error('ERRO AO CRIAR TREINO:', e)
+    console.error('ERRO AO CRIAR TREINO:', JSON.stringify(e, null, 2))
     toast.error('Erro ao criar treino')
   }
 }
