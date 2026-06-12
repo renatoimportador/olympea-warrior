@@ -24,13 +24,12 @@ interface ProgramacaoContextData {
 }
 
 const ProgramacaoContext = createContext<ProgramacaoContextData>({
-  programacaoAtiva: defaultProgramacao,
+  programacaoAtiva: null as any,
   setProgramacaoAtiva: () => {},
 })
 
 export function ProgramacaoProvider({ children }: { children: ReactNode }) {
-  const [programacaoAtiva, setProgramacaoAtiva] = useState<Programacao>(defaultProgramacao)
-
+  const [programacaoAtiva, setProgramacaoAtiva] = useState<Programacao | null>(null)
   return (
     <ProgramacaoContext.Provider value={{ programacaoAtiva, setProgramacaoAtiva }}>
       {children}
