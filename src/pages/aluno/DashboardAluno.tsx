@@ -67,7 +67,7 @@ export function DashboardAluno() {
               const diaSemana = semanaNomes[hoje.getDay()]
               const diaAtual = dias.find(d => d.dia_semana === diaSemana.toUpperCase())
               if (diaAtual) {
-                const t = await getTreinoByDia(diaAtual.id)
+                const treino = await getTreinoCompletoByDia(diaAtual.id)
                 setTreinoHoje(t)
               }
             }
