@@ -19,7 +19,7 @@ useEffect(() => {
 }, [])
 
 interface ProgramacaoContextData {
-  programacaoAtiva: Programacao
+  programacaoAtiva: Programacao | null
   setProgramacaoAtiva: (p: Programacao) => void
 }
 
