@@ -133,7 +133,7 @@ export function CriarTreino() {
     if (!diaTreinoId) { toast.error('Selecione o dia do treino'); return }
     try {
       // Mantem a ordem definida pelo usuario no editor (sem reordenar por tipo)
-      const blocosOrdenados = blocos.filter(b => b.ativo)
+      const blocosOrdenados = blocos.filter(b => b.ativo !== false)
 
       if (modoEdicao && editTreinoId) {
         // Atualiza dados basicos
