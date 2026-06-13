@@ -1,39 +1,67 @@
 import { useMemo, useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Badge } from '@/components/ui/Badge'
 import { BlocoViewer } from '@/components/treino/BlocoViewer'
 import {
-  listarTreinosByDia,
-  getSemanaById,
-  getFaseById,
-  getDiaById,
-  diasTreino
-} from '@/data/seed'
+  listarDiasBySemana,
+  listarSemanasByFase,
+  listarFasesByProg,
+  getTreinoCompletoByDia,
+} from '@/lib/api'
+import { useProgramacao } from '@/context/ProgramacaoContext'
 import { Layers, Calendar } from 'lucide-react'
 
 export function TreinoDoDia() {
-  const navigate = useNavigate()
   const location = useLocation()
+  const { programacaoAtiva } = useProgramacao()
 
-  const stateTreinoId = (location.state as any)?.treinoId
   const notifDiaId = (location.state as any)?.diaTreinoId
 
-  const [diaAtivo, setDiaAtivo] = useState(
-    notifDiaId || diasTreino[0]?.id || ''
-  )
+  const [dias, setDias] = useState<any[]>([])
+  const [diaAtivo, setDiaAtivo] = useState('')
+  const [treino, setTreino] = useState<any>(null)
+  const [fase, setFase] = useState<any>(null)
+  const [semana, setSemana] = useState<any>(null)
 
   useEffect(() => {
-    if (notifDiaId) setDiaAtivo(notifDiaId)
-  }, [notifDiaId])
+    async function load() {
+      if (!programacaoAtiva) return
 
-  const dia = getDiaById(diaAtivo)
-  const semana = dia ? getSemanaById(dia.semana_id) : undefined
-  const fase = semana ? getFaseById(semana.fase_id) : undefined
+      const fases = await listarFasesByProg(programacaoAtiva.id)
+      if (!fases.length) return
 
-  // ALTERAÇÃO PRINCIPAL AQUI
-  const treino = dia ? listarTreinosByDia(dia.id)[0] : undefined
+      const faseAtual = fases[0]
+      setFase(faseAtual)
 
-  const dias = useMemo(() => {
+      const semanas = await listarSemanasByFase(faseAtual.id)
+      if (!semanas.length) return
+
+      const semanaAtual = semanas[0]
+      setSemana(semanaAtual)
+
+      const diasSemana = await listarDiasBySemana(semanaAtual.id)
+      setDias(diasSemana)
+
+      const diaSelecionado = notifDiaId || diasSemana[0]?.id
+      if (diaSelecionado) {
+        setDiaAtivo(diaSelecionado)
+
+        const treinoCompleto = await getTreinoCompletoByDia(diaSelecionado)
+        setTreino(treinoCompleto)
+      }
+    }
+
+    load()
+  }, [programacaoAtiva, notifDiaId])
+
+  async function trocarDia(diaId: string) {
+    setDiaAtivo(diaId)
+
+    const treinoCompleto = await getTreinoCompletoByDia(diaId)
+    setTreino(treinoCompleto)
+  }
+
+  const diasFormatados = useMemo(() => {
     const nomes = {
       SEG: 'Seg',
       TER: 'Ter',
@@ -44,15 +72,14 @@ export function TreinoDoDia() {
       DOM: 'Dom',
     }
 
-    return diasTreino.map((d) => ({
+    return dias.map((d) => ({
       id: d.id,
       label: (nomes as any)[d.dia_semana] || d.dia_semana,
     }))
-  }, [])
+  }, [dias])
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-1.5 text-[10px] text-text-secondary mb-1">
           <Layers size={12} className="text-accent" />
@@ -72,12 +99,11 @@ export function TreinoDoDia() {
         </div>
       </div>
 
-      {/* Dias da semana */}
       <div className="flex gap-2 overflow-x-auto pb-2">
-        {dias.map((d) => (
+        {diasFormatados.map((d) => (
           <button
             key={d.id}
-            onClick={() => setDiaAtivo(d.id)}
+            onClick={() => trocarDia(d.id)}
             className={`px-4 py-2 rounded-xl transition ${
               diaAtivo === d.id
                 ? 'bg-accent text-black font-semibold'
@@ -89,15 +115,14 @@ export function TreinoDoDia() {
         ))}
       </div>
 
-      {/* Conteúdo do treino */}
       {treino ? (
-  <div className="space-y-4">
-    <BlocoViewer blocos={treino.blocos || []} />
-  </div>
-) : (
-  <div className="text-center text-text-secondary py-10">
-    Nenhum treino encontrado para este dia.
-  </div>
+        <div className="space-y-4">
+          <BlocoViewer blocos={treino.blocos || []} />
+        </div>
+      ) : (
+        <div className="text-center text-text-secondary py-10">
+          Nenhum treino encontrado para este dia.
+        </div>
       )}
     </div>
   )
