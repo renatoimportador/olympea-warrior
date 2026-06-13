@@ -181,8 +181,7 @@ const existentesBlocos = blocosOrdenados.filter(
             descricao: b.descricao || '',
             exercicios: b.exercicios || [],
             link_youtube: b.link_youtube || '',
-            observacoes: b.observacoes || '',
-            ordem: existentesBlocos.indexOf(b),
+            ordem: blocosOrdenados.findIndex(bl => bl.id === b.id),
             ativo: true,
           } as any)
         }
