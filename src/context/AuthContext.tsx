@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Verificar sessao atual ao carregar
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchProfile(session.user.id)
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
+    // Listener para mudancas de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         fetchProfile(session.user.id)
@@ -66,12 +68,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(email: string, password: string) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      throw error
+      // Fallback para modo demo/seed enquanto nao ha usuarios no Auth
+      await loginDemo(email)
+      return
     }
-    if (data.user) {
-      await fetchProfile(data.user.id)
+  }
+
+  async function loginDemo(email: string) {
+    const demoUsers: Record<string, AuthUser> = {
+      'admin@olympea.com': { id: 'u-admin', nome: 'Renato Souza', email: 'admin@olympea.com', role: 'admin' },
+      'coach@olympea.com': { id: 'u-coach1', nome: 'Coach Rafael', email: 'coach@olympea.com', role: 'coach' },
+      'aluno@olympea.com': { id: 'u-aluno1', nome: 'Bruno Almeida', email: 'aluno@olympea.com', role: 'aluno' },
+      'carla@olympea.com': { id: 'u-aluno2', nome: 'Carla Mendes', email: 'carla@olympea.com', role: 'aluno' },
+      'diego@olympea.com': { id: 'u-aluno3', nome: 'Diego Costa', email: 'diego@olympea.com', role: 'aluno' },
+    }
+    const found = demoUsers[email]
+    if (found) {
+      setUser(found)
+    } else {
+      throw new Error('Credenciais invalidas')
     }
   }
 

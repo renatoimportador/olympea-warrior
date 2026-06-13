@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import {
   getAlunoByUsuarioId, getPRsByAluno, getFrequenciasByAluno,
   listarResultadosByAluno, getProgramacoesByAluno,
-  listarDiasBySemana, getTreinoCompletoByDia,
+  listarDiasBySemana, getTreinoByDia,
 } from '@/lib/api'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
@@ -67,8 +67,8 @@ export function DashboardAluno() {
               const diaSemana = semanaNomes[hoje.getDay()]
               const diaAtual = dias.find(d => d.dia_semana === diaSemana.toUpperCase())
               if (diaAtual) {
-                const treino = await getTreinoCompletoByDia(diaAtual.id)
-                setTreinoHoje(treino)
+                const t = await getTreinoByDia(diaAtual.id)
+                setTreinoHoje(t)
               }
             }
           }

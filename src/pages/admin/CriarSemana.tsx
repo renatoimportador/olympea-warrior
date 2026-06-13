@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import {
   listarSemanasByFase, listarFasesByProg, listarProgramacoes,
   criarSemana, atualizarSemana, excluirSemana,
-  listarDiasBySemana, criarDia,
+  listarDiasBySemana,
 } from '@/lib/api'
 import type { Semana, Fase, Programacao } from '@/data/types'
 import { Calendar, Plus, Edit2, Trash2 } from 'lucide-react'
@@ -76,19 +76,8 @@ export function CriarSemana() {
         await atualizarSemana(form.id, form as any)
         toast.success('Semana atualizada!')
       } else {
-        const novaSemana = await criarSemana({ ...form, fase_id: form.fase_id } as any)
-toast.success('Semana criada!')
-
-// Criar 7 dias automaticamente (SEG a DOM)
-const diasSemana = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM']
-
-for (const dia of diasSemana) {
-  await criarDia({
-    semana_id: novaSemana.id,
-    dia_semana: dia,
-    ativo: true
-  } as any)
-}
+        await criarSemana({ ...form, fase_id: form.fase_id } as any)
+        toast.success('Semana criada!')
       }
       await loadData()
       setShowForm(false)

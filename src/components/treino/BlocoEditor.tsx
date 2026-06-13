@@ -63,7 +63,7 @@ export function BlocoEditor({ value, onChange }: BlocoEditorProps) {
       const next = [...prev]
       const [removed] = next.splice(i, 1)
       next.splice(i + d, 0, removed)
-      return next.map((b, idx) => { b.ordem = idx; return b })
+      return next.map((b, idx) => ({ ...b, ordem: idx }))
     })
   }
   function addEx(blocoId: string) {

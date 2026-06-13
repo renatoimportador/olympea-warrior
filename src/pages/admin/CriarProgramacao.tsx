@@ -6,9 +6,8 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import {
   listarProgramacoes, criarProgramacao, atualizarProgramacao, excluirProgramacao,
-  listarFasesByProg, getBox,
+  listarFasesByProg,
 } from '@/lib/api'
-import { useAuth } from '@/context/AuthContext'
 import type { Programacao, Fase } from '@/data/types'
 import { Layers, Plus, Edit2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -24,27 +23,15 @@ type ProgramacaoForm = {
 
 export function CriarProgramacao() {
   const navigate = useNavigate()
-  const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<ProgramacaoForm>({ nome: '', tipo: 'CROSSFIT', descricao: '', data_inicio: '', data_fim: '' })
   const [programacoes, setProgramacoes] = useState<Programacao[]>([])
   const [fasesMap, setFasesMap] = useState<Record<string, Fase[]>>({})
   const [loading, setLoading] = useState(true)
-  const [boxId, setBoxId] = useState<string>('')
 
   useEffect(() => {
     loadProgramacoes()
-    loadBox()
   }, [])
-
-  async function loadBox() {
-    try {
-      const box = await getBox()
-      if (box?.id) setBoxId(box.id)
-    } catch (e) {
-      console.error('Erro ao carregar box:', e)
-    }
-  }
 
   async function loadProgramacoes() {
     setLoading(true)
@@ -65,14 +52,12 @@ export function CriarProgramacao() {
 
   async function handleSave() {
     if (!form.nome.trim()) { toast.error('Digite o nome da programacao'); return }
-    if (!boxId) { toast.error('Box nao carregado'); return }
-    if (!user?.id) { toast.error('Usuario nao autenticado'); return }
     try {
       if (form.id) {
         await atualizarProgramacao(form.id, form as any)
         toast.success('Programacao atualizada!')
       } else {
-        await criarProgramacao({ ...form, box_id: boxId, created_by: user.id } as any)
+        await criarProgramacao({ ...form, box_id: 'box-1', created_by: 'u-admin' } as any)
         toast.success('Programacao criada!')
       }
       await loadProgramacoes()

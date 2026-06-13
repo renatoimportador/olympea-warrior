@@ -31,15 +31,15 @@ export function SeletorProgramacao() {
             }}
           >
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-              programacaoAtiva?.id === prog.id ? 'bg-accent/10' : 'bg-white/[0.03]'
+              programacaoAtiva.id === prog.id ? 'bg-accent/10' : 'bg-white/[0.03]'
             }`}>
-              <Dumbbell size={22} className={programacaoAtiva?.id === prog.id ? 'text-accent' : 'text-text-secondary'} />
+              <Dumbbell size={22} className={programacaoAtiva.id === prog.id ? 'text-accent' : 'text-text-secondary'} />
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-text-primary">{prog.nome}</p>
               <p className="text-xs text-text-secondary">{prog.tipo}</p>
             </div>
-            {programacaoAtiva?.id === prog.id ? (
+            {programacaoAtiva.id === prog.id ? (
               <Check size={18} className="text-success" />
             ) : (
               <ChevronRight size={18} className="text-text-secondary" />

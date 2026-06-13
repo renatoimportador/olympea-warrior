@@ -12,14 +12,6 @@ import {
 import type { BlocoTreino, TipoBloco, DiaTreino, Semana, Fase } from '@/data/types'
 import toast from 'react-hot-toast'
 
-function ordenarBlocosPorTipo(blocos: BlocoTreino[]): BlocoTreino[] {
-  const ordemTipo: Record<TipoBloco, number> = {
-    MOBILIDADE: 0, WARM_UP: 1, SKILL: 2, FORCA: 3,
-    ACCESSORIES: 4, CONDITIONING: 5, WORKOUT: 6, GAME_PLAN: 7, OBSERVACOES_COACH: 8,
-  }
-  return [...blocos].sort((a, b) => ordemTipo[a.tipo] - ordemTipo[b.tipo])
-}
-
 export function CriarTreino() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -140,7 +132,8 @@ export function CriarTreino() {
     if (!titulo.trim()) { toast.error('Digite o titulo do treino'); return }
     if (!diaTreinoId) { toast.error('Selecione o dia do treino'); return }
     try {
-      const blocosOrdenados = ordenarBlocosPorTipo(blocos)
+      // Mantem a ordem definida pelo usuario no editor (sem reordenar por tipo)
+      const blocosOrdenados = blocos.filter(b => b.ativo)
 
       if (modoEdicao && editTreinoId) {
         // Atualiza dados basicos
@@ -149,13 +142,8 @@ export function CriarTreino() {
         } as any)
         // Blocos: atualizar existentes, criar novos, remover removidos
         const blocosAtuais = await listarBlocosByTreino(editTreinoId)
-        const novosBlocos = blocosOrdenados.filter(
-  b => !blocosAtuais.find(ba => ba.id === b.id)
-)
-
-const existentesBlocos = blocosOrdenados.filter(
-  b => blocosAtuais.find(ba => ba.id === b.id)
-)
+        const novosBlocos = blocosOrdenados.filter(b => !b.id)
+        const existentesBlocos = blocosOrdenados.filter(b => b.id && blocosAtuais.find(ba => ba.id === b.id))
         const removidosBlocos = blocosAtuais.filter(ba => !blocosOrdenados.find(b => b.id === ba.id))
 
         // Criar novos
@@ -181,6 +169,7 @@ const existentesBlocos = blocosOrdenados.filter(
             descricao: b.descricao || '',
             exercicios: b.exercicios || [],
             link_youtube: b.link_youtube || '',
+            observacoes: b.observacoes || '',
             ordem: blocosOrdenados.findIndex(bl => bl.id === b.id),
             ativo: true,
           } as any)
