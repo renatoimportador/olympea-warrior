@@ -140,7 +140,7 @@ export function CriarTreino() {
     if (!titulo.trim()) { toast.error('Digite o titulo do treino'); return }
     if (!diaTreinoId) { toast.error('Selecione o dia do treino'); return }
     try {
-      const blocosOrdenados = ordenarBlocosPorTipo(blocos.filter(b => b.ativo))
+      const blocosOrdenados = ordenarBlocosPorTipo(blocos)
 
       if (modoEdicao && editTreinoId) {
         // Atualiza dados basicos
