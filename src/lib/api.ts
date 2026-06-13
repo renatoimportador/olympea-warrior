@@ -249,7 +249,12 @@ export async function excluirTreino(id: string) {
    BLOCOS DE TREINO
    ============================================================= */
 export async function listarBlocosByTreino(treinoId: string) {
-  const { data, error } = await supabase.from('blocos_treino').select('*').eq('treino_id', treinoId).eq('ativo', true).order('ordem')
+  const { data, error } = await supabase
+    .from('blocos_treino')
+    .select('*')
+    .eq('treino_id', treinoId)
+    .order('ordem')
+
   if (error) throw error
   return data as BlocoTreino[]
 }
