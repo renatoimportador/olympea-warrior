@@ -18,6 +18,7 @@ import { CriarProgramacao } from '@/pages/admin/CriarProgramacao'
 import { CriarFase } from '@/pages/admin/CriarFase'
 import { CriarSemana } from '@/pages/admin/CriarSemana'
 import { CriarTreino } from '@/pages/admin/CriarTreino'
+import { ListarTreinos } from '@/pages/admin/ListarTreinos'
 import { GerenciarWODs } from '@/pages/admin/GerenciarWODs'
 import { GerenciarNiveis } from '@/pages/admin/GerenciarNiveis'
 import { BibliotecaExercicios } from '@/pages/admin/BibliotecaExercicios'
@@ -79,7 +80,8 @@ export function AppRoutes() {
         <Route path="/admin/programacao" element={<CriarProgramacao />} />
         <Route path="/admin/fases" element={<CriarFase />} />
         <Route path="/admin/semanas" element={<CriarSemana />} />
-        <Route path="/admin/treinos" element={<CriarTreino />} />
+        <Route path="/admin/treinos" element={<ListarTreinos />} />
+        <Route path="/admin/treinos/novo" element={<CriarTreino />} />
         <Route path="/admin/wods" element={<GerenciarWODs />} />
         <Route path="/admin/niveis" element={<GerenciarNiveis />} />
         <Route path="/admin/biblioteca" element={<BibliotecaExercicios />} />
