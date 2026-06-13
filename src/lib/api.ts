@@ -218,12 +218,17 @@ export async function getTreinoById(id: string) {
   return data as Treino
 }
 export async function getTreinoCompletoByDia(diaTreinoId: string) {
-  const treino = await getTreinoById(diaTreinoId)
+  const treinos = await listarTreinosByDia(diaTreinoId)
+  const treino = treinos[0]
+
   if (!treino) return null
 
   const blocos = await listarBlocosByTreino(treino.id)
 
-  return { ...treino, blocos } as Treino
+  return {
+    ...treino,
+    blocos
+  } as Treino
 }
 export async function criarTreino(treino: Partial<Treino>) {
   const { data, error } = await supabase.from('treinos').insert(treino).select().single()
