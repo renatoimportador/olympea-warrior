@@ -142,8 +142,13 @@ export function CriarTreino() {
         } as any)
         // Blocos: atualizar existentes, criar novos, remover removidos
         const blocosAtuais = await listarBlocosByTreino(editTreinoId)
-        const novosBlocos = blocosOrdenados.filter(b => !b.id)
-        const existentesBlocos = blocosOrdenados.filter(b => b.id && blocosAtuais.find(ba => ba.id === b.id))
+        const novosBlocos = blocosOrdenados.filter(
+  b => !blocosAtuais.find(ba => ba.id === b.id)
+)
+
+const existentesBlocos = blocosOrdenados.filter(
+  b => blocosAtuais.find(ba => ba.id === b.id)
+)
         const removidosBlocos = blocosAtuais.filter(ba => !blocosOrdenados.find(b => b.id === ba.id))
 
         // Criar novos
