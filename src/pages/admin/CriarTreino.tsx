@@ -212,8 +212,9 @@ const removidosBlocos = blocosAtuais.filter(
 
       navigate('/admin/treinos')
     } catch (e) {
-      toast.error('Erro ao salvar treino')
-    }
+  console.error('ERRO AO SALVAR:', e)
+  toast.error('Erro ao salvar treino')
+}
   }
 
   const nomes = { SEG: 'Segunda', TER: 'Terca', QUA: 'Quarta', QUI: 'Quinta', SEX: 'Sexta', SAB: 'Sabado', DOM: 'Domingo' }
