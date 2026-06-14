@@ -192,28 +192,41 @@ const removidosBlocos = blocosAtuais.filter(
         }
 
         toast.success('Treino atualizado!')
-      } else {
-        const novoTreino = await criarTreino({
-          dia_treino_id: diaTreinoId, titulo, descricao: '', tipo_wod: 'FOR_TIME', ativo: true,
-        } as any)
+     } else {
+  console.log('CRIANDO TREINO...')
 
-        for (let i = 0; i < blocosOrdenados.length; i++) {
-          const b = blocosOrdenados[i]
-          await adicionarBloco({
-            treino_id: novoTreino.id,
-            tipo: b.tipo,
-            titulo: b.titulo,
-            descricao: b.descricao || '',
-            exercicios: b.exercicios || [],
-            link_youtube: b.link_youtube || '',
-            observacoes: b.observacoes || '',
-            ordem: i,
-            ativo: true,
-          } as any)
-        }
-        toast.success('Treino criado com sucesso!')
-      }
+  const novoTreino = await criarTreino({
+    dia_treino_id: diaTreinoId,
+    titulo,
+    descricao: '',
+    tipo_wod: 'FOR_TIME',
+    ativo: true,
+  } as any)
 
+  console.log('TREINO CRIADO:', novoTreino)
+
+  for (let i = 0; i < blocosOrdenados.length; i++) {
+    const b = blocosOrdenados[i]
+
+    console.log('ADICIONANDO BLOCO:', b)
+
+    await adicionarBloco({
+      treino_id: novoTreino.id,
+      tipo: b.tipo,
+      titulo: b.titulo,
+      descricao: b.descricao || '',
+      exercicios: b.exercicios || [],
+      link_youtube: b.link_youtube || '',
+      observacoes: b.observacoes || '',
+      ordem: i,
+      ativo: true,
+    } as any)
+
+    console.log('BLOCO ADICIONADO')
+  }
+
+  toast.success('Treino criado com sucesso!')
+}
       navigate('/admin/treinos')
     } catch (e) {
   console.error('ERRO AO SALVAR:', e)
