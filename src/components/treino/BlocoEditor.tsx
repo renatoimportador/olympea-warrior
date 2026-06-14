@@ -57,6 +57,9 @@ interface BlocoEditorProps {
 
 export function BlocoEditor({ value, onChange }: BlocoEditorProps) {
   const [blocos, setBlocos] = useState<BlocoTreino[]>(value)
+  useEffect(() => {
+  setBlocos(value)
+}, [value])
   const [expandido, setExpandido] = useState<string | null>(null)
 
   useEffect(() => { onChange(blocos) }, [blocos, onChange])
