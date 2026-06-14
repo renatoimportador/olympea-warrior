@@ -280,7 +280,13 @@ const removidosBlocos = blocosAtuais.filter(
 
       {loadingFases && <p className="text-sm text-text-secondary">Carregando fases...</p>}
 
-      <BlocoEditor value={blocos} onChange={setBlocos} />
+      <BlocoEditor
+  value={blocos}
+  onChange={(novosBlocos) => {
+    console.log('BLOCOS:', novosBlocos)
+    setBlocos(novosBlocos)
+  }}
+/>
     </div>
   )
 }
