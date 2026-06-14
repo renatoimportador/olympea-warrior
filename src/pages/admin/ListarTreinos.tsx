@@ -99,8 +99,8 @@ export function ListarTreinos() {
         const ts = await listarTreinosByDia(dia.id)
 
         for (const t of ts) {
-          const sem = semanas.find(s => s.id === dia.semana_id)
-          const f = fases.find(fa => fa.id === sem?.fase_id)
+          const sem = semanas.find(s => s.id === semId)
+const f = fases.find(fa => fa.id === sem?.fase_id)
 
           if (sem && f) {
             views.push({
