@@ -132,8 +132,12 @@ export function CriarTreino() {
     if (!titulo.trim()) { toast.error('Digite o titulo do treino'); return }
     if (!diaTreinoId) { toast.error('Selecione o dia do treino'); return }
     try {
+      console.log('SALVANDO...')
+console.log('TITULO:', titulo)
+console.log('DIA:', diaTreinoId)
+console.log('BLOCOS:', blocos)
       // Mantem a ordem definida pelo usuario no editor (sem reordenar por tipo)
-      const blocosOrdenados = blocos.filter(b => b.ativo !== false)
+      const blocosOrdenados = blocos.filter(b => b.ativo)
 
       if (modoEdicao && editTreinoId) {
         // Atualiza dados basicos
