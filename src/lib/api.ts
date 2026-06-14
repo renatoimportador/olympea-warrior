@@ -236,7 +236,6 @@ export async function criarTreino(treino: Partial<Treino>) {
   if (error) throw error
   return data as Treino
 }
-}
 export async function atualizarTreino(id: string, treino: Partial<Treino>) {
   const { data, error } = await supabase.from('treinos').update(treino).eq('id', id).select().single()
   if (error) throw error
