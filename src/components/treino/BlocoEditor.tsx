@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import type { BlocoTreino, ExercicioBloco, TipoBloco } from '@/data/types'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Input } from '@/components/ui/Input'
@@ -57,49 +57,59 @@ interface BlocoEditorProps {
 
 export function BlocoEditor({ value, onChange }: BlocoEditorProps) {
   const [blocos, setBlocos] = useState<BlocoTreino[]>(value)
-  useEffect(() => {
-  setBlocos(value)
-}, [value])
   const [expandido, setExpandido] = useState<string | null>(null)
+  const isInternalChange = useRef(false)
 
-  // Resincroniza estado interno quando value muda externamente (ex: edição de treino)
-  useEffect(() => { setBlocos(value) }, [value])
+  // Sincroniza APENAS quando value muda externamente (não via onChange)
+  useEffect(() => {
+    if (!isInternalChange.current) {
+      setBlocos(value)
+    }
+    isInternalChange.current = false
+  }, [value])
 
-  useEffect(() => { onChange(blocos) }, [blocos, onChange])
+  function emitChange(next: BlocoTreino[]) {
+    isInternalChange.current = true
+    setBlocos(next)
+    onChange(next)
+  }
 
   function atualizarBloco(id: string, patch: Partial<BlocoTreino>) {
-    setBlocos(prev => prev.map(b => b.id === id ? { ...b, ...patch } as BlocoTreino : b))
+    const next = blocos.map(b => b.id === id ? { ...b, ...patch } as BlocoTreino : b)
+    emitChange(next)
   }
   function removerBloco(id: string) {
-    setBlocos(prev => prev.filter(b => b.id !== id))
+    const next = blocos.filter(b => b.id !== id)
+    emitChange(next)
   }
   function moverBloco(id: string, d: number) {
-    setBlocos(prev => {
-      const i = prev.findIndex(b => b.id === id)
-      if (i === -1 || (d < 0 && i === 0) || (d > 0 && i === prev.length - 1)) return prev
-      const next = [...prev]
-      const [removed] = next.splice(i, 1)
-      next.splice(i + d, 0, removed)
-      return next.map((b, idx) => ({ ...b, ordem: idx }))
-    })
+    const i = blocos.findIndex(b => b.id === id)
+    if (i === -1 || (d < 0 && i === 0) || (d > 0 && i === blocos.length - 1)) return
+    const next = [...blocos]
+    const [removed] = next.splice(i, 1)
+    next.splice(i + d, 0, removed)
+    emitChange(next.map((b, idx) => ({ ...b, ordem: idx })))
   }
   function addEx(blocoId: string) {
-    setBlocos(prev => prev.map(b => {
+    const next = blocos.map(b => {
       if (b.id !== blocoId) return b
       return { ...b, exercicios: [...b.exercicios, novoExercicio(b.exercicios.length)] }
-    }))
+    })
+    emitChange(next)
   }
   function updEx(blocoId: string, exId: string, p: Partial<ExercicioBloco>) {
-    setBlocos(prev => prev.map(b => {
+    const next = blocos.map(b => {
       if (b.id !== blocoId) return b
       return { ...b, exercicios: b.exercicios.map(e => e.id === exId ? { ...e, ...p } as ExercicioBloco : e) }
-    }))
+    })
+    emitChange(next)
   }
   function delEx(blocoId: string, exId: string) {
-    setBlocos(prev => prev.map(b => {
+    const next = blocos.map(b => {
       if (b.id !== blocoId) return b
       return { ...b, exercicios: b.exercicios.filter(e => e.id !== exId) }
-    }))
+    })
+    emitChange(next)
   }
 
   return (
@@ -127,7 +137,7 @@ export function BlocoEditor({ value, onChange }: BlocoEditorProps) {
                 <button onClick={() => moverBloco(bloco.id, 1)} disabled={idx === blocos.length - 1} className="p-1.5 rounded-lg hover:bg-white/[0.03] disabled:opacity-30">
                   <ArrowDown size={14} className="text-text-secondary" />
                 </button>
-                <button onClick={() => removerBloco(bloco.id)} className="p-1.5 rounded-lg hover:bg-error/5">
+                <button onClick={() => { const next = blocos.filter(b => b.id !== bloco.id); emitChange(next); }} className="p-1.5 rounded-lg hover:bg-error/5">
                   <Trash2 size={14} className="text-error" />
                 </button>
               </div>
@@ -195,7 +205,7 @@ export function BlocoEditor({ value, onChange }: BlocoEditorProps) {
       {/* Adicionar bloco */}
       <div className="flex gap-2 flex-wrap">
         {tiposBloco.map(t => (
-          <button key={t} onClick={() => setBlocos(prev => [...prev, novoBloco(t, prev.length)])}
+          <button key={t} onClick={() => emitChange([...blocos, novoBloco(t, blocos.length)])}
             className="px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.05] text-xs text-text-secondary hover:text-accent hover:border-accent/20 transition-all"
           >
             + {getTipoBlocoLabel(t)}

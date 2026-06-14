@@ -58,9 +58,10 @@ interface BlocoViewerProps {
   wod?: { tipo: string; nome?: string; descricao: string; time_cap?: string }
 }
 
-export function BlocoViewer({ blocos, wod }: BlocoViewerProps) {
+export function BlocoViewer({ blocos, wod: wodProp }: BlocoViewerProps) {
   const ordenados = blocos.filter(b => b.ativo).sort((a, b) => a.ordem - b.ordem)
   const wodBloco = ordenados.find(b => b.tipo === 'WORKOUT')
+  const wod = wodProp || (wodBloco ? { tipo: 'WOD', nome: wodBloco.titulo || 'Workout (WOD)', descricao: wodBloco.descricao || '', time_cap: wodBloco.observacoes } : undefined)
   const gamePlan = ordenados.find(b => b.tipo === 'GAME_PLAN')
   const obsCoach = ordenados.find(b => b.tipo === 'OBSERVACOES_COACH')
   const outros = ordenados.filter(b => !['WORKOUT', 'GAME_PLAN', 'OBSERVACOES_COACH'].includes(b.tipo))

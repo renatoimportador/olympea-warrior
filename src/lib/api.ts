@@ -223,16 +223,7 @@ export async function getTreinoByDia(diaTreinoId: string) {
   return data as Treino
 }
 export async function criarTreino(treino: Partial<Treino>) {
-  console.log('CRIANDO NO SUPABASE:', treino)
-
-  const { data, error } = await supabase
-    .from('treinos')
-    .insert(treino)
-    .select()
-    .single()
-
-  console.log('RETORNO SUPABASE:', data, error)
-
+  const { data, error } = await supabase.from('treinos').insert(treino).select().single()
   if (error) throw error
   return data as Treino
 }

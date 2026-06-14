@@ -10,6 +10,8 @@ import {
   listarTreinosByDia,
   excluirTreino,
   listarProgramacoes,
+  getSemanaById,
+  getFaseById,
 } from '@/lib/api'
 import type { Treino, DiaTreino, Semana, Fase, Programacao } from '@/data/types'
 import { Dumbbell, Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -94,6 +96,10 @@ export function ListarTreinos() {
       setDias(d)
       console.log('DIAS DA SEMANA:', d)
 
+      // Buscar semana e fase DIRETAMENTE do Supabase para evitar stale closure do estado local
+      const semanaAtual = await getSemanaById(semId)
+      const faseAtual = semanaAtual ? await getFaseById(semanaAtual.fase_id) : null
+
       const views: TreinoView[] = []
 
       for (const dia of d) {
@@ -101,15 +107,12 @@ export function ListarTreinos() {
         console.log('TREINOS DO DIA', dia.id, ts)
 
         for (const t of ts) {
-          const sem = semanas.find(s => s.id === semId)
-const f = fases.find(fa => fa.id === sem?.fase_id)
-
-          if (sem && f) {
+          if (semanaAtual && faseAtual) {
             views.push({
               treino: t,
               dia,
-              semana: sem,
-              fase: f,
+              semana: semanaAtual,
+              fase: faseAtual,
             })
           }
         }

@@ -1,35 +1,104 @@
-import { useMemo, useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { BlocoViewer } from '@/components/treino/BlocoViewer'
-import { getTreinoByDia, getSemanaById, getFaseById, getDiaById, diasTreino } from '@/data/seed'
+import {
+  listarProgramacoes,
+  listarFasesByProg,
+  listarSemanasByFase,
+  listarDiasBySemana,
+  listarTreinosByDia,
+  listarBlocosByTreino,
+} from '@/lib/api'
+import type { DiaTreino, Treino, BlocoTreino, Fase, Semana } from '@/data/types'
 import { CalendarDays, ArrowRight, PlayCircle, Layers, Calendar } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 export function TreinoDoDia() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const stateTreinoId = (location.state as any)?.treinoId
-  const notifDiaId = (location.state as any)?.diaTreinoId
+  const { user } = useAuth()
 
-  const [diaAtivo, setDiaAtivo] = useState(notifDiaId || diasTreino[0]?.id || '')
+  const [fase, setFase] = useState<Fase | null>(null)
+  const [semana, setSemana] = useState<Semana | null>(null)
+  const [dias, setDias] = useState<DiaTreino[]>([])
+  const [diaAtivo, setDiaAtivo] = useState<string>('')
+  const [treino, setTreino] = useState<Treino | null>(null)
+  const [blocos, setBlocos] = useState<BlocoTreino[]>([])
+  const [loading, setLoading] = useState(true)
 
+  // Carregar hierarquia do Supabase: Programacoes -> Fases -> Semanas -> Dias
   useEffect(() => {
-    if (notifDiaId) setDiaAtivo(notifDiaId)
-  }, [notifDiaId])
+    async function load() {
+      setLoading(true)
+      try {
+        const progs = await listarProgramacoes()
+        const prog = progs.find(p => p.ativa) || progs[0]
+        if (!prog) { setLoading(false); return }
 
-  const dia = getDiaById(diaAtivo)
-  const semana = dia ? getSemanaById(dia.semana_id) : undefined
-  const fase = semana ? getFaseById(semana.fase_id) : undefined
-  const treino = dia ? getTreinoByDia(dia.id) : undefined
+        const fases = await listarFasesByProg(prog.id)
+        const faseAtiva = fases.find(f => f.ativa) || fases[0]
+        if (!faseAtiva) { setLoading(false); return }
+        setFase(faseAtiva)
 
-  const dias = useMemo(() => {
-    return diasTreino.map((d) => {
-      const nomes = { SEG: 'Seg', TER: 'Ter', QUA: 'Qua', QUI: 'Qui', SEX: 'Sex', SAB: 'Sab', DOM: 'Dom' }
-      return { id: d.id, label: (nomes as any)[d.dia_semana] || d.dia_semana }
-    })
-  }, [])
+        const semanas = await listarSemanasByFase(faseAtiva.id)
+        const semanaAtiva = semanas.find(s => s.ativa) || semanas[0]
+        if (!semanaAtiva) { setLoading(false); return }
+        setSemana(semanaAtiva)
+
+        const diasDaSemana = await listarDiasBySemana(semanaAtiva.id)
+        setDias(diasDaSemana)
+
+        // Selecionar dia atual (hoje) ou o primeiro
+        const hoje = new Date()
+        const semanaNomes = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
+        const diaHoje = semanaNomes[hoje.getDay()]
+        const diaAtual = diasDaSemana.find(d => d.dia_semana === diaHoje) || diasDaSemana[0]
+
+        if (diaAtual) {
+          setDiaAtivo(diaAtual.id)
+        }
+      } catch (e) {
+        console.error('Erro ao carregar treino do dia:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [user?.id])
+
+  // Quando o dia ativo muda, buscar treino real do Supabase
+  useEffect(() => {
+    if (!diaAtivo) return
+    async function loadTreino() {
+      try {
+        const ts = await listarTreinosByDia(diaAtivo)
+        const t = ts[0] || null
+        setTreino(t)
+
+        if (t) {
+          const bs = await listarBlocosByTreino(t.id)
+          setBlocos(bs)
+        } else {
+          setBlocos([])
+        }
+      } catch (e) {
+        console.error('Erro ao carregar treino/blocos:', e)
+      }
+    }
+    loadTreino()
+  }, [diaAtivo])
+
+  const nomes = { SEG: 'Seg', TER: 'Ter', QUA: 'Qua', QUI: 'Qui', SEX: 'Sex', SAB: 'Sab', DOM: 'Dom' }
+
+  if (loading) {
+    return (
+      <div className="space-y-5 animate-fade-in">
+        <p className="text-sm text-text-secondary">Carregando treino...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -62,16 +131,16 @@ export function TreinoDoDia() {
                   : 'bg-white/[0.02] text-text-secondary border border-white/[0.03] hover:text-text-primary'
               }`}
             >
-              {d.label}
+              {(nomes as any)[d.dia_semana] || d.dia_semana}
             </button>
           ))}
         </div>
       </GlassCard>
 
-      {/* Blocos */}
-      {treino && treino.blocos ? (
+      {/* Blocos reais do Supabase */}
+      {treino && blocos.length > 0 ? (
         <>
-          <BlocoViewer blocos={treino.blocos} wod={treino.wod} />
+          <BlocoViewer blocos={blocos} wod={undefined} />
 
           {/* CTA Registrar Resultado */}
           <div className="flex gap-3 pt-2">
@@ -87,7 +156,9 @@ export function TreinoDoDia() {
       ) : (
         <GlassCard className="p-8 text-center">
           <CalendarDays size={32} className="mx-auto text-text-secondary mb-3" />
-          <p className="text-sm text-text-secondary">Nenhum treino cadastrado para este dia.</p>
+          <p className="text-sm text-text-secondary">
+            {treino ? 'Nenhum bloco cadastrado para este treino.' : 'Nenhum treino cadastrado para este dia.'}
+          </p>
         </GlassCard>
       )}
     </div>
