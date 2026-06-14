@@ -204,6 +204,7 @@ const removidosBlocos = blocosAtuais.filter(
   } as any)
 
   console.log('TREINO CRIADO:', novoTreino)
+        console.log('ATIVO DO TREINO:', novoTreino.ativo)
 
   for (let i = 0; i < blocosOrdenados.length; i++) {
     const b = blocosOrdenados[i]
