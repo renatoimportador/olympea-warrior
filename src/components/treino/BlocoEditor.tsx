@@ -62,6 +62,9 @@ export function BlocoEditor({ value, onChange }: BlocoEditorProps) {
 }, [value])
   const [expandido, setExpandido] = useState<string | null>(null)
 
+  // Resincroniza estado interno quando value muda externamente (ex: edição de treino)
+  useEffect(() => { setBlocos(value) }, [value])
+
   useEffect(() => { onChange(blocos) }, [blocos, onChange])
 
   function atualizarBloco(id: string, patch: Partial<BlocoTreino>) {

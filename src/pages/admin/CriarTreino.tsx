@@ -137,7 +137,7 @@ console.log('TITULO:', titulo)
 console.log('DIA:', diaTreinoId)
 console.log('BLOCOS:', blocos)
       // Mantem a ordem definida pelo usuario no editor (sem reordenar por tipo)
-      const blocosOrdenados = blocos.filter(b => b.ativo)
+      const blocosOrdenados = blocos.filter(b => b.ativo !== false)
 
       if (modoEdicao && editTreinoId) {
         // Atualiza dados basicos
