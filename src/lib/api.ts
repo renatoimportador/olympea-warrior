@@ -223,9 +223,19 @@ export async function getTreinoByDia(diaTreinoId: string) {
   return data as Treino
 }
 export async function criarTreino(treino: Partial<Treino>) {
-  const { data, error } = await supabase.from('treinos').insert(treino).select().single()
+  console.log('CRIANDO NO SUPABASE:', treino)
+
+  const { data, error } = await supabase
+    .from('treinos')
+    .insert(treino)
+    .select()
+    .single()
+
+  console.log('RETORNO SUPABASE:', data, error)
+
   if (error) throw error
   return data as Treino
+}
 }
 export async function atualizarTreino(id: string, treino: Partial<Treino>) {
   const { data, error } = await supabase.from('treinos').update(treino).eq('id', id).select().single()
