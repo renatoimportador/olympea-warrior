@@ -92,11 +92,13 @@ export function ListarTreinos() {
     try {
       const d = await listarDiasBySemana(semId)
       setDias(d)
+      console.log('DIAS DA SEMANA:', d)
 
       const views: TreinoView[] = []
 
       for (const dia of d) {
         const ts = await listarTreinosByDia(dia.id)
+        console.log('TREINOS DO DIA', dia.id, ts)
 
         for (const t of ts) {
           const sem = semanas.find(s => s.id === semId)
@@ -112,6 +114,7 @@ const f = fases.find(fa => fa.id === sem?.fase_id)
           }
         }
       }
+      console.log('VIEWS FINAIS:', views)
 
       setTreinos(views)
     } catch (e) {
