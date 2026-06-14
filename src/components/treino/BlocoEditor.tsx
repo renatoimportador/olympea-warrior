@@ -21,12 +21,23 @@ const tipoParaIcone: Record<TipoBloco, string> = {
 }
 
 function novoExercicio(o = 0): ExercicioBloco {
-  return { id: `ex-${Date.now()}-${o}`, nome: '', series: '', repeticoes: '', carga: '', percentual: '', tempo_descanso: '', link_youtube: '', observacoes: '', ordem: o }
+  return {
+  id: '',
+  nome: '',
+  series: '',
+  repeticoes: '',
+  carga: '',
+  percentual: '',
+  tempo_descanso: '',
+  link_youtube: '',
+  observacoes: '',
+  ordem: o
+}
 }
 
 function novoBloco(tipo: TipoBloco, o: number): BlocoTreino {
   return {
-    id: `bl-${Date.now()}-${o}`,
+    id: '',
     treino_id: '',
     tipo,
     titulo: getTipoBlocoLabel(tipo),
