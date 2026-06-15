@@ -9,7 +9,7 @@ import {
   adicionarBloco, getTreinoById, getDiaById, getSemanaById, getFaseById,
   listarBlocosByTreino, atualizarBloco, removerBloco,
 } from '@/lib/api'
-import type { BlocoTreino, TipoBloco, DiaTreino, Semana, Fase } from '@/data/types'
+import type { BlocoTreino, DiaTreino, Semana, Fase } from '@/data/types'
 import toast from 'react-hot-toast'
 
 export function CriarTreino() {
@@ -32,7 +32,6 @@ export function CriarTreino() {
   const [loadingFases, setLoadingFases] = useState(true)
   const [loadingTreino, setLoadingTreino] = useState(false)
 
-  // Carregar fases e (se editar) dados do treino
   useEffect(() => {
     loadFases()
   }, [])
@@ -47,20 +46,17 @@ export function CriarTreino() {
         setTitulo(treino.titulo || '')
         setDiaTreinoId(treino.dia_treino_id)
 
-        // Calcular fase/semana a partir do dia_treino_id
         const dia = await getDiaById(treino.dia_treino_id)
         if (dia?.semana_id) {
           const semana = await getSemanaById(dia.semana_id)
           if (semana?.fase_id) {
             const fase = await getFaseById(semana.fase_id)
             setFaseId(semana.fase_id)
-            // Aguarda carregar semanas para definir semanaId
             setTimeout(() => setSemanaId(dia.semana_id), 100)
             setDiaTreinoId(treino.dia_treino_id)
           }
         }
 
-        // Carregar blocos
         const blocosTreino = (treino as any).blocos || []
         setBlocos(blocosTreino)
       } catch (e) {
@@ -132,33 +128,18 @@ export function CriarTreino() {
     if (!titulo.trim()) { toast.error('Digite o titulo do treino'); return }
     if (!diaTreinoId) { toast.error('Selecione o dia do treino'); return }
     try {
-      console.log('SALVANDO...')
-console.log('TITULO:', titulo)
-console.log('DIA:', diaTreinoId)
-console.log('BLOCOS:', blocos)
-      // Mantem a ordem definida pelo usuario no editor (sem reordenar por tipo)
       const blocosOrdenados = blocos.filter(b => b.ativo !== false)
 
       if (modoEdicao && editTreinoId) {
-        // Atualiza dados basicos
         await atualizarTreino(editTreinoId, {
           titulo, dia_treino_id: diaTreinoId,
         } as any)
-        // Blocos: atualizar existentes, criar novos, remover removidos
+
         const blocosAtuais = await listarBlocosByTreino(editTreinoId)
-        const novosBlocos = blocosOrdenados.filter(
-  b => !blocosAtuais.some(ba => ba.id === b.id)
-)
+        const novosBlocos = blocosOrdenados.filter(b => !blocosAtuais.some(ba => ba.id === b.id))
+        const existentesBlocos = blocosOrdenados.filter(b => blocosAtuais.some(ba => ba.id === b.id))
+        const removidosBlocos = blocosAtuais.filter(ba => !blocosOrdenados.some(b => b.id === ba.id))
 
-const existentesBlocos = blocosOrdenados.filter(
-  b => blocosAtuais.some(ba => ba.id === b.id)
-)
-
-const removidosBlocos = blocosAtuais.filter(
-  ba => !blocosOrdenados.some(b => b.id === ba.id)
-)
-
-        // Criar novos
         for (let i = 0; i < novosBlocos.length; i++) {
           const b = novosBlocos[i]
           await adicionarBloco({
@@ -173,7 +154,7 @@ const removidosBlocos = blocosAtuais.filter(
             ativo: true,
           } as any)
         }
-        // Atualizar existentes (ordem + titulo)
+
         for (const b of existentesBlocos) {
           await atualizarBloco(b.id, {
             tipo: b.tipo,
@@ -186,53 +167,43 @@ const removidosBlocos = blocosAtuais.filter(
             ativo: true,
           } as any)
         }
-        // Remover
+
         for (const r of removidosBlocos) {
           await removerBloco(r.id)
         }
 
         toast.success('Treino atualizado!')
-     } else {
-  console.log('CRIANDO TREINO...')
+      } else {
+        const novoTreino = await criarTreino({
+          dia_treino_id: diaTreinoId, titulo, descricao: '', tipo_wod: 'FOR_TIME', ativo: true,
+        } as any)
 
-  const novoTreino = await criarTreino({
-    dia_treino_id: diaTreinoId,
-    titulo,
-    descricao: '',
-    tipo_wod: 'FOR_TIME',
-    ativo: true,
-  } as any)
+        if (!novoTreino || !novoTreino.id) {
+          throw new Error('Falha ao criar treino: resposta sem ID valido')
+        }
 
-  console.log('TREINO CRIADO:', novoTreino)
-        console.log('ATIVO DO TREINO:', novoTreino.ativo)
+        for (let i = 0; i < blocosOrdenados.length; i++) {
+          const b = blocosOrdenados[i]
+          await adicionarBloco({
+            treino_id: novoTreino.id,
+            tipo: b.tipo,
+            titulo: b.titulo,
+            descricao: b.descricao || '',
+            exercicios: b.exercicios || [],
+            link_youtube: b.link_youtube || '',
+            observacoes: b.observacoes || '',
+            ordem: i,
+            ativo: true,
+          } as any)
+        }
+        toast.success('Treino criado com sucesso!')
+      }
 
-  for (let i = 0; i < blocosOrdenados.length; i++) {
-    const b = blocosOrdenados[i]
-
-    console.log('ADICIONANDO BLOCO:', b)
-
-    await adicionarBloco({
-      treino_id: novoTreino.id,
-      tipo: b.tipo,
-      titulo: b.titulo,
-      descricao: b.descricao || '',
-      exercicios: b.exercicios || [],
-      link_youtube: b.link_youtube || '',
-      observacoes: b.observacoes || '',
-      ordem: i,
-      ativo: true,
-    } as any)
-
-    console.log('BLOCO ADICIONADO')
-  }
-
-  toast.success('Treino criado com sucesso!')
-}
       navigate('/admin/treinos')
-    } catch (e) {
-  console.error('ERRO AO SALVAR:', e)
-  toast.error('Erro ao salvar treino')
-}
+    } catch (e: any) {
+      console.error('ERRO AO SALVAR:', e)
+      toast.error('Erro ao salvar treino: ' + (e?.message || 'Erro desconhecido'))
+    }
   }
 
   const nomes = { SEG: 'Segunda', TER: 'Terca', QUA: 'Quarta', QUI: 'Quinta', SEX: 'Sexta', SAB: 'Sabado', DOM: 'Domingo' }
@@ -298,13 +269,7 @@ const removidosBlocos = blocosAtuais.filter(
 
       {loadingFases && <p className="text-sm text-text-secondary">Carregando fases...</p>}
 
-      <BlocoEditor
-  value={blocos}
-  onChange={(novosBlocos) => {
-    console.log('BLOCOS:', novosBlocos)
-    setBlocos(novosBlocos)
-  }}
-/>
+      <BlocoEditor value={blocos} onChange={setBlocos} />
     </div>
   )
 }
