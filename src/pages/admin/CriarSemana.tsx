@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/Badge'
 import {
   listarSemanasByFase, listarFasesByProg, listarProgramacoes,
   criarSemana, atualizarSemana, excluirSemana,
-  listarDiasBySemana,
+  listarDiasBySemana, criarDia,
 } from '@/lib/api'
 import type { Semana, Fase, Programacao } from '@/data/types'
+import { useAuth } from '@/context/AuthContext'
 import { Calendar, Plus, Edit2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -24,6 +25,7 @@ type SemanaForm = {
 }
 
 export function CriarSemana() {
+  const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<SemanaForm>({ fase_id: '', nome: '', tipo: 'ORDINARIA', ordem: 1, descricao: '' })
   const [semanas, setSemanas] = useState<Semana[]>([])
@@ -71,19 +73,45 @@ export function CriarSemana() {
   async function handleSave() {
     if (!form.nome.trim()) { toast.error('Digite o nome da semana'); return }
     if (!form.fase_id) { toast.error('Selecione a fase'); return }
+    if (!user?.id) { toast.error('Usuario nao autenticado'); return }
     try {
       if (form.id) {
         await atualizarSemana(form.id, form as any)
         toast.success('Semana atualizada!')
       } else {
-        await criarSemana({ ...form, fase_id: form.fase_id } as any)
+        const novaSemana = await criarSemana({
+          ...form,
+          fase_id: form.fase_id,
+          ativa: true,
+        } as any)
         toast.success('Semana criada!')
+
+        // Criar automaticamente os 7 dias da semana (SEG a DOM)
+        const diasSemanaArray = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'] as const
+        const semanaDiaMap: Record<string, string> = {
+          SEG: 'Segunda-Feira', TER: 'Terca-Feira', QUA: 'Quarta-Feira',
+          QUI: 'Quinta-Feira', SEX: 'Sexta-Feira', SAB: 'Sabado', DOM: 'Domingo',
+        }
+        for (const ds of diasSemanaArray) {
+          try {
+            await criarDia({
+              semana_id: novaSemana.id,
+              dia_semana: ds,
+              descricao: semanaDiaMap[ds],
+              ativo: true,
+            } as any)
+          } catch (de) {
+            console.warn('Erro ao criar dia', ds, ':', de)
+          }
+        }
+        toast.success('7 dias da semana criados automaticamente!')
       }
       await loadData()
       setShowForm(false)
       setForm({ fase_id: '', nome: '', tipo: 'ORDINARIA', ordem: 1, descricao: '' })
-    } catch (e) {
-      toast.error('Erro ao salvar semana')
+    } catch (e: any) {
+      console.error('Erro ao salvar semana:', e)
+      toast.error('Erro ao salvar: ' + (e?.message || 'Verifique os dados'))
     }
   }
 

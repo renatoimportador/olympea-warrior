@@ -9,10 +9,12 @@ import {
   listarProgramacoes,
 } from '@/lib/api'
 import type { Fase, Semana, Programacao, DiaTreino } from '@/data/types'
+import { useAuth } from '@/context/AuthContext'
 import { Layers, Plus, Edit2, Copy, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export function CriarFase() {
+  const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [fases, setFases] = useState<Fase[]>([])
   const [semanasMap, setSemanasMap] = useState<Record<string, Semana[]>>({})
@@ -53,20 +55,28 @@ export function CriarFase() {
   async function handleSave() {
     if (!form.nome.trim()) { toast.error('Digite o nome da fase'); return }
     if (!form.programacao_id) { toast.error('Selecione a programacao'); return }
+    if (!user?.id) { toast.error('Usuario nao autenticado'); return }
     try {
       if (editId) {
         await atualizarFase(editId, form as any)
         toast.success('Fase atualizada!')
       } else {
-        await criarFase({ ...form, ativa: true, created_by: 'u-admin' } as any)
+        const programacao = programacoes.find(p => p.id === form.programacao_id)
+        await criarFase({
+          ...form,
+          ativa: true,
+          duracao_semanas: (form as any).ordem || 1,
+          created_by: user.id,
+        } as any)
         toast.success('Fase criada!')
       }
       await loadData()
       setShowForm(false)
       setForm({ nome: '', ordem: 1, descricao: '', programacao_id: '' })
       setEditId(null)
-    } catch (e) {
-      toast.error('Erro ao salvar fase')
+    } catch (e: any) {
+      console.error('Erro ao salvar fase:', e)
+      toast.error('Erro ao salvar: ' + (e?.message || 'Verifique os dados'))
     }
   }
 

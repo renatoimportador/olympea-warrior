@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import {
   listarProgramacoes, criarProgramacao, atualizarProgramacao, excluirProgramacao,
-  listarFasesByProg,
+  listarFasesByProg, getBox,
 } from '@/lib/api'
 import type { Programacao, Fase } from '@/data/types'
+import { useAuth } from '@/context/AuthContext'
 import { Layers, Plus, Edit2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -23,13 +24,24 @@ type ProgramacaoForm = {
 
 export function CriarProgramacao() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<ProgramacaoForm>({ nome: '', tipo: 'CROSSFIT', descricao: '', data_inicio: '', data_fim: '' })
   const [programacoes, setProgramacoes] = useState<Programacao[]>([])
   const [fasesMap, setFasesMap] = useState<Record<string, Fase[]>>({})
+  const [boxId, setBoxId] = useState<string>('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    async function loadBox() {
+      try {
+        const box = await getBox()
+        if (box && box.id) setBoxId(box.id)
+      } catch (e) {
+        console.error('Erro ao carregar box:', e)
+      }
+    }
+    loadBox()
     loadProgramacoes()
   }, [])
 
@@ -52,19 +64,26 @@ export function CriarProgramacao() {
 
   async function handleSave() {
     if (!form.nome.trim()) { toast.error('Digite o nome da programacao'); return }
+    if (!boxId) { toast.error('Box nao carregado'); return }
+    if (!user?.id) { toast.error('Usuario nao autenticado'); return }
     try {
       if (form.id) {
         await atualizarProgramacao(form.id, form as any)
         toast.success('Programacao atualizada!')
       } else {
-        await criarProgramacao({ ...form, box_id: 'box-1', created_by: 'u-admin' } as any)
+        await criarProgramacao({
+          ...form,
+          box_id: boxId,
+          created_by: user.id,
+        } as any)
         toast.success('Programacao criada!')
       }
       await loadProgramacoes()
       setShowForm(false)
       setForm({ nome: '', tipo: 'CROSSFIT', descricao: '', data_inicio: '', data_fim: '' })
-    } catch (e) {
-      toast.error('Erro ao salvar programacao')
+    } catch (e: any) {
+      console.error('Erro ao salvar programacao:', e)
+      toast.error('Erro ao salvar: ' + (e?.message || 'Verifique os dados'))
     }
   }
 
