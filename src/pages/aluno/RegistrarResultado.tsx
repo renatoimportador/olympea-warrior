@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { useAuth } from '@/context/AuthContext'
-import { criarResultado, getAlunoByUsuarioId, getTreinoById } from '@/data/seed'
+import { criarResultado, getAlunoByUsuarioId, getTreinoById } from '@/lib/api'
 import toast from 'react-hot-toast'
 import {
   Timer, Hash, Weight, Ruler, Camera, MessageSquare,
@@ -18,9 +18,10 @@ export function RegistrarResultado() {
   const navigate = useNavigate()
   const location = useLocation()
   const { user } = useAuth()
-  const aluno = user ? getAlunoByUsuarioId(user.id) : undefined
-  const treinoId = (location.state as any)?.treinoId || 't-1'
-  const treino = useMemo(() => getTreinoById(treinoId), [treinoId])
+
+  const treinoId = (location.state as any)?.treinoId || ''
+  const tituloTreino = (location.state as any)?.tituloTreino || 'Treino do dia'
+  const [alunoId, setAlunoId] = useState<string>('')
 
   const [tipo, setTipo] = useState<TipoResultado>('TEMPO')
   const [categoria, setCategoria] = useState<'RX' | 'SCALING' | 'BEGINNER'>('RX')
@@ -29,31 +30,49 @@ export function RegistrarResultado() {
     tempo: '', rounds: '', repeticoes: '', carga: '', pesoCorporal: '',
     reflexao: '', meta: '', comoSeSentiu: '', foto_url: '', video_url: '',
   })
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!user?.id) return
+    async function load() {
+      const aluno = await getAlunoByUsuarioId(user!.id)
+      if (aluno) setAlunoId(aluno.id)
+    }
+    load()
+  }, [user?.id])
 
   function onChange(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
-  function handleSave() {
-    if (!aluno) { toast.error('Aluno nao encontrado'); return }
-    criarResultado({
-      aluno_id: aluno.id,
-      treino_id: treinoId,
-      categoria,
-      data: new Date().toISOString(),
-      tempo: tipo === 'TEMPO' ? form.tempo : undefined,
-      rounds: tipo === 'ROUNDS_REPS' ? (form.rounds ? parseInt(form.rounds) : undefined) : undefined,
-      repeticoes: tipo === 'ROUNDS_REPS' ? (form.repeticoes ? parseInt(form.repeticoes) : undefined) : undefined,
-      carga: tipo === 'CARGA' ? (form.carga ? parseFloat(form.carga) : undefined) : undefined,
-      rpe,
-      reflexao: form.reflexao || form.comoSeSentiu,
-      meta_proxima: form.meta,
-      peso_corporal: form.pesoCorporal ? parseFloat(form.pesoCorporal) : undefined,
-      foto_url: form.foto_url || undefined,
-      video_url: form.video_url || undefined,
-    })
-    toast.success('Resultado registrado com sucesso!')
-    navigate('/aluno/historico')
+  async function handleSave() {
+    if (!alunoId) { toast.error('Aluno nao encontrado'); return }
+    if (!treinoId) { toast.error('Treino nao informado'); return }
+    setLoading(true)
+    try {
+      await criarResultado({
+        aluno_id: alunoId,
+        treino_id: treinoId,
+        categoria,
+        data: new Date().toISOString(),
+        tempo: tipo === 'TEMPO' ? form.tempo || undefined : undefined,
+        rounds: tipo === 'ROUNDS_REPS' ? (form.rounds ? parseInt(form.rounds) : undefined) : undefined,
+        repeticoes: tipo === 'ROUNDS_REPS' ? (form.repeticoes ? parseInt(form.repeticoes) : undefined) : undefined,
+        carga: tipo === 'CARGA' ? (form.carga ? parseFloat(form.carga) : undefined) : undefined,
+        rpe,
+        reflexao: form.reflexao || form.comoSeSentiu || undefined,
+        meta_proxima: form.meta || undefined,
+        peso_corporal: form.pesoCorporal ? parseFloat(form.pesoCorporal) : undefined,
+        foto_url: form.foto_url || undefined,
+        video_url: form.video_url || undefined,
+      })
+      toast.success('Resultado registrado com sucesso!')
+      navigate('/aluno/historico')
+    } catch (e: any) {
+      toast.error('Erro ao registrar resultado: ' + (e.message || 'Tente novamente'))
+    } finally {
+      setLoading(false)
+    }
   }
 
   const categorias: Array<{ id: 'RX' | 'SCALING' | 'BEGINNER'; label: string }> = [
@@ -73,7 +92,7 @@ export function RegistrarResultado() {
       <div className="space-y-1">
         <p className="text-xs text-text-secondary">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</p>
         <h1 className="text-2xl font-bold text-text-primary">Registrar Resultado</h1>
-        <p className="text-sm text-text-secondary">{treino?.titulo || 'Treino do dia'}</p>
+        <p className="text-sm text-text-secondary">{tituloTreino}</p>
       </div>
 
       <GlassCard className="p-5 space-y-5">
@@ -231,9 +250,9 @@ export function RegistrarResultado() {
           </div>
         </div>
 
-        <Button className="w-full" onClick={handleSave}>
+        <Button className="w-full" onClick={handleSave} disabled={loading}>
           <Save size={18} className="mr-2" />
-          Salvar Resultado
+          {loading ? 'Salvando...' : 'Salvar Resultado'}
         </Button>
       </GlassCard>
     </div>
