@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -26,6 +26,7 @@ interface TreinoView {
 
 export function ListarTreinos() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [programacao, setProgramacao] = useState<Programacao | null>(null)
   const [fases, setFases] = useState<Fase[]>([])
@@ -67,7 +68,7 @@ export function ListarTreinos() {
     }
 
     load()
-  }, [])
+  }, [location.pathname])
 
   async function loadSemanaDados(fId: string) {
     try {
@@ -94,7 +95,6 @@ export function ListarTreinos() {
     try {
       const d = await listarDiasBySemana(semId)
       setDias(d)
-      console.log('DIAS DA SEMANA:', d)
 
       // Buscar semana e fase DIRETAMENTE do Supabase para evitar stale closure do estado local
       const semanaAtual = await getSemanaById(semId)
@@ -104,7 +104,6 @@ export function ListarTreinos() {
 
       for (const dia of d) {
         const ts = await listarTreinosByDia(dia.id)
-        console.log('TREINOS DO DIA', dia.id, ts)
 
         for (const t of ts) {
           if (semanaAtual && faseAtual) {
@@ -117,7 +116,6 @@ export function ListarTreinos() {
           }
         }
       }
-      console.log('VIEWS FINAIS:', views)
 
       setTreinos(views)
     } catch (e) {
