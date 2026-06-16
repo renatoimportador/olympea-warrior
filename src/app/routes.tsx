@@ -80,7 +80,8 @@ export function AppRoutes() {
         <Route path="/admin/programacao" element={<CriarProgramacao />} />
         <Route path="/admin/fases" element={<CriarFase />} />
         <Route path="/admin/semanas" element={<CriarSemana />} />
-        <Route path="/admin/treinos" element={<CriarTreino />} />
+        <Route path="/admin/treinos" element={<ListarTreinos />} />
+<Route path="/admin/treinos/novo" element={<CriarTreino />} />
         <Route path="/admin/wods" element={<GerenciarWODs />} />
         <Route path="/admin/niveis" element={<GerenciarNiveis />} />
         <Route path="/admin/biblioteca" element={<BibliotecaExercicios />} />
