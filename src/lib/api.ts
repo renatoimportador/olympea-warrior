@@ -233,7 +233,8 @@ export async function atualizarTreino(id: string, treino: Partial<Treino>) {
   return data as Treino
 }
 export async function excluirTreino(id: string) {
-  const { error } = await supabase.from('treinos').update({ ativo: false }).eq('id', id)
+  const { error } = await supabase.from('treinos').delete().eq('id', id)
+
   if (error) throw error
 }
 
