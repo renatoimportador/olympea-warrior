@@ -238,7 +238,7 @@ export function ListarTreinos() {
     try {
   await excluirTreino(id)
 
-  setTreinos((prev: any[]) => prev.filter((treino) => treino.id !== id))
+  setTreinos((prev: any[]) => prev.filter((item) => item.treino.id !== id))
 
   toast.success('Treino excluído!')
 } catch {
