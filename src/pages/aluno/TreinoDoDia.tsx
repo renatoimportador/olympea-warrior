@@ -167,7 +167,6 @@ const { data } = await supabase
               <ArrowRight size={18} />
             </Button>
           </div>
-          )}
         </>
       ) : (
         <GlassCard className="p-8 text-center">
