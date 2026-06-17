@@ -1,13 +1,31 @@
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
-import { usuarios, resultados, comentarios, getAlunoById } from '@/data/seed'
+import { supabase } from '@/lib/supabase'
 import { ClipboardCheck, MessageSquare } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/context/AuthContext'
 
 export function CorrigirResultados() {
-  const { user } = useAuth()
+  const [resultados, setResultados] = useState<any[]>([])
+  useEffect(() => {
+  async function carregarResultados() {
+    const { data, error } = await supabase
+      .from('resultados')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error(error)
+      toast.error('Erro ao carregar resultados')
+      return
+    }
+
+    setResultados(data || [])
+  }
+
+  carregarResultados()
+}, [])
   const [comentarioPorResultado, setComentarioPorResultado] = useState<Record<string, string>>({})
 
   function getComentariosDoResultado(resultadoId: string) {
@@ -56,7 +74,7 @@ export function CorrigirResultados() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-text-primary">{alunoUsuario?.nome || 'Aluno'}</p>
-                    <p className="text-xs text-text-secondary">{new Date(r.data).toLocaleDateString('pt-BR')}</p>
+                    <p className="text-xs text-text-secondary">{new Date(r.created_at).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
                 <Badge variant="accent">{r.categoria}</Badge>
@@ -81,15 +99,15 @@ export function CorrigirResultados() {
                 </div>
               </div>
 
-              {r.reflexao && (
+              {r.como_sentiu && (
                 <p className="text-sm text-text-secondary bg-white/[0.02] p-3 rounded-lg">
-                  <span className="text-text-primary font-medium">Reflexao: </span>{r.reflexao}
+                  <span className="text-text-primary font-medium">Reflexao: </span>{r.como_sentiu}
                 </p>
               )}
 
-              {r.meta_proxima && (
+              {r.meta_proximo && (
                 <p className="text-sm text-text-secondary bg-white/[0.02] p-3 rounded-lg">
-                  <span className="text-text-primary font-medium">Meta: </span>{r.meta_proxima}
+                  <span className="text-text-primary font-medium">Meta: </span>{r.meta_proximo}
                 </p>
               )}
 
