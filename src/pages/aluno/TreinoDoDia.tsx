@@ -157,12 +157,12 @@ const { data } = await supabase
           <BlocoViewer blocos={blocos} wod={undefined} />
 
           {/* CTA Registrar Resultado */}
-          {!jaFezHoje && (
           <div className="flex gap-3 pt-2">
+  {!jaFezHoje && (
             <Button className="flex-1" onClick={() => navigate('/aluno/resultado', { state: { treinoId: treino.id, tituloTreino: treino.titulo } })}>
               <PlayCircle size={18} className="mr-2" />
               Registrar Resultado
-            </Button>
+            </Button>)}
             <Button variant="secondary" onClick={() => navigate('/aluno/historico')}>
               <ArrowRight size={18} />
             </Button>
