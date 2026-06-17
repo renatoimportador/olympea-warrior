@@ -1,6 +1,7 @@
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase'
+import { usuarios, comentarios, getAlunoById } from '@/data/seed'
 import { ClipboardCheck, MessageSquare } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
