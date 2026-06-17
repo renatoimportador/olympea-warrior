@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { useAuth } from '@/context/AuthContext'
 
 export function CorrigirResultados() {
+  const { user } = useAuth()
   const [resultados, setResultados] = useState<any[]>([])
   useEffect(() => {
   async function carregarResultados() {
