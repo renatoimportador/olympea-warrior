@@ -15,6 +15,7 @@ import {
 import type { DiaTreino, Treino, BlocoTreino, Fase, Semana } from '@/data/types'
 import { CalendarDays, ArrowRight, PlayCircle, Layers, Calendar } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
 
 export function TreinoDoDia() {
   const navigate = useNavigate()
@@ -27,6 +28,7 @@ export function TreinoDoDia() {
   const [treino, setTreino] = useState<Treino | null>(null)
   const [blocos, setBlocos] = useState<BlocoTreino[]>([])
   const [loading, setLoading] = useState(true)
+  const [jaFezHoje, setJaFezHoje] = useState(false)
 
   // Carregar hierarquia do Supabase: Programacoes -> Fases -> Semanas -> Dias
   useEffect(() => {
@@ -78,17 +80,26 @@ export function TreinoDoDia() {
         setTreino(t)
 
         if (t) {
-          const bs = await listarBlocosByTreino(t.id)
-          setBlocos(bs)
-        } else {
+  const bs = await listarBlocosByTreino(t.id)
+  setBlocos(bs)
+
+  const { data } = await supabase
+    .from('resultados')
+    .select('id')
+    .eq('treino_id', t.id)
+    .eq('aluno_id', user?.id)
+
+  setJaFezHoje((data?.length || 0) > 0)
+} else {
           setBlocos([])
+          setJaFezHoje(false)
         }
       } catch (e) {
         console.error('Erro ao carregar treino/blocos:', e)
       }
     }
     loadTreino()
-  }, [diaAtivo])
+  }, [diaAtivo, user?.id])
 
   const nomes = { SEG: 'Seg', TER: 'Ter', QUA: 'Qua', QUI: 'Qui', SEX: 'Sex', SAB: 'Sab', DOM: 'Dom' }
 
@@ -143,6 +154,7 @@ export function TreinoDoDia() {
           <BlocoViewer blocos={blocos} wod={undefined} />
 
           {/* CTA Registrar Resultado */}
+          {!jaFezHoje && (
           <div className="flex gap-3 pt-2">
             <Button className="flex-1" onClick={() => navigate('/aluno/resultado', { state: { treinoId: treino.id, tituloTreino: treino.titulo } })}>
               <PlayCircle size={18} className="mr-2" />
@@ -152,6 +164,7 @@ export function TreinoDoDia() {
               <ArrowRight size={18} />
             </Button>
           </div>
+          )}
         </>
       ) : (
         <GlassCard className="p-8 text-center">
