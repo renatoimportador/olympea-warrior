@@ -11,6 +11,7 @@ import {
   listarDiasBySemana,
   listarTreinosByDia,
   listarBlocosByTreino,
+getAlunoByUsuarioId,
 } from '@/lib/api'
 import type { DiaTreino, Treino, BlocoTreino, Fase, Semana } from '@/data/types'
 import { CalendarDays, ArrowRight, PlayCircle, Layers, Calendar } from 'lucide-react'
@@ -83,11 +84,13 @@ export function TreinoDoDia() {
   const bs = await listarBlocosByTreino(t.id)
   setBlocos(bs)
 
-  const { data } = await supabase
-    .from('resultados')
-    .select('id')
-    .eq('treino_id', t.id)
-    .eq('aluno_id', user?.id)
+  const aluno = await getAlunoByUsuarioId(user?.id || '')
+
+const { data } = await supabase
+  .from('resultados')
+  .select('id')
+  .eq('treino_id', t.id)
+  .eq('aluno_id', aluno?.id)
 
   setJaFezHoje((data?.length || 0) > 0)
 } else {
