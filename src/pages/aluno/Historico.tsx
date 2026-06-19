@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
-import { listarResultadosByAluno, getTreinoById, getAlunoByUsuarioId } from '@/lib/api'
+import { listarResultadosByAluno, getTreinoById, getAlunoByUsuarioId, listarComentariosByResultado } from '@/lib/api'
 import type { Resultado } from '@/data/types'
 import { useAuth } from '@/context/AuthContext'
 import { Calendar, Search } from 'lucide-react'
@@ -13,6 +13,7 @@ export function Historico() {
   const [busca, setBusca] = useState('')
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [treinosMap, setTreinosMap] = useState<Record<string, string>>({})
+  const [comentariosMap, setComentariosMap] = useState<Record<string, any[]>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -23,8 +24,18 @@ export function Historico() {
         const aluno = await getAlunoByUsuarioId(user!.id)
         if (!aluno) { setLoading(false); return }
 
+        
         const res = await listarResultadosByAluno(aluno.id)
-        setResultados(res || [])
+setResultados(res || [])
+
+const comentariosObj: Record<string, any[]> = {}
+
+for (const r of (res || [])) {
+  const comentarios = await listarComentariosByResultado(r.id)
+  comentariosObj[r.id] = comentarios || []
+}
+
+setComentariosMap(comentariosObj)
 
         // Buscar titulos dos treinos reais pelo Supabase
         const titulos: Record<string, string> = {}
