@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase'
 import {
   getAlunoById,
+  getUsuarioById,
   listarComentariosByResultado,
   criarComentario
 } from '@/lib/api'
