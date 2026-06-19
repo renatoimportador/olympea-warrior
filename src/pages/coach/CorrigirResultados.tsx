@@ -84,7 +84,7 @@ setResultados(enriquecidos)
           </GlassCard>
         )}
         {resultados.map((r) => {
-          const alunoUsuario = r.usuario
+          const alunoUsuario = r.aluno?.usuario
 const coms = r.comentarios || []
           return (
             <GlassCard key={r.id} className="p-5 space-y-4">
