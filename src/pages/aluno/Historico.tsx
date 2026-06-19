@@ -143,6 +143,18 @@ setComentariosMap(comentariosObj)
                     {r.reflexao}
                   </p>
                 )}
+                {comentariosMap[r.id]?.length > 0 && (
+  <div className="space-y-2">
+    {comentariosMap[r.id].map((c, index) => (
+      <div
+        key={index}
+        className="text-xs text-accent bg-accent/10 p-2 rounded-lg"
+      >
+        <span className="font-semibold">Comentário do Coach:</span> {c.mensagem}
+      </div>
+    ))}
+  </div>
+)}
               </GlassCard>
             )
           })
