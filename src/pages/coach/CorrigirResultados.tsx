@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase'
 import {
   getAlunoById,
-  getUsuarioById,
   listarComentariosByResultado,
   criarComentario
 } from '@/lib/api'
@@ -136,7 +135,7 @@ const coms = r.comentarios || []
               {coms.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-text-secondary">Comentarios anteriores</p>
-                  {coms.map((c) => {
+                  {coms.map((c: any) => {
                     const autor = c.autor
                     return (
                       <div key={c.id} className="p-2 rounded-lg bg-white/[0.02] text-sm text-text-secondary">
