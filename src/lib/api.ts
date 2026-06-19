@@ -37,7 +37,25 @@ export async function excluirUsuario(id: string) {
   if (error) throw error
 }
 export async function getUsuarioByEmail(email: string) {
-  const { data, error } = await supabase.from('usuarios').select('*').eq('email', email).single()
+  
+  export async function getUsuarioByEmail(email: string) {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (error) return null
+  return data as Usuario
+}
+
+export async function getUsuarioById(id: string) {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('id', id)
+    .single()
+
   if (error) return null
   return data as Usuario
 }
