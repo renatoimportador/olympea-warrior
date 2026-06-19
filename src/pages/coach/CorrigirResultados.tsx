@@ -29,14 +29,14 @@ export function CorrigirResultados() {
     const enriquecidos = await Promise.all(
   (data || []).map(async (r) => {
     const aluno = await getAlunoById(r.aluno_id)
-    const usuario = null
-    const comentarios = await listarComentariosByResultado(r.id)
+const usuario = aluno ? await getUsuarioById(aluno.usuario_id) : null
+const comentarios = await listarComentariosByResultado(r.id)
 
-    return {
-      ...r,
-      usuario,
-      comentarios
-    }
+return {
+  ...r,
+  usuario,
+  comentarios
+}
   })
 )
 
