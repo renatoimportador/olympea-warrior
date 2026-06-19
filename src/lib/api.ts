@@ -36,7 +36,6 @@ export async function excluirUsuario(id: string) {
   const { error } = await supabase.from('usuarios').update({ ativo: false }).eq('id', id)
   if (error) throw error
 }
-export async function getUsuarioByEmail(email: string) {
   
   export async function getUsuarioByEmail(email: string) {
   const { data, error } = await supabase
