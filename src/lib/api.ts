@@ -295,7 +295,20 @@ export async function criarExercicio(ex: Partial<Exercicio>) {
    RESULTADOS
    ============================================================= */
 export async function listarResultadosByAluno(alunoId: string) {
-  const { data, error } = await supabase.from('resultados').select('*').eq('aluno_id', alunoId).order('data', { ascending: false })
+  const { data, error } = await supabase
+    .from('resultados')
+    .select(`
+      *,
+      aluno:alunos(
+        id,
+        usuario:usuarios(
+          nome
+        )
+      )
+    `)
+    .eq('aluno_id', alunoId)
+    .order('data', { ascending: false })
+
   if (error) throw error
   return data as Resultado[]
 }
