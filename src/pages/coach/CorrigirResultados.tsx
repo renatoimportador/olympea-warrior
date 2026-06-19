@@ -1,7 +1,12 @@
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { supabase } from '@/lib/supabase'
-import { usuarios, comentarios, getAlunoById } from '@/data/seed'
+import {
+  getAlunoById,
+  getUsuarioById,
+  listarComentariosByResultado,
+  criarComentario
+} from '@/lib/api'
 import { ClipboardCheck, MessageSquare } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
@@ -10,7 +15,6 @@ import { useAuth } from '@/context/AuthContext'
 export function CorrigirResultados() {
   const { user } = useAuth()
   const [resultados, setResultados] = useState<any[]>([])
-  useEffect(() => {
   async function carregarResultados() {
     const { data, error } = await supabase
       .from('resultados')
@@ -23,31 +27,48 @@ export function CorrigirResultados() {
       return
     }
 
-    setResultados(data || [])
+    const enriquecidos = await Promise.all(
+  (data || []).map(async (r) => {
+    const aluno = await getAlunoById(r.aluno_id)
+    const usuario = null
+    const comentarios = await listarComentariosByResultado(r.id)
+
+    return {
+      ...r,
+      usuario,
+      comentarios
+    }
+  })
+)
+
+setResultados(enriquecidos)
   }
 
+  useEffect(() => {
   carregarResultados()
 }, [])
   const [comentarioPorResultado, setComentarioPorResultado] = useState<Record<string, string>>({})
 
-  function getComentariosDoResultado(resultadoId: string) {
-    return comentarios.filter((c) => c.resultado_id === resultadoId)
-  }
+  async function handleAddComment(resultadoId: string) {
+  const texto = (comentarioPorResultado[resultadoId] || '').trim()
+  if (!texto) return
 
-  function handleAddComment(resultadoId: string) {
-    const texto = (comentarioPorResultado[resultadoId] || '').trim()
-    if (!texto) return
-    comentarios.push({
-      id: `com-${Date.now()}`,
-      resultado_id: resultadoId,
-      autor_id: user?.id || 'u-coach1',
-      mensagem: texto,
-      lido: false,
-      created_at: new Date().toISOString(),
-    })
-    setComentarioPorResultado((prev) => ({ ...prev, [resultadoId]: '' }))
-    toast.success('Comentario adicionado!')
-  }
+  await criarComentario({
+    resultado_id: resultadoId,
+    autor_id: user?.id,
+    mensagem: texto,
+    lido: false
+  })
+
+  setComentarioPorResultado((prev) => ({
+    ...prev,
+    [resultadoId]: ''
+  }))
+
+  toast.success('Comentário adicionado!')
+
+  carregarResultados()
+}
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -64,9 +85,8 @@ export function CorrigirResultados() {
           </GlassCard>
         )}
         {resultados.map((r) => {
-          const aluno = getAlunoById(r.aluno_id)
-          const alunoUsuario = aluno ? usuarios.find((u) => u.id === aluno.usuario_id) : undefined
-          const coms = getComentariosDoResultado(r.id)
+          const alunoUsuario = r.usuario
+const coms = r.comentarios || []
           return (
             <GlassCard key={r.id} className="p-5 space-y-4">
               <div className="flex items-center justify-between">
@@ -117,7 +137,7 @@ export function CorrigirResultados() {
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-text-secondary">Comentarios anteriores</p>
                   {coms.map((c) => {
-                    const autor = usuarios.find((u) => u.id === c.autor_id)
+                    const autor = c.autor
                     return (
                       <div key={c.id} className="p-2 rounded-lg bg-white/[0.02] text-sm text-text-secondary">
                         <span className="text-accent font-medium">{autor?.nome || 'Coach'}:</span> {c.mensagem}
