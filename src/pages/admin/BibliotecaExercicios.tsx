@@ -46,7 +46,7 @@ async function carregarExercicios() {
       }
     ])
 console.log('DATA:', data)
-console.log('ERROR:', error)
+console.log('ERROR FULL:', JSON.stringify(error, null, 2))
   if (!error) {
     setShowForm(false)
     carregarExercicios()
