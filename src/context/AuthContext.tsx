@@ -53,11 +53,11 @@ useEffect(() => {
       } else {
   const savedUser = localStorage.getItem('olympea_user')
 
-  if (!savedUser) {
-    setUser(null)
-  }
+if (savedUser) {
+  setUser(JSON.parse(savedUser))
+}
 
-  setLoading(false)
+setLoading(false)
 }
     })
 
