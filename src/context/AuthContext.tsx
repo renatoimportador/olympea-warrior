@@ -23,7 +23,13 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
-
+useEffect(() => {
+  const savedUser = localStorage.getItem('olympea_user')
+  if (savedUser) {
+    setUser(JSON.parse(savedUser))
+    setLoading(false)
+  }
+}, [])
   useEffect(() => {
     // Verificar sessao atual ao carregar
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -86,17 +92,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const found = demoUsers[email]
     if (found) {
-      setUser(found)
-      return
-    } else {
+  localStorage.setItem('olympea_user', JSON.stringify(found))
+  setUser(found)
+  return
+} else {
       throw new Error('Credenciais invalidas')
     }
   }
 
   async function logout() {
-    await supabase.auth.signOut()
-    setUser(null)
-  }
+  localStorage.removeItem('olympea_user')
+  await supabase.auth.signOut()
+  setUser(null)
+}
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
