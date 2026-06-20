@@ -23,8 +23,10 @@ const [dicasCoach, setDicasCoach] = useState('')
 
 async function carregarExercicios() {
   const { data, error } = await supabase
-    .from('exercicios')
-    .select('*')
+  .from('exercicios')
+  .select('*')
+  .order('categoria', { ascending: true })
+  .order('nome', { ascending: true })
 
   if (!error && data) {
     setExercicios(data)
