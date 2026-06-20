@@ -9,6 +9,13 @@ export function BibliotecaExercicios() {
   const [busca, setBusca] = useState('')
   const [showForm, setShowForm] = useState(false)
 const [exercicios, setExercicios] = useState<any[]>([])
+  const [nome, setNome] = useState('')
+const [slug, setSlug] = useState('')
+const [categoria, setCategoria] = useState('')
+const [dificuldade, setDificuldade] = useState('')
+const [descricao, setDescricao] = useState('')
+const [padraoMovimento, setPadraoMovimento] = useState('')
+const [dicasCoach, setDicasCoach] = useState('')
   useEffect(() => {
   carregarExercicios()
 }, [])
@@ -20,6 +27,36 @@ async function carregarExercicios() {
 
   if (!error && data) {
     setExercicios(data)
+  }
+}
+
+  async function salvarExercicio() {
+  const { error } = await supabase
+    .from('exercicios')
+    .insert([
+      {
+        nome,
+        slug,
+        categoria,
+        dificuldade,
+        descricao,
+        padrao_movimento: padraoMovimento,
+        dicas_coach: dicasCoach,
+        ativo: true
+      }
+    ])
+
+  if (!error) {
+    setShowForm(false)
+    carregarExercicios()
+
+    setNome('')
+    setSlug('')
+    setCategoria('')
+    setDificuldade('')
+    setDescricao('')
+    setPadraoMovimento('')
+    setDicasCoach('')
   }
 }
 
@@ -53,16 +90,53 @@ const filtrados = exercicios.filter((e) =>
         <GlassCard className="p-5 space-y-4">
           <h3 className="font-semibold text-text-primary">Novo Exercicio</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input placeholder="Nome do exercicio" />
-            <Input placeholder="Slug" />
-            <Input placeholder="Categoria" />
-            <Input placeholder="Dificuldade" />
-            <textarea placeholder="Descricao" rows={3} className="glass-input w-full resize-none sm:col-span-2" />
-            <textarea placeholder="Padrao de movimento" rows={3} className="glass-input w-full resize-none sm:col-span-2" />
-            <textarea placeholder="Dicas do coach" rows={3} className="glass-input w-full resize-none sm:col-span-2" />
+            <Input
+  placeholder="Nome do exercicio"
+  value={nome}
+  onChange={(e) => setNome(e.target.value)}
+/>
+
+<Input
+  placeholder="Slug"
+  value={slug}
+  onChange={(e) => setSlug(e.target.value)}
+/>
+
+<Input
+  placeholder="Categoria"
+  value={categoria}
+  onChange={(e) => setCategoria(e.target.value)}
+/>
+
+<Input
+  placeholder="Dificuldade"
+  value={dificuldade}
+  onChange={(e) => setDificuldade(e.target.value)}
+/>
+            <textarea
+  placeholder="Descricao"
+  rows={3}
+  value={descricao}
+  onChange={(e) => setDescricao(e.target.value)}
+  className="glass-input w-full resize-none sm:col-span-2"
+/>
+            <textarea
+  placeholder="Padrao de movimento"
+  rows={3}
+  value={padraoMovimento}
+  onChange={(e) => setPadraoMovimento(e.target.value)}
+  className="glass-input w-full resize-none sm:col-span-2"
+/>
+            <textarea
+  placeholder="Dicas do coach"
+  rows={3}
+  value={dicasCoach}
+  onChange={(e) => setDicasCoach(e.target.value)}
+  className="glass-input w-full resize-none sm:col-span-2"
+/>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => setShowForm(false)}>Salvar</Button>
+            <Button onClick={salvarExercicio}>Salvar</Button>
             <Button variant="ghost" onClick={() => setShowForm(false)}>Cancelar</Button>
           </div>
         </GlassCard>
