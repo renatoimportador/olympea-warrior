@@ -51,9 +51,14 @@ useEffect(() => {
       if (session?.user) {
         fetchProfile(session.user.id)
       } else {
-        setUser(null)
-        setLoading(false)
-      }
+  const savedUser = localStorage.getItem('olympea_user')
+
+  if (!savedUser) {
+    setUser(null)
+  }
+
+  setLoading(false)
+}
     })
 
     return () => subscription.unsubscribe()
