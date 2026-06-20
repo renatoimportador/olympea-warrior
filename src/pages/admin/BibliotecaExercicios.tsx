@@ -38,7 +38,6 @@ async function carregarExercicios() {
         nome,
         slug,
         categoria,
-        dificuldade,
         descricao,
         padrao_movimento: padraoMovimento,
         ativo: true
