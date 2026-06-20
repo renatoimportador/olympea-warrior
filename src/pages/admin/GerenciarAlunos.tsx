@@ -281,9 +281,12 @@ export function GerenciarAlunos() {
                 <Edit2 size={14} />
               </button>
 
-              <button onClick={() => handleDelete(a.id)}>
-                <Ban size={14} />
-              </button>
+              <button
+  onClick={() => handleDelete(a.id)}
+  className="p-1.5 rounded-lg hover:bg-red-500/10"
+>
+  <Ban size={14} color="#ef4444" />
+</button>
             </div>
           </GlassCard>
         ))}
