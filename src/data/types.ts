@@ -4,7 +4,7 @@
 
 export type UUID = string;
 
-export type UserRole = 'admin' | 'coach' | 'aluno';
+export type UserRole = 'head_coach' | 'coach' | 'aluno';
 export type CategoriaAluno = 'RX' | 'SCALING' | 'BEGINNER';
 export type DiaSemana = 'SEG' | 'TER' | 'QUA' | 'QUI' | 'SEX' | 'SAB' | 'DOM';
 export type TipoSemana = 'ORDINARIA' | 'FORTE' | 'DELOAD' | 'PEAK';
