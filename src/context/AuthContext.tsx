@@ -25,19 +25,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 useEffect(() => {
   const savedUser = localStorage.getItem('olympea_user')
+
   if (savedUser) {
     setUser(JSON.parse(savedUser))
     setLoading(false)
+    return
   }
 }, [])
   useEffect(() => {
     // Verificar sessao atual ao carregar
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchProfile(session.user.id)
-      } else {
-        setLoading(false)
-      }
+  fetchProfile(session.user.id)
+} else {
+  const savedUser = localStorage.getItem('olympea_user')
+
+  if (!savedUser) {
+    setLoading(false)
+  }
+}
     })
 
     // Listener para mudancas de auth
