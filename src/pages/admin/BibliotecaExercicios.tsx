@@ -36,7 +36,6 @@ async function carregarExercicios() {
     .insert([
       {
         nome,
-        slug,
         categoria,
         descricao,
         padrao_movimento: padraoMovimento,
