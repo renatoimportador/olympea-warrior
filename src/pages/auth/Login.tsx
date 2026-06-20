@@ -26,9 +26,15 @@ export function Login() {
 toast.success('Login realizado com sucesso')
 
 setTimeout(() => {
-  if (email === 'admin@olympea.com') navigate('/admin/dashboard')
-  else if (email === 'coach@olympea.com') navigate('/coach/dashboard')
+  const savedUser = localStorage.getItem('olympea_user')
+
+if (savedUser) {
+  const user = JSON.parse(savedUser)
+
+  if (user.role === 'head_coach') navigate('/admin/dashboard')
+  else if (user.role === 'coach') navigate('/coach/dashboard')
   else navigate('/aluno/dashboard')
+}
 }, 300)
     } catch {
       toast.error('Credenciais invalidas')
