@@ -41,7 +41,6 @@ async function carregarExercicios() {
         dificuldade,
         descricao,
         padrao_movimento: padraoMovimento,
-        dicas_coach: dicasCoach,
         ativo: true
       }
     ])
