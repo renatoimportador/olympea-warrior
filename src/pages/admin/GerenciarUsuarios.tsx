@@ -11,7 +11,7 @@ export function GerenciarUsuarios() {
   const [busca, setBusca] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState({ nome: '', email: '', role: 'aluno' as 'admin' | 'coach' | 'aluno', telefone: '' })
+  const [form, setForm] = useState({ nome: '', email: '', role: 'aluno' as 'admin' | 'head_coach'| 'coach' | 'aluno', telefone: '' })
 
   const usuariosFiltrados = usuarios
     .filter((u) => u.ativo)
