@@ -13,7 +13,7 @@ export function Login() {
   const navigate = useNavigate()
 
   const demoAccounts = [
-    { label: 'Administrador', email: 'admin@olympea.com' },
+    { label: 'Head Coach', email: 'admin@olympea.com' },
     { label: 'Coach', email: 'coach@olympea.com' },
     { label: 'Aluno', email: 'aluno@olympea.com' },
   ]
