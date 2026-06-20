@@ -1,13 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { niveis } from '@/data/seed'
+import { supabase } from '@/lib/supabase'
 import { Search, Plus, Layers, Edit2, Trash2 } from 'lucide-react'
 
 export function GerenciarNiveis() {
   const [busca, setBusca] = useState('')
-  const [showForm, setShowForm] = useState(false)
+const [showForm, setShowForm] = useState(false)
+const [niveis, setNiveis] = useState<any[]>([])
+
+  useEffect(() => {
+  carregarNiveis()
+}, [])
+
+async function carregarNiveis() {
+  const { data, error } = await supabase
+    .from('niveis')
+    .select('*')
+    .order('ordem', { ascending: true })
+
+  if (!error && data) {
+    setNiveis(data)
+  }
+}
 
   const filtrados = niveis.filter((n) =>
     n.ativo && n.nome.toLowerCase().includes(busca.toLowerCase())
