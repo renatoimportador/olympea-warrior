@@ -8,6 +8,7 @@ import { Search, Plus, Edit2, Trash2, BookOpen } from 'lucide-react'
 export function BibliotecaExercicios() {
   const [busca, setBusca] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
 const [exercicios, setExercicios] = useState<any[]>([])
   const [nome, setNome] = useState('')
 const [slug, setSlug] = useState('')
@@ -66,6 +67,14 @@ async function excluirExercicio(id: string) {
   if (!error) {
     carregarExercicios()
   }
+}
+  function editarExercicio(e: any) {
+  setEditandoId(e.id)
+  setNome(e.nome)
+  setCategoria(e.categoria)
+  setDescricao(e.descricao)
+  setPadraoMovimento(e.padrao_movimento || '')
+  setShowForm(true)
 }
 const filtrados = exercicios.filter((e) =>
   e.ativo &&
@@ -157,7 +166,10 @@ const filtrados = exercicios.filter((e) =>
                 <BookOpen size={18} className="text-accent" />
               </div>
               <div className="flex gap-1">
-                <button className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary">
+                <button
+  onClick={() => editarExercicio(e)}
+  className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary"
+>
                   <Edit2 size={14} />
                 </button>
                 <button
