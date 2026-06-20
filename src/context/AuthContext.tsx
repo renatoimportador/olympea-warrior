@@ -72,16 +72,26 @@ setLoading(false)
       .single()
 
     if (data && !error) {
-      setUser({
-        id: data.id,
-        nome: data.nome,
-        email: data.email,
-        role: data.role as UserRole,
-        foto_url: data.foto_url,
-        telefone: data.telefone,
-      })
-    }
-    setLoading(false)
+  const profile = {
+    id: data.id,
+    nome: data.nome,
+    email: data.email,
+    role: data.role as UserRole,
+    foto_url: data.foto_url,
+    telefone: data.telefone,
+  }
+
+  localStorage.setItem('olympea_user', JSON.stringify(profile))
+  setUser(profile)
+} else {
+  const savedUser = localStorage.getItem('olympea_user')
+
+  if (savedUser) {
+    setUser(JSON.parse(savedUser))
+  }
+}
+
+setLoading(false)
   }
 
   async function login(email: string, password: string) {
