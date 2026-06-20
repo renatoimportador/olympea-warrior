@@ -32,8 +32,15 @@ export function GerenciarAlunos() {
   async function carregarAlunos() {
     const { data, error } = await supabase
       .from('alunos')
-      .select('*')
-      .eq('ativo', true)
+      .select(`
+        *,
+        usuarios (
+          id,
+          nome,
+          email,
+          telefone
+        )
+      `)
 
     if (!error && data) {
       setAlunos(data)
@@ -51,10 +58,6 @@ export function GerenciarAlunos() {
       setNiveis(data)
     }
   }
-
-  const alunosFiltrados = alunos.filter((a) =>
-    a.nome.toLowerCase().includes(busca.toLowerCase())
-  )
 
   function resetForm() {
     setForm({
@@ -75,27 +78,50 @@ export function GerenciarAlunos() {
     }
 
     if (editingId) {
+      const alunoAtual = alunos.find((a) => a.id === editingId)
+
       await supabase
-        .from('alunos')
+        .from('usuarios')
         .update({
           nome: form.nome,
           email: form.email,
-          categoria: form.categoria,
-          peso: form.peso ? parseFloat(form.peso) : null,
-          altura: form.altura ? parseFloat(form.altura) : null,
           telefone: form.telefone,
+        })
+        .eq('id', alunoAtual.usuario_id)
+
+      await supabase
+        .from('alunos')
+        .update({
+          categoria: form.categoria,
+          peso_atual: form.peso ? parseFloat(form.peso) : null,
+          altura: form.altura ? parseFloat(form.altura) : null,
         })
         .eq('id', editingId)
 
       toast.success('Aluno atualizado!')
     } else {
+      const { data: novoUsuario, error: erroUsuario } = await supabase
+        .from('usuarios')
+        .insert({
+          nome: form.nome,
+          email: form.email,
+          telefone: form.telefone,
+          role: 'aluno',
+          ativo: true,
+        })
+        .select()
+        .single()
+
+      if (erroUsuario) {
+        toast.error('Erro ao criar usuário')
+        return
+      }
+
       await supabase.from('alunos').insert({
-        nome: form.nome,
-        email: form.email,
+        usuario_id: novoUsuario.id,
         categoria: form.categoria,
-        peso: form.peso ? parseFloat(form.peso) : null,
+        peso_atual: form.peso ? parseFloat(form.peso) : null,
         altura: form.altura ? parseFloat(form.altura) : null,
-        telefone: form.telefone,
         ativo: true,
       })
 
@@ -109,12 +135,12 @@ export function GerenciarAlunos() {
 
   function handleEdit(a: any) {
     setForm({
-      nome: a.nome,
-      email: a.email,
-      categoria: a.categoria,
-      peso: a.peso ? String(a.peso) : '',
+      nome: a.usuarios?.nome || '',
+      email: a.usuarios?.email || '',
+      categoria: a.categoria || '',
+      peso: a.peso_atual ? String(a.peso_atual) : '',
       altura: a.altura ? String(a.altura) : '',
-      telefone: a.telefone || '',
+      telefone: a.usuarios?.telefone || '',
     })
 
     setEditingId(a.id)
@@ -133,34 +159,39 @@ export function GerenciarAlunos() {
     carregarAlunos()
   }
 
+  const alunosFiltrados = alunos.filter((a) => {
+    const termo = busca.toLowerCase()
+
+    return (
+      a.ativo &&
+      (
+        a.usuarios?.nome?.toLowerCase().includes(termo) ||
+        a.categoria?.toLowerCase().includes(termo)
+      )
+    )
+  })
+
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">
-            Gerenciar Alunos
-          </h1>
+          <h1 className="text-2xl font-bold text-text-primary">Gerenciar Alunos</h1>
           <p className="text-sm text-text-secondary">
-            {alunos.length} alunos cadastrados
+            {alunosFiltrados.length} alunos cadastrados
           </p>
         </div>
 
-        <Button
-          onClick={() => {
-            resetForm()
-            setShowForm(!showForm)
-          }}
-        >
+        <Button onClick={() => {
+          resetForm()
+          setShowForm(!showForm)
+        }}>
           <Plus size={18} className="mr-2" />
           Novo Aluno
         </Button>
       </div>
 
       <div className="relative">
-        <Search
-          size={18}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-        />
+        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
         <Input
           className="pl-10"
           placeholder="Buscar aluno..."
@@ -179,28 +210,20 @@ export function GerenciarAlunos() {
             <Input
               placeholder="Nome completo"
               value={form.nome}
-              onChange={(e) =>
-                setForm({ ...form, nome: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, nome: e.target.value })}
             />
 
             <Input
               placeholder="Email"
-              type="email"
               value={form.email}
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
 
             <select
               value={form.categoria}
-              onChange={(e) =>
-                setForm({ ...form, categoria: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, categoria: e.target.value })}
               className="glass-input w-full text-sm"
             >
-              <option value="">Selecione o nível</option>
               {niveis.map((nivel) => (
                 <option key={nivel.id} value={nivel.slug}>
                   {nivel.nome}
@@ -212,26 +235,20 @@ export function GerenciarAlunos() {
               placeholder="Peso (kg)"
               type="number"
               value={form.peso}
-              onChange={(e) =>
-                setForm({ ...form, peso: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, peso: e.target.value })}
             />
 
             <Input
               placeholder="Altura (cm)"
               type="number"
               value={form.altura}
-              onChange={(e) =>
-                setForm({ ...form, altura: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, altura: e.target.value })}
             />
 
             <Input
               placeholder="Telefone"
               value={form.telefone}
-              onChange={(e) =>
-                setForm({ ...form, telefone: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, telefone: e.target.value })}
             />
           </div>
 
@@ -251,34 +268,31 @@ export function GerenciarAlunos() {
       <div className="space-y-2">
         {alunosFiltrados.map((a) => (
           <GlassCard key={a.id} className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent font-bold text-sm">
-              {a.nome?.charAt(0)}
-            </div>
-
-            <div className="flex-1 min-w-0">
+            <div className="flex-1">
               <p className="text-sm font-medium text-text-primary">
-                {a.nome}
+                {a.usuarios?.nome}
               </p>
+
               <p className="text-xs text-text-secondary">
-                {a.email}
+                {a.usuarios?.email}
               </p>
             </div>
 
-            <Badge variant="accent">
+            <Badge>
               {a.categoria}
             </Badge>
 
             <div className="flex items-center gap-1">
               <button
                 onClick={() => handleEdit(a)}
-                className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary"
+                className="p-1.5 rounded-lg"
               >
                 <Edit2 size={14} />
               </button>
 
               <button
                 onClick={() => handleDelete(a.id)}
-                className="p-1.5 rounded-lg hover:bg-error/5 text-error"
+                className="p-1.5 rounded-lg text-red-500"
               >
                 <Ban size={14} />
               </button>
