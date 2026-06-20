@@ -31,7 +31,7 @@ async function carregarExercicios() {
 }
 
   async function salvarExercicio() {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('exercicios')
     .insert([
       {
@@ -45,7 +45,8 @@ async function carregarExercicios() {
         ativo: true
       }
     ])
-
+console.log('DATA:', data)
+console.log('ERROR:', error)
   if (!error) {
     setShowForm(false)
     carregarExercicios()
