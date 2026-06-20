@@ -1,18 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { exercicios } from '@/data/seed'
+import { supabase } from '@/lib/supabase'
 import { Search, Plus, Edit2, Trash2, BookOpen } from 'lucide-react'
 
 export function BibliotecaExercicios() {
   const [busca, setBusca] = useState('')
   const [showForm, setShowForm] = useState(false)
+const [exercicios, setExercicios] = useState<any[]>([])
+  useEffect(() => {
+  carregarExercicios()
+}, [])
 
-  const filtrados = exercicios.filter((e) =>
-    e.ativo && (e.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    e.categoria.toLowerCase().includes(busca.toLowerCase()))
+async function carregarExercicios() {
+  const { data, error } = await supabase
+    .from('exercicios')
+    .select('*')
+
+  if (!error && data) {
+    setExercicios(data)
+  }
+}
+
+const filtrados = exercicios.filter((e) =>
+  e.ativo &&
+  (
+    e.nome.toLowerCase().includes(busca.toLowerCase()) ||
+    e.categoria.toLowerCase().includes(busca.toLowerCase())
   )
+)
 
   return (
     <div className="space-y-5 animate-fade-in">
