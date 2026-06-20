@@ -42,6 +42,9 @@ export function GerenciarAlunos() {
         )
       `)
 
+    console.log('CARREGAR ALUNOS:', data)
+    console.log('ERRO CARREGAR ALUNOS:', error)
+
     if (!error && data) {
       setAlunos(data)
     }
@@ -53,6 +56,9 @@ export function GerenciarAlunos() {
       .select('*')
       .eq('ativo', true)
       .order('ordem', { ascending: true })
+
+    console.log('CARREGAR NIVEIS:', data)
+    console.log('ERRO CARREGAR NIVEIS:', error)
 
     if (!error && data) {
       setNiveis(data)
@@ -80,7 +86,7 @@ export function GerenciarAlunos() {
     if (editingId) {
       const alunoAtual = alunos.find((a) => a.id === editingId)
 
-      await supabase
+      const { error: erroUpdateUsuario } = await supabase
         .from('usuarios')
         .update({
           nome: form.nome,
@@ -89,7 +95,9 @@ export function GerenciarAlunos() {
         })
         .eq('id', alunoAtual.usuario_id)
 
-      await supabase
+      console.log('ERRO UPDATE USUARIO:', erroUpdateUsuario)
+
+      const { error: erroUpdateAluno } = await supabase
         .from('alunos')
         .update({
           categoria: form.categoria,
@@ -97,6 +105,8 @@ export function GerenciarAlunos() {
           altura: form.altura ? parseFloat(form.altura) : null,
         })
         .eq('id', editingId)
+
+      console.log('ERRO UPDATE ALUNO:', erroUpdateAluno)
 
       toast.success('Aluno atualizado!')
     } else {
@@ -112,18 +122,32 @@ export function GerenciarAlunos() {
         .select()
         .single()
 
-      if (erroUsuario) {
+      console.log('NOVO USUARIO:', novoUsuario)
+      console.log('ERRO USUARIO:', erroUsuario)
+
+      if (erroUsuario || !novoUsuario) {
         toast.error('Erro ao criar usuário')
         return
       }
 
-      await supabase.from('alunos').insert({
-        usuario_id: novoUsuario.id,
-        categoria: form.categoria,
-        peso_atual: form.peso ? parseFloat(form.peso) : null,
-        altura: form.altura ? parseFloat(form.altura) : null,
-        ativo: true,
-      })
+      const { data: novoAluno, error: erroAluno } = await supabase
+        .from('alunos')
+        .insert({
+          usuario_id: novoUsuario.id,
+          categoria: form.categoria,
+          peso_atual: form.peso ? parseFloat(form.peso) : null,
+          altura: form.altura ? parseFloat(form.altura) : null,
+          ativo: true,
+        })
+        .select()
+
+      console.log('NOVO ALUNO:', novoAluno)
+      console.log('ERRO ALUNO:', erroAluno)
+
+      if (erroAluno) {
+        toast.error('Erro ao criar aluno')
+        return
+      }
 
       toast.success('Aluno criado!')
     }
@@ -150,10 +174,12 @@ export function GerenciarAlunos() {
   async function handleDelete(id: string) {
     if (!confirm('Deseja realmente excluir este aluno?')) return
 
-    await supabase
+    const { error } = await supabase
       .from('alunos')
       .update({ ativo: false })
       .eq('id', id)
+
+    console.log('ERRO DELETE:', error)
 
     toast.success('Aluno excluído!')
     carregarAlunos()
@@ -207,17 +233,8 @@ export function GerenciarAlunos() {
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input
-              placeholder="Nome completo"
-              value={form.nome}
-              onChange={(e) => setForm({ ...form, nome: e.target.value })}
-            />
-
-            <Input
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
+            <Input placeholder="Nome completo" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+            <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
 
             <select
               value={form.categoria}
@@ -231,25 +248,9 @@ export function GerenciarAlunos() {
               ))}
             </select>
 
-            <Input
-              placeholder="Peso (kg)"
-              type="number"
-              value={form.peso}
-              onChange={(e) => setForm({ ...form, peso: e.target.value })}
-            />
-
-            <Input
-              placeholder="Altura (cm)"
-              type="number"
-              value={form.altura}
-              onChange={(e) => setForm({ ...form, altura: e.target.value })}
-            />
-
-            <Input
-              placeholder="Telefone"
-              value={form.telefone}
-              onChange={(e) => setForm({ ...form, telefone: e.target.value })}
-            />
+            <Input placeholder="Peso (kg)" type="number" value={form.peso} onChange={(e) => setForm({ ...form, peso: e.target.value })} />
+            <Input placeholder="Altura (cm)" type="number" value={form.altura} onChange={(e) => setForm({ ...form, altura: e.target.value })} />
+            <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
           </div>
 
           <div className="flex gap-2">
@@ -269,31 +270,18 @@ export function GerenciarAlunos() {
         {alunosFiltrados.map((a) => (
           <GlassCard key={a.id} className="p-4 flex items-center gap-4">
             <div className="flex-1">
-              <p className="text-sm font-medium text-text-primary">
-                {a.usuarios?.nome}
-              </p>
-
-              <p className="text-xs text-text-secondary">
-                {a.usuarios?.email}
-              </p>
+              <p>{a.usuarios?.nome}</p>
+              <p>{a.usuarios?.email}</p>
             </div>
 
-            <Badge>
-              {a.categoria}
-            </Badge>
+            <Badge>{a.categoria}</Badge>
 
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleEdit(a)}
-                className="p-1.5 rounded-lg"
-              >
+              <button onClick={() => handleEdit(a)}>
                 <Edit2 size={14} />
               </button>
 
-              <button
-                onClick={() => handleDelete(a.id)}
-                className="p-1.5 rounded-lg text-red-500"
-              >
+              <button onClick={() => handleDelete(a.id)}>
                 <Ban size={14} />
               </button>
             </div>
