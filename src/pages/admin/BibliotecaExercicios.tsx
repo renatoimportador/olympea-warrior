@@ -32,30 +32,45 @@ async function carregarExercicios() {
 }
 
   async function salvarExercicio() {
-  const { data, error } = await supabase
-    .from('exercicios')
-    .insert([
-      {
+  let error = null
+
+  if (editandoId) {
+    const { error: updateError } = await supabase
+      .from('exercicios')
+      .update({
         nome,
         categoria,
         descricao,
-        padrao_movimento: padraoMovimento,
-        ativo: true
-      }
-    ])
-console.log('DATA:', data)
-console.log('ERROR FULL:', JSON.stringify(error, null, 2))
+        padrao_movimento: padraoMovimento
+      })
+      .eq('id', editandoId)
+
+    error = updateError
+  } else {
+    const { error: insertError } = await supabase
+      .from('exercicios')
+      .insert([
+        {
+          nome,
+          categoria,
+          descricao,
+          padrao_movimento: padraoMovimento,
+          ativo: true
+        }
+      ])
+
+    error = insertError
+  }
+
   if (!error) {
     setShowForm(false)
+    setEditandoId(null)
     carregarExercicios()
 
     setNome('')
-    setSlug('')
     setCategoria('')
-    setDificuldade('')
     setDescricao('')
     setPadraoMovimento('')
-    setDicasCoach('')
   }
 }
 async function excluirExercicio(id: string) {
