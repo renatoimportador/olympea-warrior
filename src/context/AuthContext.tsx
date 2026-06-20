@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loginDemo(email: string) {
     const demoUsers: Record<string, AuthUser> = {
-      'admin@olympea.com': { id: 'u-admin', nome: 'Renato Souza', email: 'admin@olympea.com', role: 'admin' },
+      'admin@olympea.com': { id: 'u-admin', nome: 'Renato Souza', email: 'admin@olympea.com', role: 'head_coach' },
       'coach@olympea.com': { id: 'u-coach1', nome: 'Coach Rafael', email: 'coach@olympea.com', role: 'coach' },
       'aluno@olympea.com': { id: 'u-aluno1', nome: 'Bruno Almeida', email: 'aluno@olympea.com', role: 'aluno' },
       'carla@olympea.com': { id: 'u-aluno2', nome: 'Carla Mendes', email: 'carla@olympea.com', role: 'aluno' },
