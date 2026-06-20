@@ -23,10 +23,13 @@ export function Login() {
     setIsLoading(true)
     try {
       await login(email, password)
-      toast.success('Login realizado com sucesso!')
-      if (email === 'admin@olympea.com') navigate('/admin/dashboard')
-      else if (email === 'coach@olympea.com') navigate('/coach/dashboard')
-      else navigate('/aluno/dashboard')
+toast.success('Login realizado com sucesso')
+
+setTimeout(() => {
+  if (email === 'admin@olympea.com') navigate('/admin/dashboard')
+  else if (email === 'coach@olympea.com') navigate('/coach/dashboard')
+  else navigate('/aluno/dashboard')
+}, 300)
     } catch {
       toast.error('Credenciais invalidas')
     } finally {
