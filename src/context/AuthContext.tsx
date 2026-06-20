@@ -87,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const found = demoUsers[email]
     if (found) {
       setUser(found)
+      return
     } else {
       throw new Error('Credenciais invalidas')
     }
