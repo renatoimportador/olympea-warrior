@@ -57,7 +57,16 @@ console.log('ERROR FULL:', JSON.stringify(error, null, 2))
     setDicasCoach('')
   }
 }
+async function excluirExercicio(id: string) {
+  const { error } = await supabase
+    .from('exercicios')
+    .delete()
+    .eq('id', id)
 
+  if (!error) {
+    carregarExercicios()
+  }
+}
 const filtrados = exercicios.filter((e) =>
   e.ativo &&
   (
@@ -151,7 +160,10 @@ const filtrados = exercicios.filter((e) =>
                 <button className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary">
                   <Edit2 size={14} />
                 </button>
-                <button className="p-1.5 rounded-lg hover:bg-error/5 text-error">
+                <button
+  onClick={() => excluirExercicio(e.id)}
+  className="p-1.5 rounded-lg hover:bg-error/5 text-error"
+>
                   <Trash2 size={14} />
                 </button>
               </div>
