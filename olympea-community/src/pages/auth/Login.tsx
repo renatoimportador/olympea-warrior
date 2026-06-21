@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { supabase } from '@/lib/supabase'
 import { Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -12,7 +10,6 @@ export function Login() {
   const [isLoading, setIsLoading] = useState(false)
 
   const { login } = useAuth()
-  const navigate = useNavigate()
 
   const demoAccounts = [
     { label: 'Administrador', email: 'admin@olympea.com' },
@@ -26,57 +23,11 @@ export function Login() {
 
     try {
       await login(email, password)
-      await new Promise(resolve => setTimeout(resolve, 880))
-      console.log('PASSO 1: login concluido')
-
-      const {
-        data: { user }
-      } = await supabase.auth.getUser()
-
-      console.log('PASSO 2: user auth', user)
-
-      if (!user) {
-        toast.error('Usuario nao encontrado')
-        setIsLoading(false)
-        return
-      }
-
-      const { data: usuarioDb, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', user.email)
-        .single()
-
-      console.log('PASSO 3: usuario banco', usuarioDb)
-      console.log('PASSO 3 erro:', error)
-
-      if (error || !usuarioDb) {
-        toast.error('Perfil nao encontrado')
-        setIsLoading(false)
-        return
-      }
 
       toast.success('Login realizado com sucesso!')
-
-      console.log('PASSO 4: role encontrada', usuarioDb.role)
-
-      if (
-        usuarioDb.role === 'admin' ||
-        usuarioDb.role === 'head_coach'
-      ) {
-        console.log('INDO PARA ADMIN')
-        navigate('/admin/dashboard')
-      } else if (usuarioDb.role === 'coach') {
-        console.log('INDO PARA COACH')
-        navigate('/coach/dashboard')
-      } else {
-        console.log('INDO PARA ALUNO')
-        navigate('/aluno/dashboard')
-      }
-
     } catch (err) {
       console.error('ERRO LOGIN:', err)
-      toast.error('Credenciais invalidas')
+      toast.error('Credenciais inválidas')
     } finally {
       setIsLoading(false)
     }
