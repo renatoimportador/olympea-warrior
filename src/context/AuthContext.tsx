@@ -40,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(session.user.id, session.user.email)
       } else {
         setUser(null)
+        localStorage.removeItem('olympea_user')
         setLoading(false)
       }
     })
@@ -66,20 +67,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       error = res.error
     }
 
-    if (data && !error) {
-      setUser({
-        id: data.id,
-        nome: data.nome,
-        email: data.email,
-        role: data.role as UserRole,
-        foto_url: data.foto_url,
-        telefone: data.telefone,
-      })
-    } else {
-      // Se nao achou perfil, desloga para evitar estado inconsistente
+    if (error || !data) {
+      console.error('Erro ao buscar perfil:', error)
       setUser(null)
-      await supabase.auth.signOut()
+      setLoading(false)
+      return
     }
+
+    const profile: AuthUser = {
+      id: data.id,
+      nome: data.nome,
+      email: data.email,
+      role: data.role as UserRole,
+      foto_url: data.foto_url,
+      telefone: data.telefone,
+    }
+
+    localStorage.setItem('olympea_user', JSON.stringify(profile))
+    setUser(profile)
     setLoading(false)
   }
 
@@ -94,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     await supabase.auth.signOut()
     setUser(null)
+    localStorage.removeItem('olympea_user')
   }
 
   return (

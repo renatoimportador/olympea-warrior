@@ -16,7 +16,7 @@ export function Topbar() {
       <div className="flex items-center gap-3">
         <h1 className="text-lg font-bold text-gradient-accent lg:hidden">{box.nome || 'OLYMPEA Warrior'}</h1>
         <span className="text-xs text-text-secondary hidden lg:inline">
-          {user?.role === 'admin' ? 'Administrador' : user?.role === 'coach' ? 'Coach' : 'Aluno'}
+          {user?.role === 'head_coach' ? 'Head Coach' : user?.role === 'coach' ? 'Coach' : 'Aluno'}
         </span>
       </div>
 

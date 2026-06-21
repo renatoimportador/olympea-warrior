@@ -36,8 +36,25 @@ export async function excluirUsuario(id: string) {
   const { error } = await supabase.from('usuarios').update({ ativo: false }).eq('id', id)
   if (error) throw error
 }
-export async function getUsuarioByEmail(email: string) {
-  const { data, error } = await supabase.from('usuarios').select('*').eq('email', email).single()
+  
+  export async function getUsuarioByEmail(email: string) {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (error) return null
+  return data as Usuario
+}
+
+export async function getUsuarioById(id: string) {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('id', id)
+    .single()
+
   if (error) return null
   return data as Usuario
 }
@@ -233,7 +250,8 @@ export async function atualizarTreino(id: string, treino: Partial<Treino>) {
   return data as Treino
 }
 export async function excluirTreino(id: string) {
-  const { error } = await supabase.from('treinos').update({ ativo: false }).eq('id', id)
+  const { error } = await supabase.from('treinos').delete().eq('id', id)
+
   if (error) throw error
 }
 
@@ -277,7 +295,20 @@ export async function criarExercicio(ex: Partial<Exercicio>) {
    RESULTADOS
    ============================================================= */
 export async function listarResultadosByAluno(alunoId: string) {
-  const { data, error } = await supabase.from('resultados').select('*').eq('aluno_id', alunoId).order('data', { ascending: false })
+  const { data, error } = await supabase
+    .from('resultados')
+    .select(`
+      *,
+      aluno:alunos(
+        id,
+        usuario:usuarios(
+          nome
+        )
+      )
+    `)
+    .eq('aluno_id', alunoId)
+    .order('data', { ascending: false })
+
   if (error) throw error
   return data as Resultado[]
 }

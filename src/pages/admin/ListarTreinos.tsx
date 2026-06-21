@@ -236,14 +236,12 @@ export function ListarTreinos() {
     if (!confirm('Deseja realmente excluir este treino?')) return
 
     try {
-      await excluirTreino(id)
-      toast.success('Treino excluido!')
+  await excluirTreino(id)
 
-      if (semanaAtiva) {
-        // Dispara recarga manual
-        setSemanaAtiva(prev => prev)
-      }
-    } catch {
+  setTreinos((prev: any[]) => prev.filter((item) => item.treino.id !== id))
+
+  toast.success('Treino excluído!')
+} catch {
       toast.error('Erro ao excluir treino')
     }
   }

@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { useAuth } from '@/context/AuthContext'
-import { criarResultado, getAlunoByUsuarioId, getTreinoById } from '@/lib/api'
+import { criarResultado, getAlunoByUsuarioId } from '@/lib/api'
 import toast from 'react-hot-toast'
 import {
-  Timer, Hash, Weight, Ruler, Camera, MessageSquare,
-  Target, Brain, Smile, Save, ChevronRight,
+  Timer, Hash, Weight, Ruler, Camera,
+  Target, Brain, Smile, Save,
 } from 'lucide-react'
 
 type TipoResultado = 'TEMPO' | 'ROUNDS_REPS' | 'CARGA'
@@ -48,6 +48,20 @@ export function RegistrarResultado() {
   async function handleSave() {
     if (!alunoId) { toast.error('Aluno nao encontrado'); return }
     if (!treinoId) { toast.error('Treino nao informado'); return }
+    if (tipo === 'TEMPO' && !form.tempo) {
+  toast.error('Informe o tempo')
+  return
+}
+
+if (tipo === 'ROUNDS_REPS' && !form.rounds && !form.repeticoes) {
+  toast.error('Informe rounds ou repeticoes')
+  return
+}
+
+if (tipo === 'CARGA' && !form.carga) {
+  toast.error('Informe a carga')
+  return
+}
     setLoading(true)
     try {
       await criarResultado({

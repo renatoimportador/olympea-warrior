@@ -1,18 +1,105 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { exercicios } from '@/data/seed'
+import { supabase } from '@/lib/supabase'
 import { Search, Plus, Edit2, Trash2, BookOpen } from 'lucide-react'
 
 export function BibliotecaExercicios() {
   const [busca, setBusca] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+const [exercicios, setExercicios] = useState<any[]>([])
+  const [nome, setNome] = useState('')
+const [slug, setSlug] = useState('')
+const [categoria, setCategoria] = useState('')
+const [dificuldade, setDificuldade] = useState('')
+const [descricao, setDescricao] = useState('')
+const [padraoMovimento, setPadraoMovimento] = useState('')
+const [dicasCoach, setDicasCoach] = useState('')
+  useEffect(() => {
+  carregarExercicios()
+}, [])
 
-  const filtrados = exercicios.filter((e) =>
-    e.ativo && (e.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    e.categoria.toLowerCase().includes(busca.toLowerCase()))
+async function carregarExercicios() {
+  const { data, error } = await supabase
+  .from('exercicios')
+  .select('*')
+  .order('categoria', { ascending: true })
+  .order('nome', { ascending: true })
+
+  if (!error && data) {
+    setExercicios(data)
+  }
+}
+
+  async function salvarExercicio() {
+  let error = null
+
+  if (editandoId) {
+    const { error: updateError } = await supabase
+      .from('exercicios')
+      .update({
+        nome,
+        categoria,
+        descricao,
+        padrao_movimento: padraoMovimento
+      })
+      .eq('id', editandoId)
+
+    error = updateError
+  } else {
+    const { error: insertError } = await supabase
+      .from('exercicios')
+      .insert([
+        {
+          nome,
+          categoria,
+          descricao,
+          padrao_movimento: padraoMovimento,
+          ativo: true
+        }
+      ])
+
+    error = insertError
+  }
+
+  if (!error) {
+    setShowForm(false)
+    setEditandoId(null)
+    carregarExercicios()
+
+    setNome('')
+    setCategoria('')
+    setDescricao('')
+    setPadraoMovimento('')
+  }
+}
+async function excluirExercicio(id: string) {
+  const { error } = await supabase
+    .from('exercicios')
+    .delete()
+    .eq('id', id)
+
+  if (!error) {
+    carregarExercicios()
+  }
+}
+  function editarExercicio(e: any) {
+  setEditandoId(e.id)
+  setNome(e.nome)
+  setCategoria(e.categoria)
+  setDescricao(e.descricao)
+  setPadraoMovimento(e.padrao_movimento || '')
+  setShowForm(true)
+}
+const filtrados = exercicios.filter((e) =>
+  e.ativo &&
+  (
+    e.nome.toLowerCase().includes(busca.toLowerCase()) ||
+    e.categoria.toLowerCase().includes(busca.toLowerCase())
   )
+)
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -36,16 +123,53 @@ export function BibliotecaExercicios() {
         <GlassCard className="p-5 space-y-4">
           <h3 className="font-semibold text-text-primary">Novo Exercicio</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input placeholder="Nome do exercicio" />
-            <Input placeholder="Slug" />
-            <Input placeholder="Categoria" />
-            <Input placeholder="Dificuldade" />
-            <textarea placeholder="Descricao" rows={3} className="glass-input w-full resize-none sm:col-span-2" />
-            <textarea placeholder="Padrao de movimento" rows={3} className="glass-input w-full resize-none sm:col-span-2" />
-            <textarea placeholder="Dicas do coach" rows={3} className="glass-input w-full resize-none sm:col-span-2" />
+            <Input
+  placeholder="Nome do exercicio"
+  value={nome}
+  onChange={(e) => setNome(e.target.value)}
+/>
+
+<Input
+  placeholder="Slug"
+  value={slug}
+  onChange={(e) => setSlug(e.target.value)}
+/>
+
+<Input
+  placeholder="Categoria"
+  value={categoria}
+  onChange={(e) => setCategoria(e.target.value)}
+/>
+
+<Input
+  placeholder="Dificuldade"
+  value={dificuldade}
+  onChange={(e) => setDificuldade(e.target.value)}
+/>
+            <textarea
+  placeholder="Descricao"
+  rows={3}
+  value={descricao}
+  onChange={(e) => setDescricao(e.target.value)}
+  className="glass-input w-full resize-none sm:col-span-2"
+/>
+            <textarea
+  placeholder="Padrao de movimento"
+  rows={3}
+  value={padraoMovimento}
+  onChange={(e) => setPadraoMovimento(e.target.value)}
+  className="glass-input w-full resize-none sm:col-span-2"
+/>
+            <textarea
+  placeholder="Dicas do coach"
+  rows={3}
+  value={dicasCoach}
+  onChange={(e) => setDicasCoach(e.target.value)}
+  className="glass-input w-full resize-none sm:col-span-2"
+/>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => setShowForm(false)}>Salvar</Button>
+            <Button onClick={salvarExercicio}>Salvar</Button>
             <Button variant="ghost" onClick={() => setShowForm(false)}>Cancelar</Button>
           </div>
         </GlassCard>
@@ -59,10 +183,16 @@ export function BibliotecaExercicios() {
                 <BookOpen size={18} className="text-accent" />
               </div>
               <div className="flex gap-1">
-                <button className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary">
+                <button
+  onClick={() => editarExercicio(e)}
+  className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary"
+>
                   <Edit2 size={14} />
                 </button>
-                <button className="p-1.5 rounded-lg hover:bg-error/5 text-error">
+                <button
+  onClick={() => excluirExercicio(e.id)}
+  className="p-1.5 rounded-lg hover:bg-error/5 text-error"
+>
                   <Trash2 size={14} />
                 </button>
               </div>

@@ -17,7 +17,7 @@ export let boxPrincipal: Box = {
 }
 
 export let usuarios: Usuario[] = [
-  { id: 'u-admin', box_id: 'box-1', nome: 'Renato Souza', email: 'admin@olympea.com', senha_hash: '', role: 'admin', foto_url: '', ativo: true, auth_provider: 'email', telefone: '', created_at: '', updated_at: '' },
+  { id: 'u-admin', box_id: 'box-1', nome: 'Renato Souza', email: 'admin@olympea.com', senha_hash: '', role: 'head_coach', foto_url: '', ativo: true, auth_provider: 'email', telefone: '', created_at: '', updated_at: '' },
   { id: 'u-coach1', box_id: 'box-1', nome: 'Coach Rafael', email: 'coach@olympea.com', senha_hash: '', role: 'coach', foto_url: '', ativo: true, auth_provider: 'email', telefone: '', created_at: '', updated_at: '' },
   { id: 'u-aluno1', box_id: 'box-1', nome: 'Bruno Almeida', email: 'aluno@olympea.com', senha_hash: '', role: 'aluno', foto_url: '', ativo: true, auth_provider: 'email', telefone: '', created_at: '', updated_at: '' },
   { id: 'u-aluno2', box_id: 'box-1', nome: 'Carla Mendes', email: 'carla@olympea.com', senha_hash: '', role: 'aluno', foto_url: '', ativo: true, auth_provider: 'email', telefone: '', created_at: '', updated_at: '' },
