@@ -8,7 +8,7 @@ interface ProgramacaoContextData {
 
 const ProgramacaoContext = createContext<ProgramacaoContextData>({
   programacaoAtiva: null,
-  setProgramacaoAtiva: () => {},
+  setProgramacaoAtiva: () => {}
 })
 
 export function ProgramacaoProvider({ children }: { children: ReactNode }) {
