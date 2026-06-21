@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Verificar sessao atual ao carregar
+    // Verificar sessão atual ao carregar
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchProfile(session.user.id)
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    // Listener para mudancas de auth
+    // Listener de mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         fetchProfile(session.user.id)
@@ -48,10 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function fetchProfile(authId: string) {
+    const { data: authData } = await supabase.auth.getUser()
+    const userEmail = authData.user?.email
+
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
-      .eq('auth_id', authId)
+      .or(`auth_id.eq.${authId},email.eq.${userEmail}`)
       .single()
 
     if (data && !error) {
@@ -64,13 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         telefone: data.telefone,
       })
     }
+
     setLoading(false)
   }
 
   async function login(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
+
     if (error) {
-      // Fallback para modo demo/seed enquanto nao ha usuarios no Auth
       await loginDemo(email)
       return
     }
@@ -78,17 +82,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loginDemo(email: string) {
     const demoUsers: Record<string, AuthUser> = {
-      'admin@olympea.com': { id: 'u-admin', nome: 'Renato Souza', email: 'admin@olympea.com', role: 'admin' },
-      'coach@olympea.com': { id: 'u-coach1', nome: 'Coach Rafael', email: 'coach@olympea.com', role: 'coach' },
-      'aluno@olympea.com': { id: 'u-aluno1', nome: 'Bruno Almeida', email: 'aluno@olympea.com', role: 'aluno' },
-      'carla@olympea.com': { id: 'u-aluno2', nome: 'Carla Mendes', email: 'carla@olympea.com', role: 'aluno' },
-      'diego@olympea.com': { id: 'u-aluno3', nome: 'Diego Costa', email: 'diego@olympea.com', role: 'aluno' },
+      'admin@olympea.com': {
+        id: 'u-admin',
+        nome: 'Renato Souza',
+        email: 'admin@olympea.com',
+        role: 'admin'
+      },
+      'coach@olympea.com': {
+        id: 'u-coach1',
+        nome: 'Coach Rafael',
+        email: 'coach@olympea.com',
+        role: 'coach'
+      },
+      'aluno@olympea.com': {
+        id: 'u-aluno1',
+        nome: 'Bruno Almeida',
+        email: 'aluno@olympea.com',
+        role: 'aluno'
+      },
+      'carla@olympea.com': {
+        id: 'u-aluno2',
+        nome: 'Carla Mendes',
+        email: 'carla@olympea.com',
+        role: 'aluno'
+      },
+      'diego@olympea.com': {
+        id: 'u-aluno3',
+        nome: 'Diego Costa',
+        email: 'diego@olympea.com',
+        role: 'aluno'
+      },
     }
+
     const found = demoUsers[email]
+
     if (found) {
       setUser(found)
     } else {
-      throw new Error('Credenciais invalidas')
+      throw new Error('Credenciais inválidas')
     }
   }
 
