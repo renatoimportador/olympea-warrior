@@ -42,9 +42,6 @@ export function GerenciarAlunos() {
         )
       `)
 
-    console.log('CARREGAR ALUNOS:', data)
-    console.log('ERRO CARREGAR ALUNOS:', error)
-
     if (!error && data) {
       setAlunos(data)
     }
@@ -56,9 +53,6 @@ export function GerenciarAlunos() {
       .select('*')
       .eq('ativo', true)
       .order('ordem', { ascending: true })
-
-    console.log('CARREGAR NIVEIS:', data)
-    console.log('ERRO CARREGAR NIVEIS:', error)
 
     if (!error && data) {
       setNiveis(data)
@@ -95,7 +89,10 @@ export function GerenciarAlunos() {
         })
         .eq('id', alunoAtual.usuario_id)
 
-      console.log('ERRO UPDATE USUARIO:', erroUpdateUsuario)
+      if (erroUpdateUsuario) {
+        toast.error('Erro ao atualizar usuário')
+        return
+      }
 
       const { error: erroUpdateAluno } = await supabase
         .from('alunos')
@@ -106,13 +103,31 @@ export function GerenciarAlunos() {
         })
         .eq('id', editingId)
 
-      console.log('ERRO UPDATE ALUNO:', erroUpdateAluno)
+      if (erroUpdateAluno) {
+        toast.error('Erro ao atualizar aluno')
+        return
+      }
 
       toast.success('Aluno atualizado!')
     } else {
+      const senhaPadrao = 'Aluno@123456'
+
+      // cria usuário no auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: form.email,
+        password: senhaPadrao,
+      })
+
+      if (authError || !authData.user) {
+        toast.error('Erro ao criar login do aluno')
+        return
+      }
+
+      // cria usuário interno
       const { data: novoUsuario, error: erroUsuario } = await supabase
         .from('usuarios')
         .insert({
+          id: authData.user.id,
           nome: form.nome,
           email: form.email,
           telefone: form.telefone,
@@ -122,15 +137,13 @@ export function GerenciarAlunos() {
         .select()
         .single()
 
-      console.log('NOVO USUARIO:', novoUsuario)
-      console.log('ERRO USUARIO:', erroUsuario)
-
       if (erroUsuario || !novoUsuario) {
         toast.error('Erro ao criar usuário')
         return
       }
 
-      const { data: novoAluno, error: erroAluno } = await supabase
+      // cria aluno
+      const { error: erroAluno } = await supabase
         .from('alunos')
         .insert({
           usuario_id: novoUsuario.id,
@@ -139,17 +152,13 @@ export function GerenciarAlunos() {
           altura: form.altura ? parseFloat(form.altura) : null,
           ativo: true,
         })
-        .select()
-
-      console.log('NOVO ALUNO:', novoAluno)
-      console.log('ERRO ALUNO:', erroAluno)
 
       if (erroAluno) {
         toast.error('Erro ao criar aluno')
         return
       }
 
-      toast.success('Aluno criado!')
+      toast.success(`Aluno criado! Senha: ${senhaPadrao}`)
     }
 
     resetForm()
@@ -179,7 +188,10 @@ export function GerenciarAlunos() {
       .update({ ativo: false })
       .eq('id', id)
 
-    console.log('ERRO DELETE:', error)
+    if (error) {
+      toast.error('Erro ao excluir aluno')
+      return
+    }
 
     toast.success('Aluno excluído!')
     carregarAlunos()
@@ -233,8 +245,17 @@ export function GerenciarAlunos() {
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input placeholder="Nome completo" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-            <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input
+              placeholder="Nome completo"
+              value={form.nome}
+              onChange={(e) => setForm({ ...form, nome: e.target.value })}
+            />
+
+            <Input
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
 
             <select
               value={form.categoria}
@@ -248,9 +269,25 @@ export function GerenciarAlunos() {
               ))}
             </select>
 
-            <Input placeholder="Peso (kg)" type="number" value={form.peso} onChange={(e) => setForm({ ...form, peso: e.target.value })} />
-            <Input placeholder="Altura (cm)" type="number" value={form.altura} onChange={(e) => setForm({ ...form, altura: e.target.value })} />
-            <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+            <Input
+              placeholder="Peso (kg)"
+              type="number"
+              value={form.peso}
+              onChange={(e) => setForm({ ...form, peso: e.target.value })}
+            />
+
+            <Input
+              placeholder="Altura (cm)"
+              type="number"
+              value={form.altura}
+              onChange={(e) => setForm({ ...form, altura: e.target.value })}
+            />
+
+            <Input
+              placeholder="Telefone"
+              value={form.telefone}
+              onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+            />
           </div>
 
           <div className="flex gap-2">
@@ -282,11 +319,11 @@ export function GerenciarAlunos() {
               </button>
 
               <button
-  onClick={() => handleDelete(a.id)}
-  className="p-1.5 rounded-lg hover:bg-red-500/10"
->
-  <Ban size={14} color="#ef4444" />
-</button>
+                onClick={() => handleDelete(a.id)}
+                className="p-1.5 rounded-lg hover:bg-red-500/10"
+              >
+                <Ban size={14} color="#ef4444" />
+              </button>
             </div>
           </GlassCard>
         ))}
