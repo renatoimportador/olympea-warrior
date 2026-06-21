@@ -56,39 +56,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('usuarios')
       .select('*')
       .eq('auth_id', authId)
+      .limit (1)
+    .single()
 
     console.log('Resultado perfil:', data)
     console.log('Erro perfil:', error)
 
-    if (error || !data || data.length === 0) {
+    if (error || !data) {
       console.error('Erro ao buscar perfil:', error)
       setUser(null)
       setLoading(false)
       return
     }
-if (error || !data || data.length === 0) {
-  console.error('Erro ao buscar perfil:', error)
-  setUser(null)
-  setLoading(false)
-  return
-}
+
 
 console.log('DATA COMPLETA:', data)
-console.log('PRIMEIRO REGISTRO:', data[0])
-console.log('ROLE DO USUARIO:', data[0].role)
-console.log('AUTH ID ENCONTRADO:', data[0].auth_id)
+console.log('PRIMEIRO REGISTRO:', data)
+console.log('ROLE DO USUARIO:', data.role)
+console.log('AUTH ID ENCONTRADO:', data.auth_id)
 
-const userData = data[0]
+
 
 setUser({
-  id: userData.id,
-  nome: userData.nome,
-  email: userData.email,
-  role: userData.role as UserRole,
-  foto_url: userData.foto_url,
-  telefone: userData.telefone,
+  id: data.id,
+  nome: data.nome,
+  email: data.email,
+  role: data.role as UserRole,
+  foto_url: data.foto_url,
+  telefone: data.telefone,
 })
-    const userData = data[0]
+    
 
     setUser({
       id: userData.id,
