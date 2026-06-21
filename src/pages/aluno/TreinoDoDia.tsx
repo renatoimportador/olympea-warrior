@@ -86,11 +86,15 @@ export function TreinoDoDia() {
 
   const aluno = await getAlunoByUsuarioId(user?.id || '')
 
+const hoje = new Date().toISOString().split('T')[0]
+
 const { data } = await supabase
   .from('resultados')
   .select('id')
   .eq('treino_id', t.id)
   .eq('aluno_id', aluno?.id)
+  .gte('data', `${hoje}T00:00:00`)
+  .lte('data', `${hoje}T23:59:59`)
 
   setJaFezHoje((data?.length || 0) > 0)
 } else {
