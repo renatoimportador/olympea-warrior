@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -9,7 +10,20 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const { login } = useAuth()
+  const { login, user, loading } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (loading) return
+
+    if (user?.role === 'admin') {
+      navigate('/admin/dashboard', { replace: true })
+    } else if (user?.role === 'coach') {
+      navigate('/coach/dashboard', { replace: true })
+    } else if (user?.role === 'aluno') {
+      navigate('/aluno/dashboard', { replace: true })
+    }
+  }, [user, loading, navigate])
 
   const demoAccounts = [
     { label: 'Administrador', email: 'admin@olympea.com' },
@@ -23,7 +37,6 @@ export function Login() {
 
     try {
       await login(email, password)
-
       toast.success('Login realizado com sucesso!')
     } catch (err) {
       console.error('ERRO LOGIN:', err)
@@ -107,7 +120,7 @@ export function Login() {
 
         <div className="pt-4 border-t border-border-dark">
           <p className="text-xs text-text-secondary mb-3">
-            Contas de demonstracao:
+            Contas de demonstração:
           </p>
 
           <div className="grid grid-cols-3 gap-2">
