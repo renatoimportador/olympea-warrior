@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchProfile(session.user.id)
+        fetchProfile()
       } else {
         setLoading(false)
       }
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        fetchProfile(session.user.id)
+        fetchProfile()
       } else {
         setUser(null)
         setLoading(false)
@@ -47,13 +47,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  async function fetchProfile(authId: string) {
-    console.log('Buscando perfil auth_id:', authId)
+  async function fetchProfile() {
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+
+    if (!user?.email) {
+      setUser(null)
+      setLoading(false)
+      return
+    }
+
+    console.log('Buscando perfil por email:', user.email)
 
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
-      .eq('auth_id', authId)
+      .eq('email', user.email)
       .single()
 
     console.log('Perfil encontrado:', data)
