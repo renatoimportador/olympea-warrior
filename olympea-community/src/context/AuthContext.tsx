@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Verificar sessão atual ao carregar
+    // Verificar sessão ao carregar
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchProfile(session.user.id)
@@ -34,8 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    // Listener de mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listener de autenticação
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         fetchProfile(session.user.id)
       } else {
@@ -48,37 +50,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function fetchProfile(authId: string) {
-  console.log('Buscando perfil:', authId)
+    console.log('Buscando perfil:', authId)
 
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('*')
-    .eq('auth_id', authId)
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('auth_id', authId)
+      .maybeSingle()
 
-  console.log('Resultado perfil:', data)
-  console.log('Erro perfil:', error)
+    console.log('Resultado perfil:', data)
+    console.log('Erro perfil:', error)
 
-  if (error || !data || data.length === 0) {
+    if (error || !data) {
+      console.error('Erro ao buscar perfil:', error)
+      setUser(null)
+      setLoading(false)
+      return
+    }
+
+    setUser({
+      id: data.id,
+      nome: data.nome,
+      email: data.email,
+      role: data.role as UserRole,
+      foto_url: data.foto_url,
+      telefone: data.telefone,
+    })
+
     setLoading(false)
-    return
   }
 
-  const userData = data[0]
-
-  setUser({
-    id: userData.id,
-    nome: userData.nome,
-    email: userData.email,
-    role: userData.role as UserRole,
-    foto_url: userData.foto_url,
-    telefone: userData.telefone,
-  })
-
-  setLoading(false)
-}
-
   async function login(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
     if (error) {
       await loginDemo(email)
@@ -124,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (found) {
       setUser(found)
+      setLoading(false)
     } else {
       throw new Error('Credenciais inválidas')
     }
@@ -132,6 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function logout() {
     await supabase.auth.signOut()
     setUser(null)
+    setLoading(false)
   }
 
   return (
