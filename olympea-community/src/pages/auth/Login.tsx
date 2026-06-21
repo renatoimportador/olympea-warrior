@@ -26,6 +26,7 @@ export function Login() {
 
     try {
       await login(email, password)
+      await new Promise(resolve => setTimeout(resolve, 880))
       console.log('PASSO 1: login concluido')
 
       const {
