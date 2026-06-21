@@ -25,22 +25,31 @@ export function Login() {
     setIsLoading(true)
 
     try {
+      // PASSO 1
       await login(email, password)
+      console.log('PASSO 1: login concluido')
 
+      // PASSO 2
       const {
         data: { user }
       } = await supabase.auth.getUser()
+
+      console.log('PASSO 2: user auth', user)
 
       if (!user) {
         toast.error('Usuario nao encontrado')
         return
       }
 
+      // PASSO 3
       const { data: usuarioDb, error } = await supabase
         .from('usuarios')
         .select('*')
         .eq('auth_id', user.id)
         .single()
+
+      console.log('PASSO 3: usuario banco', usuarioDb)
+      console.log('PASSO 3 erro:', error)
 
       if (error || !usuarioDb) {
         toast.error('Perfil nao encontrado')
@@ -49,18 +58,25 @@ export function Login() {
 
       toast.success('Login realizado com sucesso!')
 
+      // PASSO 4
+      console.log('PASSO 4: role encontrada', usuarioDb.role)
+
       if (
         usuarioDb.role === 'admin' ||
         usuarioDb.role === 'head_coach'
       ) {
+        console.log('PASSO 4A: indo para admin')
         navigate('/admin/dashboard')
       } else if (usuarioDb.role === 'coach') {
+        console.log('PASSO 4B: indo para coach')
         navigate('/coach/dashboard')
       } else {
+        console.log('PASSO 4C: indo para aluno')
         navigate('/aluno/dashboard')
       }
 
-    } catch {
+    } catch (err) {
+      console.error('ERRO LOGIN:', err)
       toast.error('Credenciais invalidas')
     } finally {
       setIsLoading(false)
