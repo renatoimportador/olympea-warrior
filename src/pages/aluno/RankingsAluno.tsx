@@ -1,30 +1,56 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Trophy, Medal } from 'lucide-react'
+import { listarRankings, getAlunoByUsuarioId } from '@/lib/api'
+import { useAuth } from '@/context/AuthContext'
 
-const categorias = ['RX', 'Scaling', 'Beginner'] as const
+const categorias = ['RX', 'SCALING', 'BEGINNER'] as const
 const periodos = ['Semanal', 'Mensal', 'Anual'] as const
 
-const rankingsMock = [
-  { posicao: 1, nome: 'Bruno Almeida', pontos: 950, treinos: 5, categoria: 'RX' },
-  { posicao: 2, nome: 'Carla Mendes', pontos: 920, treinos: 5, categoria: 'RX' },
-  { posicao: 3, nome: 'Diego Costa', pontos: 890, treinos: 4, categoria: 'RX' },
-  { posicao: 4, nome: 'Ana Silva', pontos: 850, treinos: 4, categoria: 'SCALING' },
-  { posicao: 5, nome: 'Pedro Santos', pontos: 820, treinos: 3, categoria: 'BEGINNER' },
-]
+const periodoMap: Record<string, string> = {
+  Semanal: 'semanal',
+  Mensal: 'mensal',
+  Anual: 'anual',
+}
 
 export function RankingsAluno() {
+  const { user } = useAuth()
+
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('RX')
   const [periodoAtivo, setPeriodoAtivo] = useState<string>('Semanal')
+  const [rankings, setRankings] = useState<any[]>([])
+  const [meuRanking, setMeuRanking] = useState<any>(null)
+
+  useEffect(() => {
+    async function load() {
+      const data = await listarRankings(
+        periodoMap[periodoAtivo],
+        categoriaAtiva
+      )
+
+      setRankings(data || [])
+
+      if (user?.id) {
+        const aluno = await getAlunoByUsuarioId(user.id)
+
+        const meu = data.find((r: any) => r.aluno_id === aluno?.id)
+        setMeuRanking(meu || null)
+      }
+    }
+
+    load()
+  }, [categoriaAtiva, periodoAtivo, user?.id])
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-text-primary">Rankings</h1>
-        <p className="text-sm text-text-secondary">Veja sua posicao e compare com outros atletas</p>
+        <p className="text-sm text-text-secondary">
+          Veja sua posicao e compare com outros atletas
+        </p>
       </div>
 
-      {/* Filtros */}
+      {/* Categorias */}
       <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
         {categorias.map((c) => (
           <button
@@ -41,6 +67,7 @@ export function RankingsAluno() {
         ))}
       </div>
 
+      {/* Periodos */}
       <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
         {periodos.map((p) => (
           <button
@@ -59,39 +86,68 @@ export function RankingsAluno() {
 
       {/* Lista */}
       <div className="space-y-2">
-        {rankingsMock
-          .filter((r) => r.categoria === categoriaAtiva)
-          .map((r) => (
-            <GlassCard key={r.posicao} className="p-4 flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-                r.posicao === 1 ? 'bg-warning/15 text-warning' :
-                r.posicao === 2 ? 'bg-text-secondary/15 text-text-secondary' :
-                r.posicao === 3 ? 'bg-orange-500/15 text-orange-500' :
-                'bg-white/[0.03] text-text-secondary'
-              }`}>
-                {r.posicao <= 3 ? <Medal size={16} /> : r.posicao}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary">{r.nome}</p>
-                <p className="text-xs text-text-secondary">{r.treinos} treinos concluidos</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-accent">{r.pontos}<span className="text-xs text-text-secondary">pts</span></p>
-              </div>
-            </GlassCard>
-          ))}
+        {rankings.map((r) => (
+          <GlassCard key={r.id} className="p-4 flex items-center gap-4">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+                r.posicao === 1
+                  ? 'bg-warning/15 text-warning'
+                  : r.posicao === 2
+                  ? 'bg-text-secondary/15 text-text-secondary'
+                  : r.posicao === 3
+                  ? 'bg-orange-500/15 text-orange-500'
+                  : 'bg-white/[0.03] text-text-secondary'
+              }`}
+            >
+              {r.posicao <= 3 ? <Medal size={16} /> : r.posicao}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-text-primary">
+                {r.aluno?.usuarios?.nome || 'Aluno'}
+              </p>
+              <p className="text-xs text-text-secondary">
+                {r.treinos || 0} treinos concluidos
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-sm font-bold text-accent">
+                {r.pontos}
+                <span className="text-xs text-text-secondary">pts</span>
+              </p>
+            </div>
+          </GlassCard>
+        ))}
       </div>
 
-      {/* Destaque */}
-      <GlassCard className="p-5 text-center space-y-3">
-        <Trophy size={28} className="mx-auto text-warning" />
-        <p className="text-lg font-bold text-text-primary">Voce esta em 1o lugar!</p>
-        <p className="text-sm text-text-secondary">Na categoria RX - Semanal</p>
-        <div className="w-full h-2 rounded-full bg-white/[0.05] mt-2">
-          <div className="h-full rounded-full bg-gradient-accent" style={{ width: '85%' }} />
-        </div>
-        <p className="text-xs text-text-secondary">850 / 1000 pontos para o proximo nivel</p>
-      </GlassCard>
+      {/* Meu ranking */}
+      {meuRanking && (
+        <GlassCard className="p-5 text-center space-y-3">
+          <Trophy size={28} className="mx-auto text-warning" />
+
+          <p className="text-lg font-bold text-text-primary">
+            Voce esta em {meuRanking.posicao}º lugar!
+          </p>
+
+          <p className="text-sm text-text-secondary">
+            Categoria {categoriaAtiva} - {periodoAtivo}
+          </p>
+
+          <div className="w-full h-2 rounded-full bg-white/[0.05] mt-2">
+            <div
+              className="h-full rounded-full bg-gradient-accent"
+              style={{
+                width: `${Math.min((meuRanking.pontos / 1000) * 100, 100)}%`,
+              }}
+            />
+          </div>
+
+          <p className="text-xs text-text-secondary">
+            {meuRanking.pontos} / 1000 pontos
+          </p>
+        </GlassCard>
+      )}
     </div>
   )
 }
