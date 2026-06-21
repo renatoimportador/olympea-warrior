@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Eye, EyeOff } from 'lucide-react'
@@ -9,14 +9,17 @@ export function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, user } = useAuth()
   const navigate = useNavigate()
 
-  const demoAccounts = [
-    { label: 'Administrador', email: 'admin@olympea.com' },
-    { label: 'Coach', email: 'coach@olympea.com' },
-    { label: 'Aluno', email: 'aluno@olympea.com' },
-  ]
+  // Detecta quando o contexto de autenticacao efetivamente atualiza o usuario
+  // e navega automaticamente para o dashboard correto.
+  useEffect(() => {
+    if (!user) return
+    if (user.role === 'admin') navigate('/admin/dashboard', { replace: true })
+    else if (user.role === 'coach') navigate('/coach/dashboard', { replace: true })
+    else navigate('/aluno/dashboard', { replace: true })
+  }, [user, navigate])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -24,9 +27,7 @@ export function Login() {
     try {
       await login(email, password)
       toast.success('Login realizado com sucesso!')
-      if (email === 'admin@olympea.com') navigate('/admin/dashboard')
-      else if (email === 'coach@olympea.com') navigate('/coach/dashboard')
-      else navigate('/aluno/dashboard')
+      // A navegacao ocorre automaticamente pelo useEffect acima assim que user for setado
     } catch {
       toast.error('Credenciais invalidas')
     } finally {
@@ -98,15 +99,24 @@ export function Login() {
         <div className="pt-4 border-t border-border-dark">
           <p className="text-xs text-text-secondary mb-3">Contas de demonstracao:</p>
           <div className="grid grid-cols-3 gap-2">
-            {demoAccounts.map((acc) => (
-              <button
-                key={acc.email}
-                onClick={() => setEmail(acc.email)}
-                className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-xs text-text-secondary hover:text-accent hover:border-accent/20 transition-all text-center"
-              >
-                {acc.label}
-              </button>
-            ))}
+            <button
+              onClick={() => { setEmail('admin@olympea.com'); setPassword('admin123'); }}
+              className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-xs text-text-secondary hover:text-accent hover:border-accent/20 transition-all text-center"
+            >
+              Administrador
+            </button>
+            <button
+              onClick={() => { setEmail('coach@olympea.com'); setPassword('coach123'); }}
+              className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-xs text-text-secondary hover:text-accent hover:border-accent/20 transition-all text-center"
+            >
+              Coach
+            </button>
+            <button
+              onClick={() => { setEmail('johnny@olympea.com'); setPassword('aluno123'); }}
+              className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05] text-xs text-text-secondary hover:text-accent hover:border-accent/20 transition-all text-center"
+            >
+              Aluno
+            </button>
           </div>
         </div>
 

@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Verificar sessao atual ao carregar
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchProfile(session.user.id)
+        fetchProfile(session.user.id, session.user.email)
       } else {
         setLoading(false)
       }
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listener para mudancas de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        fetchProfile(session.user.id)
+        fetchProfile(session.user.id, session.user.email)
       } else {
         setUser(null)
         setLoading(false)
@@ -47,12 +47,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  async function fetchProfile(authId: string) {
-    const { data, error } = await supabase
+  async function fetchProfile(authId: string, email?: string) {
+    // Tenta buscar pelo auth_id (UUID do Supabase Auth)
+    let { data, error } = await supabase
       .from('usuarios')
       .select('*')
       .eq('auth_id', authId)
       .single()
+
+    // Fallback: se nao encontrou por auth_id, busca pelo email
+    if ((!data || error) && email) {
+      const res = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle()
+      data = res.data
+      error = res.error
+    }
 
     if (data && !error) {
       setUser({
@@ -63,6 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         foto_url: data.foto_url,
         telefone: data.telefone,
       })
+    } else {
+      // Se nao achou perfil, desloga para evitar estado inconsistente
+      setUser(null)
+      await supabase.auth.signOut()
     }
     setLoading(false)
   }
@@ -70,26 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function login(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      // Fallback para modo demo/seed enquanto nao ha usuarios no Auth
-      await loginDemo(email)
-      return
+      throw error
     }
-  }
-
-  async function loginDemo(email: string) {
-    const demoUsers: Record<string, AuthUser> = {
-      'admin@olympea.com': { id: 'u-admin', nome: 'Renato Souza', email: 'admin@olympea.com', role: 'admin' },
-      'coach@olympea.com': { id: 'u-coach1', nome: 'Coach Rafael', email: 'coach@olympea.com', role: 'coach' },
-      'aluno@olympea.com': { id: 'u-aluno1', nome: 'Bruno Almeida', email: 'aluno@olympea.com', role: 'aluno' },
-      'carla@olympea.com': { id: 'u-aluno2', nome: 'Carla Mendes', email: 'carla@olympea.com', role: 'aluno' },
-      'diego@olympea.com': { id: 'u-aluno3', nome: 'Diego Costa', email: 'diego@olympea.com', role: 'aluno' },
-    }
-    const found = demoUsers[email]
-    if (found) {
-      setUser(found)
-    } else {
-      throw new Error('Credenciais invalidas')
-    }
+    // Sucesso: onAuthStateChange dispara fetchProfile automaticamente
   }
 
   async function logout() {
