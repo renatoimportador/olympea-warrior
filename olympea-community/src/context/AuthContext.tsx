@@ -25,26 +25,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let mounted = true
+
+    const initAuth = async () => {
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+
+      if (!mounted) return
+
       if (session?.user) {
-        fetchProfile()
+        await fetchProfile()
       } else {
+        setUser(null)
         setLoading(false)
       }
-    })
+    }
+
+    initAuth()
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event)
+
+      if (event === 'SIGNED_OUT') {
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
       if (session?.user) {
-        fetchProfile()
+        await fetchProfile()
       } else {
         setUser(null)
         setLoading(false)
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   async function fetchProfile() {
@@ -58,16 +80,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    console.log('Buscando perfil por email:', user.email)
-
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
       .eq('email', user.email)
       .maybeSingle()
-
-    console.log('Perfil encontrado:', data)
-    console.log('Erro perfil:', error)
 
     if (error || !data) {
       setUser(null)
@@ -81,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: data.email,
       role: data.role as UserRole,
       foto_url: data.foto_url,
-      telefone: data.telefone,
+      telefone: data.telefone
     })
 
     setLoading(false)
@@ -93,13 +110,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password
     })
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
   }
 
   async function logout() {
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'global' })
     setUser(null)
     setLoading(false)
   }
