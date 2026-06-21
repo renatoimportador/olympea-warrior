@@ -8,8 +8,22 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
-  const { user } = useAuth()
-  if (!user) return <Navigate to="/login" replace />
-  if (!roles.includes(user.role)) return <Navigate to="/" replace />
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <div>Carregando...</div>
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  console.log('USER ROLE:', user.role)
+  console.log('ROLES PERMITIDAS:', roles)
+
+  if (!roles.includes(user.role)) {
+    return <div>Sem permissão: {user.role}</div>
+  }
+
   return <>{children}</>
 }
