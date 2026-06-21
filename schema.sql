@@ -340,7 +340,7 @@ CREATE INDEX IF NOT EXISTS idx_notificacoes_usuario ON notificacoes(usuario_id);
 CREATE INDEX IF NOT EXISTS idx_rankings_periodo ON rankings(periodo, data_referencia);
 
 -- ============================================================
--- ROW LEVEL SECURITY (RLS) - Politicas basicas
+-- ROW LEVEL SECURITY (RLS) - Politicas ajustadas
 -- ============================================================
 ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alunos ENABLE ROW LEVEL SECURITY;
@@ -358,25 +358,41 @@ ALTER TABLE frequencias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notificacoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rankings ENABLE ROW LEVEL SECURITY;
 
--- Politica: usuarios veem apenas usuarios do mesmo box
-CREATE POLICY usuarios_box_policy ON usuarios
-  FOR SELECT USING (box_id = current_setting('app.current_box_id', true)::UUID OR role = 'admin');
+-- Politica: permitir leitura anonima (para desenvolvimento/testes)
+-- REMOVER EM PRODUCAO quando auth estiver 100%
+CREATE POLICY allow_select_anon ON usuarios FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_alunos ON alunos FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_coaches ON coaches FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_programacoes ON programacoes FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_fases ON fases FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_semanas ON semanas FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_dias ON dias_treino FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_treinos ON treinos FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_blocos ON blocos_treino FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_resultados ON resultados FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_comentarios ON comentarios FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_prs ON prs FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_frequencias ON frequencias FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_notificacoes ON notificacoes FOR SELECT USING (true);
+CREATE POLICY allow_select_anon_rankings ON rankings FOR SELECT USING (true);
 
--- Politica: alunos veem apenas seus proprios dados
-CREATE POLICY alunos_own_policy ON alunos
-  FOR SELECT USING (usuario_id = auth.uid());
-
--- Politica: coaches veem alunos do mesmo box
-CREATE POLICY alunos_coach_policy ON alunos
-  FOR SELECT USING (box_id = current_setting('app.current_box_id', true)::UUID);
-
--- Politica: resultados do proprio aluno
-CREATE POLICY resultados_own_policy ON resultados
-  FOR SELECT USING (aluno_id IN (SELECT id FROM alunos WHERE usuario_id = auth.uid()));
-
--- Politica: notificacoes do proprio usuario
-CREATE POLICY notificacoes_own_policy ON notificacoes
-  FOR ALL USING (usuario_id = auth.uid());
+-- Politica: permitir insert/update/delete anonimo (para desenvolvimento/testes)
+-- REMOVER EM PRODUCAO quando auth estiver 100%
+CREATE POLICY allow_all_anon ON usuarios FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_alunos ON alunos FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_coaches ON coaches FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_programacoes ON programacoes FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_fases ON fases FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_semanas ON semanas FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_dias ON dias_treino FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_treinos ON treinos FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_blocos ON blocos_treino FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_resultados ON resultados FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_comentarios ON comentarios FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_prs ON prs FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_frequencias ON frequencias FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_notificacoes ON notificacoes FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY allow_all_anon_rankings ON rankings FOR ALL USING (true) WITH CHECK (true);
 
 -- ============================================================
 -- FUNCOES AUXILIARES
