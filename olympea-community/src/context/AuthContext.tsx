@@ -56,25 +56,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('usuarios')
       .select('*')
       .eq('auth_id', authId)
-      .maybeSingle()
 
     console.log('Resultado perfil:', data)
     console.log('Erro perfil:', error)
 
-    if (error || !data) {
+    if (error || !data || data.length === 0) {
       console.error('Erro ao buscar perfil:', error)
       setUser(null)
       setLoading(false)
       return
     }
 
+    const userData = data[0]
+
     setUser({
-      id: data.id,
-      nome: data.nome,
-      email: data.email,
-      role: data.role as UserRole,
-      foto_url: data.foto_url,
-      telefone: data.telefone,
+      id: userData.id,
+      nome: userData.nome,
+      email: userData.email,
+      role: userData.role as UserRole,
+      foto_url: userData.foto_url,
+      telefone: userData.telefone,
     })
 
     setLoading(false)
