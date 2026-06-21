@@ -68,7 +68,7 @@ export function AppRoutes() {
 
       <Route
         element={
-          <ProtectedRoute roles={['admin', 'head_coach']}>
+          <ProtectedRoute roles={['admin']}>
             <AdminLayout />
           </ProtectedRoute>
         }
