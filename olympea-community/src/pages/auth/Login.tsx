@@ -25,11 +25,9 @@ export function Login() {
     setIsLoading(true)
 
     try {
-      // PASSO 1
       await login(email, password)
       console.log('PASSO 1: login concluido')
 
-      // PASSO 2
       const {
         data: { user }
       } = await supabase.auth.getUser()
@@ -38,14 +36,14 @@ export function Login() {
 
       if (!user) {
         toast.error('Usuario nao encontrado')
+        setIsLoading(false)
         return
       }
 
-      // PASSO 3
       const { data: usuarioDb, error } = await supabase
         .from('usuarios')
         .select('*')
-        .eq('auth_id', user.id)
+        .eq('email', user.email)
         .single()
 
       console.log('PASSO 3: usuario banco', usuarioDb)
@@ -53,25 +51,25 @@ export function Login() {
 
       if (error || !usuarioDb) {
         toast.error('Perfil nao encontrado')
+        setIsLoading(false)
         return
       }
 
       toast.success('Login realizado com sucesso!')
 
-      // PASSO 4
       console.log('PASSO 4: role encontrada', usuarioDb.role)
 
       if (
         usuarioDb.role === 'admin' ||
         usuarioDb.role === 'head_coach'
       ) {
-        console.log('PASSO 4A: indo para admin')
+        console.log('INDO PARA ADMIN')
         navigate('/admin/dashboard')
       } else if (usuarioDb.role === 'coach') {
-        console.log('PASSO 4B: indo para coach')
+        console.log('INDO PARA COACH')
         navigate('/coach/dashboard')
       } else {
-        console.log('PASSO 4C: indo para aluno')
+        console.log('INDO PARA ALUNO')
         navigate('/aluno/dashboard')
       }
 
