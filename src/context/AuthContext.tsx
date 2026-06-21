@@ -23,42 +23,26 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
-useEffect(() => {
-  const savedUser = localStorage.getItem('olympea_user')
 
-  if (savedUser) {
-    setUser(JSON.parse(savedUser))
-    setLoading(false)
-    return
-  }
-}, [])
   useEffect(() => {
-    // Verificar sessao atual ao carregar
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-  fetchProfile(session.user.id)
-} else {
-  const savedUser = localStorage.getItem('olympea_user')
-
-  if (!savedUser) {
-    setLoading(false)
-  }
-}
-    })
-
-    // Listener para mudancas de auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         fetchProfile(session.user.id)
       } else {
-  const savedUser = localStorage.getItem('olympea_user')
+        setLoading(false)
+      }
+    })
 
-if (savedUser) {
-  setUser(JSON.parse(savedUser))
-}
-
-setLoading(false)
-}
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      } else {
+        setUser(null)
+        localStorage.removeItem('olympea_user')
+        setLoading(false)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -68,64 +52,46 @@ setLoading(false)
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
-      .eq('auth_id', authId)
+      .eq('id', authId) // CORRIGIDO AQUI
       .single()
 
-    if (data && !error) {
-  const profile = {
-    id: data.id,
-    nome: data.nome,
-    email: data.email,
-    role: data.role as UserRole,
-    foto_url: data.foto_url,
-    telefone: data.telefone,
-  }
+    if (error || !data) {
+      console.error('Erro ao buscar perfil:', error)
+      setUser(null)
+      setLoading(false)
+      return
+    }
 
-  localStorage.setItem('olympea_user', JSON.stringify(profile))
-  setUser(profile)
-} else {
-  const savedUser = localStorage.getItem('olympea_user')
+    const profile: AuthUser = {
+      id: data.id,
+      nome: data.nome,
+      email: data.email,
+      role: data.role as UserRole,
+      foto_url: data.foto_url,
+      telefone: data.telefone,
+    }
 
-  if (savedUser) {
-    setUser(JSON.parse(savedUser))
-  }
-}
-
-setLoading(false)
+    localStorage.setItem('olympea_user', JSON.stringify(profile))
+    setUser(profile)
+    setLoading(false)
   }
 
   async function login(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      // Fallback para modo demo/seed enquanto nao ha usuarios no Auth
-      await loginDemo(email)
-      return
-    }
-  }
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-  async function loginDemo(email: string) {
-    const demoUsers: Record<string, AuthUser> = {
-      'admin@olympea.com': { id: 'u-admin', nome: 'Renato Souza', email: 'admin@olympea.com', role: 'head_coach' },
-      'coach@olympea.com': { id: 'u-coach1', nome: 'Coach Rafael', email: 'coach@olympea.com', role: 'coach' },
-      'aluno@olympea.com': { id: 'u-aluno1', nome: 'Bruno Almeida', email: 'aluno@olympea.com', role: 'aluno' },
-      'carla@olympea.com': { id: 'u-aluno2', nome: 'Carla Mendes', email: 'carla@olympea.com', role: 'aluno' },
-      'diego@olympea.com': { id: 'u-aluno3', nome: 'Diego Costa', email: 'diego@olympea.com', role: 'aluno' },
-    }
-    const found = demoUsers[email]
-    if (found) {
-  localStorage.setItem('olympea_user', JSON.stringify(found))
-  setUser(found)
-  return
-} else {
-      throw new Error('Credenciais invalidas')
+    if (error) {
+      throw error
     }
   }
 
   async function logout() {
-  localStorage.removeItem('olympea_user')
-  await supabase.auth.signOut()
-  setUser(null)
-}
+    localStorage.removeItem('olympea_user')
+    await supabase.auth.signOut()
+    setUser(null)
+  }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
