@@ -49,6 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event)
 
+      if (!mounted) return
+
       if (event === 'SIGNED_OUT') {
         setUser(null)
         setLoading(false)
@@ -114,9 +116,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
+    console.log('FAZENDO LOGOUT...')
+
     await supabase.auth.signOut({ scope: 'global' })
+
+    localStorage.clear()
+    sessionStorage.clear()
+
     setUser(null)
     setLoading(false)
+
+    window.location.href = '/login'
   }
 
   return (
