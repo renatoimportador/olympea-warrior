@@ -48,30 +48,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function fetchProfile(authId: string) {
-  console.log('Buscando perfil para auth_id:', authId)
+  console.log('Buscando perfil:', authId)
 
   const { data, error } = await supabase
     .from('usuarios')
     .select('*')
     .eq('auth_id', authId)
 
-  console.log('Resultado:', data, error)
+  console.log('Resultado perfil:', data)
+  console.log('Erro perfil:', error)
 
-  if (data && data.length > 0) {
-    const usuario = data[0]
-
-    setUser({
-      id: usuario.id,
-      nome: usuario.nome,
-      email: usuario.email,
-      role: usuario.role as UserRole,
-      foto_url: usuario.foto_url,
-      telefone: usuario.telefone,
-    })
-  } else {
-    console.error('Nenhum perfil encontrado')
-    setUser(null)
+  if (error || !data || data.length === 0) {
+    setLoading(false)
+    return
   }
+
+  const userData = data[0]
+
+  setUser({
+    id: userData.id,
+    nome: userData.nome,
+    email: userData.email,
+    role: userData.role as UserRole,
+    foto_url: userData.foto_url,
+    telefone: userData.telefone,
+  })
 
   setLoading(false)
 }
