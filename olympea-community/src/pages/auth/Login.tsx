@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -9,6 +10,7 @@ export function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
   const { login } = useAuth()
   const navigate = useNavigate()
 
@@ -21,12 +23,43 @@ export function Login() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsLoading(true)
+
     try {
       await login(email, password)
+
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        toast.error('Usuario nao encontrado')
+        return
+      }
+
+      const { data: usuarioDb, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (error || !usuarioDb) {
+        toast.error('Perfil nao encontrado')
+        return
+      }
+
       toast.success('Login realizado com sucesso!')
-      if (email === 'admin@olympea.com') navigate('/admin/dashboard')
-      else if (email === 'coach@olympea.com') navigate('/coach/dashboard')
-      else navigate('/aluno/dashboard')
+
+      if (
+        usuarioDb.role === 'admin' ||
+        usuarioDb.role === 'head_coach'
+      ) {
+        navigate('/admin/dashboard')
+      } else if (usuarioDb.role === 'coach') {
+        navigate('/coach/dashboard')
+      } else {
+        navigate('/aluno/dashboard')
+      }
+
     } catch {
       toast.error('Credenciais invalidas')
     } finally {
@@ -37,23 +70,31 @@ export function Login() {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="glass-card p-8 space-y-6">
-        {/* Header */}
+
         <div className="text-center space-y-3">
           <div className="flex justify-center mb-2">
-            <img src="/assets/logo.png" alt="OLYMPEA Warrior" className="w-20 h-20 object-contain" />
+            <img
+              src="/assets/logo.png"
+              alt="OLYMPEA Warrior"
+              className="w-20 h-20 object-contain"
+            />
           </div>
-          <h1 className="text-2xl font-bold text-gradient-accent">OLYMPEA Warrior</h1>
+
+          <h1 className="text-2xl font-bold text-gradient-accent">
+            OLYMPEA Warrior
+          </h1>
+
           <p className="text-sm text-text-secondary">
             Sistema de treinamento esportivo
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-1.5">
               Email
             </label>
+
             <input
               type="email"
               value={email}
@@ -63,10 +104,12 @@ export function Login() {
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-1.5">
               Senha
             </label>
+
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -76,6 +119,7 @@ export function Login() {
                 className="glass-input w-full pr-10"
                 required
               />
+
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -85,6 +129,7 @@ export function Login() {
               </button>
             </div>
           </div>
+
           <button
             type="submit"
             disabled={isLoading}
@@ -94,9 +139,11 @@ export function Login() {
           </button>
         </form>
 
-        {/* Demo accounts */}
         <div className="pt-4 border-t border-border-dark">
-          <p className="text-xs text-text-secondary mb-3">Contas de demonstracao:</p>
+          <p className="text-xs text-text-secondary mb-3">
+            Contas de demonstracao:
+          </p>
+
           <div className="grid grid-cols-3 gap-2">
             {demoAccounts.map((acc) => (
               <button
@@ -113,6 +160,7 @@ export function Login() {
         <p className="text-center text-xs text-text-secondary">
           Futuramente: Login Google, Login Apple
         </p>
+
       </div>
     </div>
   )
