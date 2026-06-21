@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('usuarios')
       .select('*')
       .eq('email', user.email)
-      .single()
+      .maybesingle()
 
     console.log('Perfil encontrado:', data)
     console.log('Erro perfil:', error)
