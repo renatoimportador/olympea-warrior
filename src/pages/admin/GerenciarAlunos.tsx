@@ -37,6 +37,7 @@ export function GerenciarAlunos() {
       .eq('ativo', true)
 
     if (error) {
+      console.log(error)
       toast.error('Erro ao carregar alunos')
       return
     }
@@ -69,7 +70,7 @@ export function GerenciarAlunos() {
     if (editingId) {
       const alunoAtual = alunos.find((a) => a.id === editingId)
 
-      await supabase
+      const { error: userUpdateError } = await supabase
         .from('usuarios')
         .update({
           nome: form.nome,
@@ -78,7 +79,13 @@ export function GerenciarAlunos() {
         })
         .eq('id', alunoAtual.usuario_id)
 
-      await supabase
+      if (userUpdateError) {
+        console.log(userUpdateError)
+        toast.error(userUpdateError.message)
+        return
+      }
+
+      const { error: alunoUpdateError } = await supabase
         .from('alunos')
         .update({
           categoria: form.categoria,
@@ -87,15 +94,23 @@ export function GerenciarAlunos() {
         })
         .eq('id', editingId)
 
+      if (alunoUpdateError) {
+        console.log(alunoUpdateError)
+        toast.error(alunoUpdateError.message)
+        return
+      }
+
       toast.success('Aluno atualizado!')
     } else {
-      const { data: usuario, error } = await supabase
+      const { data: usuario, error: userError } = await supabase
         .from('usuarios')
         .insert({
+          auth_id: crypto.randomUUID(),
           box_id: 'box-1',
           nome: form.nome,
           email: form.email,
           telefone: form.telefone,
+          foto_url: '',
           role: 'aluno',
           ativo: true,
           auth_provider: 'email',
@@ -103,12 +118,13 @@ export function GerenciarAlunos() {
         .select()
         .single()
 
-      if (error || !usuario) {
-        toast.error('Erro ao criar usuário')
+      if (userError || !usuario) {
+        console.log(userError)
+        toast.error(userError?.message || 'Erro ao criar usuário')
         return
       }
 
-      await supabase
+      const { error: alunoError } = await supabase
         .from('alunos')
         .insert({
           usuario_id: usuario.id,
@@ -118,6 +134,12 @@ export function GerenciarAlunos() {
           altura: form.altura ? parseFloat(form.altura) : null,
           ativo: true,
         })
+
+      if (alunoError) {
+        console.log(alunoError)
+        toast.error(alunoError.message)
+        return
+      }
 
       toast.success('Aluno criado!')
     }
@@ -144,10 +166,16 @@ export function GerenciarAlunos() {
   async function handleDelete(id: string) {
     if (!confirm('Deseja realmente excluir este aluno?')) return
 
-    await supabase
+    const { error } = await supabase
       .from('alunos')
       .update({ ativo: false })
       .eq('id', id)
+
+    if (error) {
+      console.log(error)
+      toast.error(error.message)
+      return
+    }
 
     toast.success('Aluno excluído!')
     carregarAlunos()
