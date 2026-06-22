@@ -12,15 +12,30 @@ export function GerenciarAlunos() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [alunos, setAlunos] = useState<any[]>([])
+  const [niveis, setNiveis] = useState<any[]>([])
 
   const [form, setForm] = useState({
     nome: '',
     email: '',
-    categoria: 'BEGINNER',
+    categoria: 'RX',
     peso: '',
     altura: '',
     telefone: '',
   })
+
+  async function carregarNiveis() {
+    const { data, error } = await supabase
+      .from('niveis')
+      .select('*')
+      .eq('ativo', true)
+
+    if (error) {
+      console.log(error)
+      return
+    }
+
+    setNiveis(data || [])
+  }
 
   async function carregarAlunos() {
     const { data, error } = await supabase
@@ -47,13 +62,14 @@ export function GerenciarAlunos() {
 
   useEffect(() => {
     carregarAlunos()
+    carregarNiveis()
   }, [])
 
   function resetForm() {
     setForm({
       nome: '',
       email: '',
-      categoria: 'BEGINNER',
+      categoria: 'RX',
       peso: '',
       altura: '',
       telefone: '',
@@ -80,7 +96,6 @@ export function GerenciarAlunos() {
         .eq('id', alunoAtual.usuario_id)
 
       if (userUpdateError) {
-        console.log(userUpdateError)
         toast.error(userUpdateError.message)
         return
       }
@@ -95,7 +110,6 @@ export function GerenciarAlunos() {
         .eq('id', editingId)
 
       if (alunoUpdateError) {
-        console.log(alunoUpdateError)
         toast.error(alunoUpdateError.message)
         return
       }
@@ -119,7 +133,6 @@ export function GerenciarAlunos() {
         .single()
 
       if (userError || !usuario) {
-        console.log(userError)
         toast.error(userError?.message || 'Erro ao criar usuário')
         return
       }
@@ -136,7 +149,6 @@ export function GerenciarAlunos() {
         })
 
       if (alunoError) {
-        console.log(alunoError)
         toast.error(alunoError.message)
         return
       }
@@ -153,7 +165,7 @@ export function GerenciarAlunos() {
     setForm({
       nome: a.usuarios?.nome || '',
       email: a.usuarios?.email || '',
-      categoria: a.categoria || 'BEGINNER',
+      categoria: a.categoria || 'RX',
       peso: a.peso_atual ? String(a.peso_atual) : '',
       altura: a.altura ? String(a.altura) : '',
       telefone: a.usuarios?.telefone || '',
@@ -172,7 +184,6 @@ export function GerenciarAlunos() {
       .eq('id', id)
 
     if (error) {
-      console.log(error)
       toast.error(error.message)
       return
     }
@@ -202,22 +213,17 @@ export function GerenciarAlunos() {
           </p>
         </div>
 
-        <Button
-          onClick={() => {
-            resetForm()
-            setShowForm(!showForm)
-          }}
-        >
+        <Button onClick={() => {
+          resetForm()
+          setShowForm(!showForm)
+        }}>
           <Plus size={18} className="mr-2" />
           Novo Aluno
         </Button>
       </div>
 
       <div className="relative">
-        <Search
-          size={18}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-        />
+        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
         <Input
           className="pl-10"
           placeholder="Buscar aluno..."
@@ -228,46 +234,41 @@ export function GerenciarAlunos() {
 
       {showForm && (
         <GlassCard className="p-5 space-y-4">
-          <h3 className="font-semibold text-text-primary">
-            {editingId ? 'Editar Aluno' : 'Novo Aluno'}
-          </h3>
+          <h3>{editingId ? 'Editar Aluno' : 'Novo Aluno'}</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
-              placeholder="Nome completo"
+              placeholder="Nome"
               value={form.nome}
               onChange={(e) => setForm({ ...form, nome: e.target.value })}
             />
 
             <Input
               placeholder="Email"
-              type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
 
             <select
               value={form.categoria}
-              onChange={(e) =>
-                setForm({ ...form, categoria: e.target.value })
-              }
-              className="glass-input w-full text-sm"
+              onChange={(e) => setForm({ ...form, categoria: e.target.value })}
+              className="glass-input w-full"
             >
-              <option value="RX">RX</option>
-              <option value="SCALING">Scaling</option>
-              <option value="BEGINNER">Beginner</option>
+              {niveis.map((nivel) => (
+                <option key={nivel.id} value={nivel.nome}>
+                  {nivel.nome}
+                </option>
+              ))}
             </select>
 
             <Input
-              placeholder="Peso (kg)"
-              type="number"
+              placeholder="Peso"
               value={form.peso}
               onChange={(e) => setForm({ ...form, peso: e.target.value })}
             />
 
             <Input
-              placeholder="Altura (cm)"
-              type="number"
+              placeholder="Altura"
               value={form.altura}
               onChange={(e) => setForm({ ...form, altura: e.target.value })}
             />
@@ -295,43 +296,23 @@ export function GerenciarAlunos() {
       <div className="space-y-2">
         {alunosFiltrados.map((a) => (
           <GlassCard key={a.id} className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent font-bold text-sm">
-              {a.usuarios?.nome?.charAt(0) || 'A'}
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              {a.usuarios?.nome?.charAt(0)}
             </div>
 
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-text-primary">
-                {a.usuarios?.nome}
-              </p>
-              <p className="text-xs text-text-secondary">
-                {a.usuarios?.email}
-              </p>
+            <div className="flex-1">
+              <p>{a.usuarios?.nome}</p>
+              <p>{a.usuarios?.email}</p>
             </div>
 
-            <Badge
-              variant={
-                a.categoria === 'RX'
-                  ? 'accent'
-                  : a.categoria === 'SCALING'
-                  ? 'warning'
-                  : 'success'
-              }
-            >
-              {a.categoria}
-            </Badge>
+            <Badge>{a.categoria}</Badge>
 
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleEdit(a)}
-                className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary"
-              >
+            <div className="flex gap-2">
+              <button onClick={() => handleEdit(a)}>
                 <Edit2 size={14} />
               </button>
 
-              <button
-                onClick={() => handleDelete(a.id)}
-                className="p-1.5 rounded-lg hover:bg-error/5 text-error"
-              >
+              <button onClick={() => handleDelete(a.id)}>
                 <Ban size={14} />
               </button>
             </div>
