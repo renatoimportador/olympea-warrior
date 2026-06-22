@@ -64,6 +64,7 @@ export function GerenciarAlunos() {
       return
     }
 
+    console.log('ALUNOS CARREGADOS:', data)
     setAlunos(data || [])
   }
 
@@ -125,7 +126,6 @@ export function GerenciarAlunos() {
     } else {
       let usuario = null
 
-      // procura se já existe usuário com esse email
       const { data: usuarioExistente } = await supabase
         .from('usuarios')
         .select('*')
@@ -135,7 +135,6 @@ export function GerenciarAlunos() {
       if (usuarioExistente) {
         usuario = usuarioExistente
       } else {
-        // cria novo usuário
         const { data: novoUsuario, error: userError } = await supabase
           .from('usuarios')
           .insert({
@@ -153,6 +152,7 @@ export function GerenciarAlunos() {
           .single()
 
         if (userError || !novoUsuario) {
+          console.log('ERRO USUARIO:', userError)
           toast.error(userError?.message || 'Erro ao criar usuário')
           return
         }
@@ -160,8 +160,7 @@ export function GerenciarAlunos() {
         usuario = novoUsuario
       }
 
-      // cria aluno
-      const { error: alunoError } = await supabase
+      const { data: novoAluno, error: alunoError } = await supabase
         .from('alunos')
         .insert({
           usuario_id: usuario.id,
@@ -171,6 +170,10 @@ export function GerenciarAlunos() {
           altura: form.altura ? parseFloat(form.altura) : null,
           ativo: true,
         })
+        .select()
+
+      console.log('NOVO ALUNO:', novoAluno)
+      console.log('ERRO ALUNO:', alunoError)
 
       if (alunoError) {
         toast.error(alunoError.message)
