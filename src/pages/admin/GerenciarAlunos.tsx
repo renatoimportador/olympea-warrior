@@ -17,7 +17,7 @@ export function GerenciarAlunos() {
   const [form, setForm] = useState({
     nome: '',
     email: '',
-    categoria: 'RX',
+    categoria: '',
     peso: '',
     altura: '',
     telefone: '',
@@ -35,6 +35,13 @@ export function GerenciarAlunos() {
     }
 
     setNiveis(data || [])
+
+    if (data && data.length > 0) {
+      setForm((prev) => ({
+        ...prev,
+        categoria: data[0].nome,
+      }))
+    }
   }
 
   async function carregarAlunos() {
@@ -69,7 +76,7 @@ export function GerenciarAlunos() {
     setForm({
       nome: '',
       email: '',
-      categoria: 'RX',
+      categoria: niveis.length > 0 ? niveis[0].nome : '',
       peso: '',
       altura: '',
       telefone: '',
@@ -116,27 +123,44 @@ export function GerenciarAlunos() {
 
       toast.success('Aluno atualizado!')
     } else {
-      const { data: usuario, error: userError } = await supabase
-        .from('usuarios')
-        .insert({
-          box_id: '89b16bd4-69f8-43ae-ba6e-7434d424fef0',
-          auth_id: null,
-          nome: form.nome,
-          email: form.email,
-          telefone: form.telefone,
-          foto_url: '',
-          role: 'aluno',
-          ativo: true,
-          auth_provider: 'email',
-        })
-        .select()
-        .single()
+      let usuario = null
 
-      if (userError || !usuario) {
-        toast.error(userError?.message || 'Erro ao criar usuário')
-        return
+      // procura se já existe usuário com esse email
+      const { data: usuarioExistente } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', form.email)
+        .maybeSingle()
+
+      if (usuarioExistente) {
+        usuario = usuarioExistente
+      } else {
+        // cria novo usuário
+        const { data: novoUsuario, error: userError } = await supabase
+          .from('usuarios')
+          .insert({
+            box_id: '89b16bd4-69f8-43ae-ba6e-7434d424fef0',
+            auth_id: null,
+            nome: form.nome,
+            email: form.email,
+            telefone: form.telefone,
+            foto_url: '',
+            role: 'aluno',
+            ativo: true,
+            auth_provider: 'email',
+          })
+          .select()
+          .single()
+
+        if (userError || !novoUsuario) {
+          toast.error(userError?.message || 'Erro ao criar usuário')
+          return
+        }
+
+        usuario = novoUsuario
       }
 
+      // cria aluno
       const { error: alunoError } = await supabase
         .from('alunos')
         .insert({
@@ -165,7 +189,7 @@ export function GerenciarAlunos() {
     setForm({
       nome: a.usuarios?.nome || '',
       email: a.usuarios?.email || '',
-      categoria: a.categoria || 'RX',
+      categoria: a.categoria || '',
       peso: a.peso_atual ? String(a.peso_atual) : '',
       altura: a.altura ? String(a.altura) : '',
       telefone: a.usuarios?.telefone || '',
@@ -213,17 +237,22 @@ export function GerenciarAlunos() {
           </p>
         </div>
 
-        <Button onClick={() => {
-          resetForm()
-          setShowForm(!showForm)
-        }}>
+        <Button
+          onClick={() => {
+            resetForm()
+            setShowForm(!showForm)
+          }}
+        >
           <Plus size={18} className="mr-2" />
           Novo Aluno
         </Button>
       </div>
 
       <div className="relative">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+        <Search
+          size={18}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
+        />
         <Input
           className="pl-10"
           placeholder="Buscar aluno..."
