@@ -56,22 +56,28 @@ export function BibliotecaExercicios() {
   }
 
   async function handleSave() {
-    if (!form.nome.trim() || !form.slug.trim()) {
-      toast.error('Preencha nome e slug')
+    if (!form.nome.trim()) {
+      toast.error('Preencha o nome')
       return
     }
+
+    const slugFinal =
+      form.slug.trim() ||
+      form.nome
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
 
     if (editingId) {
       const { error } = await supabase
         .from('exercicios')
         .update({
           nome: form.nome,
-          slug: form.slug,
+          slug: slugFinal,
           categoria: form.categoria,
           dificuldade: form.dificuldade,
           descricao: form.descricao,
-          padrao_movimento: form.padrao_movimento,
-          dicas_coach: form.dicas_coach,
         })
         .eq('id', editingId)
 
@@ -86,12 +92,10 @@ export function BibliotecaExercicios() {
         .from('exercicios')
         .insert({
           nome: form.nome,
-          slug: form.slug,
+          slug: slugFinal,
           categoria: form.categoria,
           dificuldade: form.dificuldade,
           descricao: form.descricao,
-          padrao_movimento: form.padrao_movimento,
-          dicas_coach: form.dicas_coach,
           ativo: true,
         })
 
@@ -115,8 +119,8 @@ export function BibliotecaExercicios() {
       categoria: e.categoria || '',
       dificuldade: e.dificuldade || '',
       descricao: e.descricao || '',
-      padrao_movimento: e.padrao_movimento || '',
-      dicas_coach: e.dicas_coach || '',
+      padrao_movimento: '',
+      dicas_coach: '',
     })
 
     setEditingId(e.id)
@@ -141,8 +145,8 @@ export function BibliotecaExercicios() {
   }
 
   const filtrados = exercicios.filter((e) =>
-    e.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    e.categoria.toLowerCase().includes(busca.toLowerCase())
+    e.nome?.toLowerCase().includes(busca.toLowerCase()) ||
+    e.categoria?.toLowerCase().includes(busca.toLowerCase())
   )
 
   return (
@@ -186,10 +190,31 @@ export function BibliotecaExercicios() {
           <h3>{editingId ? 'Editar Exercício' : 'Novo Exercício'}</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input placeholder="Nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-            <Input placeholder="Slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
-            <Input placeholder="Categoria" value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })} />
-            <Input placeholder="Dificuldade" value={form.dificuldade} onChange={(e) => setForm({ ...form, dificuldade: e.target.value })} />
+            <Input
+              placeholder="Nome"
+              value={form.nome}
+              onChange={(e) => setForm({ ...form, nome: e.target.value })}
+            />
+
+            <Input
+              placeholder="Slug (opcional)"
+              value={form.slug}
+              onChange={(e) => setForm({ ...form, slug: e.target.value })}
+            />
+
+            <Input
+              placeholder="Categoria"
+              value={form.categoria}
+              onChange={(e) => setForm({ ...form, categoria: e.target.value })}
+            />
+
+            <Input
+              placeholder="Dificuldade"
+              value={form.dificuldade}
+              onChange={(e) =>
+                setForm({ ...form, dificuldade: e.target.value })
+              }
+            />
 
             <textarea
               placeholder="Descrição"
@@ -200,19 +225,23 @@ export function BibliotecaExercicios() {
             />
 
             <textarea
-              placeholder="Padrão de movimento"
+              placeholder="Padrão de movimento (futuro)"
               rows={3}
               className="glass-input w-full resize-none sm:col-span-2"
               value={form.padrao_movimento}
-              onChange={(e) => setForm({ ...form, padrao_movimento: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, padrao_movimento: e.target.value })
+              }
             />
 
             <textarea
-              placeholder="Dicas do coach"
+              placeholder="Dicas do coach (futuro)"
               rows={3}
               className="glass-input w-full resize-none sm:col-span-2"
               value={form.dicas_coach}
-              onChange={(e) => setForm({ ...form, dicas_coach: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, dicas_coach: e.target.value })
+              }
             />
           </div>
 
@@ -254,8 +283,13 @@ export function BibliotecaExercicios() {
               </div>
             </div>
 
-            <h3 className="text-sm font-semibold text-text-primary">{e.nome}</h3>
-            <p className="text-xs text-text-secondary line-clamp-2">{e.descricao}</p>
+            <h3 className="text-sm font-semibold text-text-primary">
+              {e.nome}
+            </h3>
+
+            <p className="text-xs text-text-secondary line-clamp-2">
+              {e.descricao}
+            </p>
 
             <div className="flex items-center gap-2 pt-2 border-t border-white/[0.04]">
               <span className="px-2 py-0.5 rounded bg-white/[0.03] text-[10px] text-text-secondary">
