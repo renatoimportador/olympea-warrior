@@ -76,7 +76,6 @@ export function BibliotecaExercicios() {
           nome: form.nome,
           slug: slugFinal,
           categoria: form.categoria,
-          dificuldade: form.dificuldade,
           descricao: form.descricao,
         })
         .eq('id', editingId)
@@ -94,7 +93,6 @@ export function BibliotecaExercicios() {
           nome: form.nome,
           slug: slugFinal,
           categoria: form.categoria,
-          dificuldade: form.dificuldade,
           descricao: form.descricao,
           ativo: true,
         })
