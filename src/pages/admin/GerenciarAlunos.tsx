@@ -105,8 +105,8 @@ export function GerenciarAlunos() {
       const { data: usuario, error: userError } = await supabase
         .from('usuarios')
         .insert({
-          auth_id: crypto.randomUUID(),
           box_id: '89b16bd4-69f8-43ae-ba6e-7434d424fef0',
+          auth_id: null,
           nome: form.nome,
           email: form.email,
           telefone: form.telefone,
