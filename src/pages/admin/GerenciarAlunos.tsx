@@ -344,7 +344,9 @@ export function GerenciarAlunos() {
                 <Edit2 size={14} />
               </button>
 
-              <button onClick={() => handleDelete(a.id)}>
+              <button onClick={() => handleDelete(a.id)}
+                className="p-1.5 rounded-lg hover:bg-error/5 text-error"
+                >
                 <Ban size={14} />
               </button>
             </div>
