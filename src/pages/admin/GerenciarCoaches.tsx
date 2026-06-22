@@ -226,7 +226,9 @@ export function GerenciarCoaches() {
                   <Edit2 size={14} />
                 </button>
 
-                <button onClick={() => handleDelete(c.id)}>
+                <button onClick={() => handleDelete(c.id)}
+                  className="p-1.5 rounded-lg hover:bg-error/5 text-error"
+                  >
                   <Ban size={14} />
                 </button>
               </div>
