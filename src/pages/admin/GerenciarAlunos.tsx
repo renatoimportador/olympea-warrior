@@ -287,7 +287,7 @@ export function GerenciarAlunos() {
               className="glass-input w-full"
             >
               {niveis.map((nivel) => (
-                <option key={nivel.id} value={nivel.nome}>
+                <option key={nivel.id} value={nivel.slug}>
                   {nivel.nome}
                 </option>
               ))}
