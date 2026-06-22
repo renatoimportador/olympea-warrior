@@ -39,7 +39,7 @@ export function GerenciarAlunos() {
     if (data && data.length > 0) {
       setForm((prev) => ({
         ...prev,
-        categoria: data[0].nome,
+        categoria: data[0].slug,
       }))
     }
   }
@@ -77,7 +77,7 @@ export function GerenciarAlunos() {
     setForm({
       nome: '',
       email: '',
-      categoria: niveis.length > 0 ? niveis[0].nome : '',
+      categoria: niveis.length > 0 ? niveis[0].slug : '',
       peso: '',
       altura: '',
       telefone: '',
