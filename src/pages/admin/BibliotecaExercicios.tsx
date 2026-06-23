@@ -73,11 +73,14 @@ export function BibliotecaExercicios() {
       const { error } = await supabase
         .from('exercicios')
         .update({
-          nome: form.nome,
-          slug: slugFinal,
-          categoria: form.categoria,
-          descricao: form.descricao,
-        })
+  nome: form.nome,
+  slug: form.slug,
+  categoria: form.categoria,
+  dificuldade: form.dificuldade,
+  descricao: form.descricao,
+  padrao_movimento: form.padrao_movimento,
+  dicas_coach: form.dicas_coach,
+})
         .eq('id', editingId)
 
       if (error) {
