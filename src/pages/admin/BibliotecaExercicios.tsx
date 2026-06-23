@@ -118,19 +118,19 @@ export function BibliotecaExercicios() {
   }
 
   function handleEdit(e: any) {
-    setForm({
-      nome: e.nome || '',
-      slug: e.slug || '',
-      categoria: e.categoria || '',
-      dificuldade: e.dificuldade || '',
-      descricao: e.descricao || '',
-      padrao_movimento: '',
-      dicas_coach: '',
-    })
+  setForm({
+    nome: e.nome || '',
+    slug: e.slug || '',
+    categoria: e.categoria || '',
+    dificuldade: e.dificuldade || '',
+    descricao: e.descricao || '',
+    padrao_movimento: e.padrao_movimento || '',
+    dicas_coach: e.dicas_coach || '',
+  })
 
-    setEditingId(e.id)
-    setShowForm(true)
-  }
+  setEditingId(e.id)
+  setShowForm(true)
+}
 
   async function handleDelete(id: string) {
     if (!confirm('Deseja realmente inativar este exercício?')) return
