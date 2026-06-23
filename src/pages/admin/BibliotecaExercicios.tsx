@@ -87,13 +87,17 @@ export function BibliotecaExercicios() {
 
       toast.success('Exercício atualizado!')
     } else {
+      console.log(form)
       const { error } = await supabase
         .from('exercicios')
         .insert({
           nome: form.nome,
           slug: slugFinal,
           categoria: form.categoria,
+          dificuldade: form.dificuldade,
           descricao: form.descricao,
+          padrao_movimento: form.padrao_movimento,
+          dicas_coach: form.dicas_coach,
           ativo: true,
         })
 
