@@ -15,7 +15,6 @@ import {
   getTreinoById,
   getDiaById,
   getSemanaById,
-  getFaseById,
   listarBlocosByTreino,
   atualizarBloco,
   removerBloco,
@@ -251,56 +250,80 @@ export function CriarTreino() {
       </div>
 
       <GlassCard className="p-5 space-y-4">
-        <Input
-          value={titulo}
-          onChange={e => setTitulo(e.target.value)}
-          placeholder="Titulo do treino"
-        />
+        <div>
+          <label className="text-xs text-text-secondary block mb-1">
+            Titulo do Treino
+          </label>
+          <Input
+            value={titulo}
+            onChange={e => setTitulo(e.target.value)}
+            placeholder="Titulo do treino"
+          />
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <select
-            value={faseId}
-            onChange={e => handleFaseChange(e.target.value)}
-            className="glass-input"
-          >
-            <option value="">Selecione...</option>
+          <div>
+            <label className="text-xs text-text-secondary block mb-1">
+              Fase
+            </label>
+            <select
+              value={faseId}
+              onChange={e => handleFaseChange(e.target.value)}
+              className="glass-input w-full"
+            >
+              <option value="">Selecione...</option>
 
-            {fases.map(f => (
-              <option key={f.id} value={f.id}>
-                {f.nome}
-              </option>
-            ))}
-          </select>
+              {fases
+                .filter(f => f.ativa)
+                .map(f => (
+                  <option key={f.id} value={f.id}>
+                    {f.nome} (Ordem {f.ordem})
+                  </option>
+                ))}
+            </select>
+          </div>
 
-          <select
-            value={semanaId}
-            onChange={e => handleSemanaChange(e.target.value)}
-            className="glass-input"
-            disabled={!faseId}
-          >
-            <option value="">Selecione...</option>
+          <div>
+            <label className="text-xs text-text-secondary block mb-1">
+              Semana
+            </label>
+            <select
+              value={semanaId}
+              onChange={e => handleSemanaChange(e.target.value)}
+              className="glass-input w-full"
+              disabled={!faseId}
+            >
+              <option value="">Selecione...</option>
 
-            {semanas.map(s => (
-              <option key={s.id} value={s.id}>
-                {s.nome}
-              </option>
-            ))}
-          </select>
+              {semanas
+                .filter(s => s.ativa)
+                .map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.nome} ({s.tipo})
+                  </option>
+                ))}
+            </select>
+          </div>
 
-          <select
-            value={diaTreinoId}
-            onChange={e => setDiaTreinoId(e.target.value)}
-            className="glass-input"
-            disabled={!semanaId}
-          >
-            <option value="">Selecione...</option>
+          <div>
+            <label className="text-xs text-text-secondary block mb-1">
+              Dia do Treino
+            </label>
+            <select
+              value={diaTreinoId}
+              onChange={e => setDiaTreinoId(e.target.value)}
+              className="glass-input w-full"
+              disabled={!semanaId}
+            >
+              <option value="">Selecione...</option>
 
-            {dias.map(d => (
-              <option key={d.id} value={d.id}>
-                {(nomes as any)[d.dia_semana] || d.dia_semana}
-              </option>
-            ))}
-          </select>
+              {dias.map(d => (
+                <option key={d.id} value={d.id}>
+                  {(nomes as any)[d.dia_semana] || d.dia_semana}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </GlassCard>
 
