@@ -39,12 +39,72 @@ export function CriarTreino() {
   const [faseId, setFaseId] = useState('')
   const [semanaId, setSemanaId] = useState('')
 
-  const [loadingFases, setLoadingFases] = useState(true)
   const [loadingTreino, setLoadingTreino] = useState(false)
 
   useEffect(() => {
-    loadFases()
+    carregarFases()
   }, [])
+
+  async function carregarFases() {
+    try {
+      const progs = await listarProgramacoes()
+      let todasFases: Fase[] = []
+
+      for (const prog of progs) {
+        const fasesProg = await listarFasesByProg(prog.id)
+        todasFases = [...todasFases, ...fasesProg]
+      }
+
+      setFases(todasFases)
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao carregar fases')
+    }
+  }
+
+  async function handleFaseChange(id: string) {
+    try {
+      setFaseId(id)
+      setSemanaId('')
+      setDiaTreinoId('')
+      setDias([])
+
+      if (!id) {
+        setSemanas([])
+        return
+      }
+
+      const semanasData = await listarSemanasByFase(id)
+
+      console.log('Semanas carregadas:', semanasData)
+
+      setSemanas(semanasData || [])
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao carregar semanas')
+    }
+  }
+
+  async function handleSemanaChange(id: string) {
+    try {
+      setSemanaId(id)
+      setDiaTreinoId('')
+
+      if (!id) {
+        setDias([])
+        return
+      }
+
+      const diasData = await listarDiasBySemana(id)
+
+      console.log('Dias carregados:', diasData)
+
+      setDias(diasData || [])
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao carregar dias')
+    }
+  }
 
   useEffect(() => {
     async function carregarTreino() {
@@ -55,37 +115,32 @@ export function CriarTreino() {
       try {
         const treino = await getTreinoById(editTreinoId)
 
-        if (!treino) {
-          toast.error('Treino nao encontrado')
-          return
-        }
+        if (!treino) return
 
-        setTitulo(treino.titulo || '')
+        setTitulo(treino.titulo)
         setDiaTreinoId(treino.dia_treino_id)
 
         const dia = await getDiaById(treino.dia_treino_id)
 
-        if (dia?.semana_id) {
+        if (dia) {
           const semana = await getSemanaById(dia.semana_id)
 
-          if (semana?.fase_id) {
+          if (semana) {
             setFaseId(semana.fase_id)
 
             const semanasData = await listarSemanasByFase(semana.fase_id)
             setSemanas(semanasData)
 
-            setSemanaId(dia.semana_id)
+            setSemanaId(semana.id)
 
-            const diasData = await listarDiasBySemana(dia.semana_id)
+            const diasData = await listarDiasBySemana(semana.id)
             setDias(diasData)
           }
         }
 
-        const blocosTreino = (treino as any).blocos || []
-        setBlocos(blocosTreino)
-      } catch (e) {
-        console.error(e)
-        toast.error('Erro ao carregar treino')
+        setBlocos((treino as any).blocos || [])
+      } catch (error) {
+        console.error(error)
       } finally {
         setLoadingTreino(false)
       }
@@ -94,58 +149,14 @@ export function CriarTreino() {
     carregarTreino()
   }, [editTreinoId])
 
-  async function loadFases() {
-    setLoadingFases(true)
-
-    try {
-      const progs = await listarProgramacoes()
-      const allFases: Fase[] = []
-
-      for (const p of progs) {
-        const f = await listarFasesByProg(p.id)
-        allFases.push(...f)
-      }
-
-      setFases(allFases)
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoadingFases(false)
-    }
-  }
-
-  async function handleFaseChange(fId: string) {
-    setFaseId(fId)
-    setSemanaId('')
-    setDiaTreinoId('')
-    setSemanas([])
-    setDias([])
-
-    if (!fId) return
-
-    const semanasData = await listarSemanasByFase(fId)
-    setSemanas(semanasData)
-  }
-
-  async function handleSemanaChange(sId: string) {
-    setSemanaId(sId)
-    setDiaTreinoId('')
-    setDias([])
-
-    if (!sId) return
-
-    const diasData = await listarDiasBySemana(sId)
-    setDias(diasData)
-  }
-
   async function handleSalvar() {
     if (!titulo.trim()) {
-      toast.error('Digite o titulo do treino')
+      toast.error('Digite o título')
       return
     }
 
     if (!diaTreinoId) {
-      toast.error('Selecione o dia do treino')
+      toast.error('Selecione um dia')
       return
     }
 
@@ -160,43 +171,24 @@ export function CriarTreino() {
 
         const blocosAtuais = await listarBlocosByTreino(editTreinoId)
 
-        const novosBlocos = blocosOrdenados.filter(
-          b => !blocosAtuais.some(ba => ba.id === b.id)
-        )
+        for (const bloco of blocosAtuais) {
+          await removerBloco(bloco.id)
+        }
 
-        const existentesBlocos = blocosOrdenados.filter(
-          b => blocosAtuais.some(ba => ba.id === b.id)
-        )
-
-        const removidosBlocos = blocosAtuais.filter(
-          ba => !blocosOrdenados.some(b => b.id === ba.id)
-        )
-
-        for (let i = 0; i < novosBlocos.length; i++) {
+        for (let i = 0; i < blocosOrdenados.length; i++) {
           await adicionarBloco({
-            ...novosBlocos[i],
+            ...blocosOrdenados[i],
             treino_id: editTreinoId,
             ordem: i,
             ativo: true,
           } as any)
         }
 
-        for (const b of existentesBlocos) {
-          await atualizarBloco(b.id, {
-            ...b,
-            ordem: blocosOrdenados.findIndex(bl => bl.id === b.id),
-          } as any)
-        }
-
-        for (const r of removidosBlocos) {
-          await removerBloco(r.id)
-        }
-
         toast.success('Treino atualizado!')
       } else {
         const novoTreino = await criarTreino({
-          dia_treino_id: diaTreinoId,
           titulo,
+          dia_treino_id: diaTreinoId,
           descricao: '',
           tipo_wod: 'FOR_TIME',
           ativo: true,
@@ -211,23 +203,23 @@ export function CriarTreino() {
           } as any)
         }
 
-        toast.success('Treino criado com sucesso!')
+        toast.success('Treino criado!')
       }
 
       navigate('/admin/treinos')
-    } catch (e: any) {
-      console.error(e)
-      toast.error(e?.message || 'Erro ao salvar treino')
+    } catch (error: any) {
+      console.error(error)
+      toast.error(error.message)
     }
   }
 
   const nomes = {
     SEG: 'Segunda',
-    TER: 'Terca',
+    TER: 'Terça',
     QUA: 'Quarta',
     QUI: 'Quinta',
     SEX: 'Sexta',
-    SAB: 'Sabado',
+    SAB: 'Sábado',
     DOM: 'Domingo',
   }
 
@@ -236,98 +228,66 @@ export function CriarTreino() {
   }
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">
-            {modoEdicao ? 'Editar Treino' : 'Criar Treino'}
-          </h1>
-        </div>
+        <h1 className="text-2xl font-bold">
+          {modoEdicao ? 'Editar Treino' : 'Criar Treino'}
+        </h1>
 
-        <Button onClick={handleSalvar}>
-          {modoEdicao ? 'Atualizar Treino' : 'Salvar Treino'}
-        </Button>
+        <Button onClick={handleSalvar}>Salvar Treino</Button>
       </div>
 
       <GlassCard className="p-5 space-y-4">
-        <div>
-          <label className="text-xs text-text-secondary block mb-1">
-            Titulo do Treino
-          </label>
-          <Input
-            value={titulo}
-            onChange={e => setTitulo(e.target.value)}
-            placeholder="Titulo do treino"
-          />
-        </div>
+        <Input
+          value={titulo}
+          onChange={(e) => setTitulo(e.target.value)}
+          placeholder="Título do treino"
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-xs text-text-secondary block mb-1">
-              Fase
-            </label>
-            <select
-              value={faseId}
-              onChange={e => handleFaseChange(e.target.value)}
-              className="glass-input w-full"
-            >
-              <option value="">Selecione...</option>
+          <select
+            value={faseId}
+            onChange={(e) => handleFaseChange(e.target.value)}
+            className="glass-input"
+          >
+            <option value="">Selecione a fase</option>
 
-              {fases
-                .filter(f => f.ativa)
-                .map(f => (
-                  <option key={f.id} value={f.id}>
-                    {f.nome} (Ordem {f.ordem})
-                  </option>
-                ))}
-            </select>
-          </div>
+            {fases.map((fase) => (
+              <option key={fase.id} value={fase.id}>
+                {fase.nome}
+              </option>
+            ))}
+          </select>
 
-          <div>
-            <label className="text-xs text-text-secondary block mb-1">
-              Semana
-            </label>
-            <select
-              value={semanaId}
-              onChange={e => handleSemanaChange(e.target.value)}
-              className="glass-input w-full"
-              disabled={!faseId}
-            >
-              <option value="">Selecione...</option>
+          <select
+            value={semanaId}
+            onChange={(e) => handleSemanaChange(e.target.value)}
+            className="glass-input"
+          >
+            <option value="">Selecione a semana</option>
 
-              {semanas
-                .filter(s => s.ativa)
-                .map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.nome} ({s.tipo})
-                  </option>
-                ))}
-            </select>
-          </div>
+            {semanas.map((semana) => (
+              <option key={semana.id} value={semana.id}>
+                {semana.nome}
+              </option>
+            ))}
+          </select>
 
-          <div>
-            <label className="text-xs text-text-secondary block mb-1">
-              Dia do Treino
-            </label>
-            <select
-              value={diaTreinoId}
-              onChange={e => setDiaTreinoId(e.target.value)}
-              className="glass-input w-full"
-              disabled={!semanaId}
-            >
-              <option value="">Selecione...</option>
+          <select
+            value={diaTreinoId}
+            onChange={(e) => setDiaTreinoId(e.target.value)}
+            className="glass-input"
+          >
+            <option value="">Selecione o dia</option>
 
-              {dias.map(d => (
-                <option key={d.id} value={d.id}>
-                  {(nomes as any)[d.dia_semana] || d.dia_semana}
-                </option>
-              ))}
-            </select>
-          </div>
+            {dias.map((dia) => (
+              <option key={dia.id} value={dia.id}>
+                {(nomes as any)[dia.dia_semana]}
+              </option>
+            ))}
+          </select>
         </div>
       </GlassCard>
-
-      {loadingFases && <p>Carregando fases...</p>}
 
       <BlocoEditor value={blocos} onChange={setBlocos} />
     </div>
