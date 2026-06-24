@@ -118,17 +118,28 @@ export function CriarTreino() {
         const dia = await getDiaById(treino.dia_treino_id)
 
         if (dia) {
-          const semana = await getSemanaById(dia.semana_id)
+  const semana = await getSemanaById(dia.semana_id)
 
-          if (semana) {
-            setSemanaId(semana.id)
+  if (semana) {
+    setSemanaId(semana.id)
+    setFaseId(semana.fase_id)
 
-            const fasesData = await listarSemanasByFase(semana.fase_id)
-            setSemanas(fasesData)
+    const semanasData = await listarSemanasByFase(semana.fase_id)
+    setSemanas(semanasData)
 
-            setFaseId(semana.fase_id)
-          }
-        }
+    const faseEncontrada = fases.find(f => f.id === semana.fase_id)
+
+    if (faseEncontrada) {
+      setProgramacaoId(faseEncontrada.programacao_id)
+
+      const fasesData = await listarFasesByProg(faseEncontrada.programacao_id)
+      setFases(fasesData)
+    }
+
+    const diasData = await listarDiasBySemana(semana.id)
+    setDias(diasData)
+  }
+}
 
         setBlocos((treino as any).blocos || [])
       } catch (error) {
