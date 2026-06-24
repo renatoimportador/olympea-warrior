@@ -60,21 +60,26 @@ export function CriarTreino() {
   }
 
   async function handleProgramacaoChange(id: string) {
-    setProgramacaoId(id)
-    setFaseId('')
-    setSemanaId('')
-    setDiaTreinoId('')
-    setSemanas([])
-    setDias([])
+  console.log('PROGRAMACAO SELECIONADA:', id)
 
-    if (!id) {
-      setFases([])
-      return
-    }
+  setProgramacaoId(id)
+  setFaseId('')
+  setSemanaId('')
+  setDiaTreinoId('')
+  setSemanas([])
+  setDias([])
 
-    const data = await listarFasesByProg(id)
-    setFases(data || [])
+  if (!id) {
+    setFases([])
+    return
   }
+
+  const data = await listarFasesByProg(id)
+
+  console.log('FASES RETORNADAS:', data)
+
+  setFases(data || [])
+}
 
   async function handleFaseChange(id: string) {
     setFaseId(id)
