@@ -223,6 +223,34 @@ export async function criarProgramacao(prog: Partial<Programacao>) {
   if (error) throw error
   return data as Programacao
 }
+export async function atualizarProgramacao(id: string, prog: Partial<Programacao>) {
+  const { error } = await supabase
+    .from('programacoes')
+    .update(prog)
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function excluirProgramacao(id: string) {
+  const { error } = await supabase
+    .from('programacoes')
+    .update({ ativa: false })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function getProgramacoesByAluno(alunoId: string) {
+  const { data, error } = await supabase
+    .from('inscricoes')
+    .select('programacao:programacoes(*)')
+    .eq('aluno_id', alunoId)
+    .eq('ativa', true)
+
+  if (error) throw error
+  return (data?.map((d: any) => d.programacao) || []) as Programacao[]
+}
 
 /* =============================================================
    FASES
@@ -247,6 +275,37 @@ export async function getFaseById(id: string) {
 
   if (error) return null
   return data as Fase
+}
+export async function criarFase(fase: Partial<Fase>) {
+  const { data, error } = await supabase
+    .from('fases')
+    .insert(fase)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Fase
+}
+
+export async function atualizarFase(id: string, fase: Partial<Fase>) {
+  const { data, error } = await supabase
+    .from('fases')
+    .update(fase)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Fase
+}
+
+export async function excluirFase(id: string) {
+  const { error } = await supabase
+    .from('fases')
+    .update({ ativa: false })
+    .eq('id', id)
+
+  if (error) throw error
 }
 
 /* =============================================================
@@ -284,7 +343,26 @@ export async function criarSemana(semana: Partial<Semana>) {
   if (error) throw error
   return data as Semana
 }
+export async function atualizarSemana(id: string, semana: Partial<Semana>) {
+  const { data, error } = await supabase
+    .from('semanas')
+    .update(semana)
+    .eq('id', id)
+    .select()
+    .single()
 
+  if (error) throw error
+  return data as Semana
+}
+
+export async function excluirSemana(id: string) {
+  const { error } = await supabase
+    .from('semanas')
+    .update({ ativa: false })
+    .eq('id', id)
+
+  if (error) throw error
+}
 /* =============================================================
    DIAS
 ============================================================= */
