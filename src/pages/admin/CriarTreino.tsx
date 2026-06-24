@@ -117,8 +117,8 @@ export function CriarTreino() {
 
         if (!treino) return
 
-        setTitulo(treino.titulo)
-        setDiaTreinoId(treino.dia_treino_id)
+        setTitulo(treino.titulo || '')
+        setDiaTreinoId(treino.dia_treino_id || '')
 
         const dia = await getDiaById(treino.dia_treino_id)
 
