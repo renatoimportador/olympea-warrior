@@ -60,37 +60,28 @@ export function CriarTreino() {
   }
 
   async function handleProgramacaoChange(id: string) {
-  console.log('PROGRAMACAO SELECIONADA:', id)
-
-  setProgramacaoId(id)
-  setFaseId('')
-  setSemanaId('')
-  setDiaTreinoId('')
-  setSemanas([])
-  setDias([])
-
-  if (!id) {
+    setProgramacaoId(id)
+    setFaseId('')
+    setSemanaId('')
+    setDiaTreinoId('')
     setFases([])
-    return
+    setSemanas([])
+    setDias([])
+
+    if (!id) return
+
+    const data = await listarFasesByProg(id)
+    setFases(data || [])
   }
-
-  const data = await listarFasesByProg(id)
-
-  console.log('FASES RETORNADAS:', data)
-
-  setFases(data || [])
-}
 
   async function handleFaseChange(id: string) {
     setFaseId(id)
     setSemanaId('')
     setDiaTreinoId('')
+    setSemanas([])
     setDias([])
 
-    if (!id) {
-      setSemanas([])
-      return
-    }
+    if (!id) return
 
     const data = await listarSemanasByFase(id)
     setSemanas(data || [])
@@ -99,11 +90,9 @@ export function CriarTreino() {
   async function handleSemanaChange(id: string) {
     setSemanaId(id)
     setDiaTreinoId('')
+    setDias([])
 
-    if (!id) {
-      setDias([])
-      return
-    }
+    if (!id) return
 
     const data = await listarDiasBySemana(id)
     setDias(data || [])
@@ -123,32 +112,24 @@ export function CriarTreino() {
         const dia = await getDiaById(treino.dia_treino_id)
 
         if (dia) {
-  const semana = await getSemanaById(dia.semana_id)
+          const semana = await getSemanaById(dia.semana_id)
 
-  if (semana) {
-    setSemanaId(semana.id)
-    setFaseId(semana.fase_id)
+          if (semana) {
+            setSemanaId(semana.id)
+            setFaseId(semana.fase_id)
 
-    const semanasData = await listarSemanasByFase(semana.fase_id)
-    setSemanas(semanasData)
+            const semanasData = await listarSemanasByFase(semana.fase_id)
+            setSemanas(semanasData || [])
 
-    const faseEncontrada = fases.find(f => f.id === semana.fase_id)
-
-    if (faseEncontrada) {
-      setProgramacaoId(faseEncontrada.programacao_id)
-
-      const fasesData = await listarFasesByProg(faseEncontrada.programacao_id)
-      setFases(fasesData)
-    }
-
-    const diasData = await listarDiasBySemana(semana.id)
-    setDias(diasData)
-  }
-}
+            const diasData = await listarDiasBySemana(semana.id)
+            setDias(diasData || [])
+          }
+        }
 
         setBlocos((treino as any).blocos || [])
       } catch (error) {
         console.error(error)
+        toast.error('Erro ao carregar treino')
       }
     }
 
@@ -181,8 +162,13 @@ export function CriarTreino() {
 
         for (let i = 0; i < blocos.length; i++) {
           await adicionarBloco({
-            ...blocos[i],
             treino_id: editTreinoId,
+            tipo: blocos[i].tipo,
+            titulo: blocos[i].titulo,
+            descricao: blocos[i].descricao || '',
+            exercicios: blocos[i].exercicios || [],
+            link_youtube: blocos[i].link_youtube || '',
+            observacoes: blocos[i].observacoes || '',
             ordem: i,
             ativo: true,
           } as any)
@@ -193,15 +179,18 @@ export function CriarTreino() {
         const novoTreino = await criarTreino({
           titulo,
           dia_treino_id: diaTreinoId,
-          descricao: '',
-          tipo_wod: 'FOR_TIME',
           ativo: true,
         } as any)
 
         for (let i = 0; i < blocos.length; i++) {
           await adicionarBloco({
-            ...blocos[i],
             treino_id: novoTreino.id,
+            tipo: blocos[i].tipo,
+            titulo: blocos[i].titulo,
+            descricao: blocos[i].descricao || '',
+            exercicios: blocos[i].exercicios || [],
+            link_youtube: blocos[i].link_youtube || '',
+            observacoes: blocos[i].observacoes || '',
             ordem: i,
             ativo: true,
           } as any)
@@ -212,7 +201,7 @@ export function CriarTreino() {
 
       navigate('/admin/treinos')
     } catch (error) {
-      console.error(error)
+      console.error('Erro ao salvar treino:', error)
       toast.error('Erro ao salvar treino')
     }
   }
@@ -260,6 +249,7 @@ export function CriarTreino() {
             value={faseId}
             onChange={(e) => handleFaseChange(e.target.value)}
             className="glass-input"
+            disabled={!programacaoId}
           >
             <option value="">Selecione a fase</option>
             {fases.map((f) => (
@@ -273,6 +263,7 @@ export function CriarTreino() {
             value={semanaId}
             onChange={(e) => handleSemanaChange(e.target.value)}
             className="glass-input"
+            disabled={!faseId}
           >
             <option value="">Selecione a semana</option>
             {semanas.map((s) => (
@@ -286,6 +277,7 @@ export function CriarTreino() {
             value={diaTreinoId}
             onChange={(e) => setDiaTreinoId(e.target.value)}
             className="glass-input"
+            disabled={!semanaId}
           >
             <option value="">Selecione o dia</option>
             {dias.map((d) => (
