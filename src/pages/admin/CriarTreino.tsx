@@ -122,16 +122,10 @@ export function CriarTreino() {
             const programacoesData = await listarProgramacoes()
             setProgramacoes(programacoesData || [])
 
-            const programacaoAtual = programacoesData.find(
-              (p: any) => p.id === semana.programacao_id
-            )
+            setProgramacaoId(dia.programacao_id)
 
-            if (programacaoAtual) {
-              setProgramacaoId(programacaoAtual.id)
-
-              const fasesData = await listarFasesByProg(programacaoAtual.id)
-              setFases(fasesData || [])
-            }
+const fasesData = await listarFasesByProg(dia.programacao_id)
+setFases(fasesData || [])
 
             const semanasData = await listarSemanasByFase(semana.fase_id)
             setSemanas(semanasData || [])
