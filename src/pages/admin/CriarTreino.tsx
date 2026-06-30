@@ -122,10 +122,8 @@ export function CriarTreino() {
             const programacoesData = await listarProgramacoes()
             setProgramacoes(programacoesData || [])
 
-            setProgramacaoId(dia.programacao_id)
-
-const fasesData = await listarFasesByProg(dia.programacao_id)
-setFases(fasesData || [])
+            const fasesData = await listarFasesByProg(semana.fase_id)
+            setFases(fasesData || [])
 
             const semanasData = await listarSemanasByFase(semana.fase_id)
             setSemanas(semanasData || [])
@@ -138,7 +136,9 @@ setFases(fasesData || [])
         const blocosTreino = await listarBlocosByTreino(editTreinoId)
 
         setBlocos(
-          (blocosTreino || []).filter((b: any) => b.ativo !== false)
+          (blocosTreino || [])
+            .filter((b: any) => b.ativo !== false)
+            .sort((a: any, b: any) => a.ordem - b.ordem)
         )
       } catch (error) {
         console.error(error)
@@ -179,13 +179,6 @@ setFases(fasesData || [])
       return
     }
 
-    for (const bloco of blocosValidos) {
-      if (!bloco.titulo?.trim()) {
-        toast.error('Todos os blocos precisam de título')
-        return
-      }
-    }
-
     try {
       setSalvando(true)
 
@@ -197,7 +190,7 @@ setFases(fasesData || [])
 
         const blocosAtuais = await listarBlocosByTreino(editTreinoId)
 
-        for (const bloco of blocosAtuais.filter((b: any) => b.ativo !== false)) {
+        for (const bloco of blocosAtuais) {
           await removerBloco(bloco.id)
         }
 
@@ -242,7 +235,7 @@ setFases(fasesData || [])
 
       navigate('/admin/treinos')
     } catch (error) {
-      console.error('Erro ao salvar treino:', error)
+      console.error(error)
       toast.error('Erro ao salvar treino')
     } finally {
       setSalvando(false)
