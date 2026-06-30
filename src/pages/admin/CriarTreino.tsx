@@ -34,6 +34,7 @@ export function CriarTreino() {
 
   const [titulo, setTitulo] = useState('')
   const [blocos, setBlocos] = useState<BlocoTreino[]>([])
+  const [salvando, setSalvando] = useState(false)
 
   const [programacoes, setProgramacoes] = useState<Programacao[]>([])
   const [fases, setFases] = useState<Fase[]>([])
@@ -137,6 +138,8 @@ export function CriarTreino() {
   }, [editTreinoId])
 
   async function handleSalvar() {
+    if (salvando) return
+
     if (!titulo.trim()) {
       toast.error('Digite o título do treino')
       return
@@ -147,7 +150,33 @@ export function CriarTreino() {
       return
     }
 
+    if (blocos.length === 0) {
+      toast.error('Adicione pelo menos um bloco')
+      return
+    }
+
+    const blocosValidos = blocos.filter(
+      (bloco) =>
+        bloco.titulo?.trim() ||
+        bloco.descricao?.trim() ||
+        (bloco.exercicios && bloco.exercicios.length > 0)
+    )
+
+    if (blocosValidos.length === 0) {
+      toast.error('Nenhum bloco válido para salvar')
+      return
+    }
+
+    for (const bloco of blocosValidos) {
+      if (!bloco.titulo?.trim()) {
+        toast.error('Todos os blocos precisam de título')
+        return
+      }
+    }
+
     try {
+      setSalvando(true)
+
       if (editTreinoId) {
         await atualizarTreino(editTreinoId, {
           titulo,
@@ -160,15 +189,15 @@ export function CriarTreino() {
           await removerBloco(bloco.id)
         }
 
-        for (let i = 0; i < blocos.length; i++) {
+        for (let i = 0; i < blocosValidos.length; i++) {
           await adicionarBloco({
             treino_id: editTreinoId,
-            tipo: blocos[i].tipo,
-            titulo: blocos[i].titulo,
-            descricao: blocos[i].descricao || '',
-            exercicios: blocos[i].exercicios || [],
-            link_youtube: blocos[i].link_youtube || '',
-            observacoes: blocos[i].observacoes || '',
+            tipo: blocosValidos[i].tipo,
+            titulo: blocosValidos[i].titulo,
+            descricao: blocosValidos[i].descricao || '',
+            exercicios: blocosValidos[i].exercicios || [],
+            link_youtube: blocosValidos[i].link_youtube || '',
+            observacoes: blocosValidos[i].observacoes || '',
             ordem: i,
             ativo: true,
           } as any)
@@ -182,15 +211,15 @@ export function CriarTreino() {
           ativo: true,
         } as any)
 
-        for (let i = 0; i < blocos.length; i++) {
+        for (let i = 0; i < blocosValidos.length; i++) {
           await adicionarBloco({
             treino_id: novoTreino.id,
-            tipo: blocos[i].tipo,
-            titulo: blocos[i].titulo,
-            descricao: blocos[i].descricao || '',
-            exercicios: blocos[i].exercicios || [],
-            link_youtube: blocos[i].link_youtube || '',
-            observacoes: blocos[i].observacoes || '',
+            tipo: blocosValidos[i].tipo,
+            titulo: blocosValidos[i].titulo,
+            descricao: blocosValidos[i].descricao || '',
+            exercicios: blocosValidos[i].exercicios || [],
+            link_youtube: blocosValidos[i].link_youtube || '',
+            observacoes: blocosValidos[i].observacoes || '',
             ordem: i,
             ativo: true,
           } as any)
@@ -203,6 +232,8 @@ export function CriarTreino() {
     } catch (error) {
       console.error('Erro ao salvar treino:', error)
       toast.error('Erro ao salvar treino')
+    } finally {
+      setSalvando(false)
     }
   }
 
@@ -219,8 +250,13 @@ export function CriarTreino() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Criar Treino</h1>
-        <Button onClick={handleSalvar}>Salvar Treino</Button>
+        <h1 className="text-2xl font-bold">
+          {editTreinoId ? 'Editar Treino' : 'Criar Treino'}
+        </h1>
+
+        <Button onClick={handleSalvar} disabled={salvando}>
+          {salvando ? 'Salvando...' : 'Salvar Treino'}
+        </Button>
       </div>
 
       <GlassCard className="p-5 space-y-4">
@@ -231,7 +267,6 @@ export function CriarTreino() {
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-
           <select
             value={programacaoId}
             onChange={(e) => handleProgramacaoChange(e.target.value)}
@@ -286,7 +321,6 @@ export function CriarTreino() {
               </option>
             ))}
           </select>
-
         </div>
       </GlassCard>
 
