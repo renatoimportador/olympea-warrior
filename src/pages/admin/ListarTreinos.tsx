@@ -233,20 +233,21 @@ export function ListarTreinos() {
   }, [semanaAtiva])
 
   async function handleDelete(id: string) {
-    if (!confirm('Deseja realmente excluir este treino?')) return
+  if (!confirm('Deseja realmente excluir este treino?')) return
 
-    try {
-      await excluirTreino(id)
-      toast.success('Treino excluido!')
+  try {
+    await excluirTreino(id)
 
-      if (semanaAtiva) {
-        // Dispara recarga manual
-        setSemanaAtiva(prev => prev)
-      }
-    } catch {
-      toast.error('Erro ao excluir treino')
-    }
+    setTreinos((prev) =>
+      prev.filter((item) => item.treino.id !== id)
+    )
+
+    toast.success('Treino excluído!')
+  } catch (error) {
+    console.error(error)
+    toast.error('Erro ao excluir treino')
   }
+}
 
   function semanaAnterior() {
     const idx = semanas.findIndex(s => s.id === semanaAtiva)
