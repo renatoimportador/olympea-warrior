@@ -15,9 +15,11 @@ import {
   getTreinoById,
   getDiaById,
   getSemanaById,
+  getFaseById,
   listarBlocosByTreino,
   removerBloco,
 } from '@/lib/api'
+
 import type {
   BlocoTreino,
   DiaTreino,
@@ -25,6 +27,7 @@ import type {
   Fase,
   Programacao,
 } from '@/data/types'
+
 import toast from 'react-hot-toast'
 
 export function CriarTreino() {
@@ -117,13 +120,21 @@ export function CriarTreino() {
 
           if (semana) {
             setSemanaId(semana.id)
-            setFaseId(semana.fase_id)
 
-            const programacoesData = await listarProgramacoes()
-            setProgramacoes(programacoesData || [])
+            const faseAtual = await getFaseById(semana.fase_id)
 
-            const fasesData = await listarFasesByProg(semana.fase_id)
-            setFases(fasesData || [])
+            if (faseAtual) {
+              setFaseId(faseAtual.id)
+              setProgramacaoId(faseAtual.programacao_id)
+
+              const programacoesData = await listarProgramacoes()
+              setProgramacoes(programacoesData || [])
+
+              const fasesData = await listarFasesByProg(
+                faseAtual.programacao_id
+              )
+              setFases(fasesData || [])
+            }
 
             const semanasData = await listarSemanasByFase(semana.fase_id)
             setSemanas(semanasData || [])
@@ -190,7 +201,7 @@ export function CriarTreino() {
 
         const blocosAtuais = await listarBlocosByTreino(editTreinoId)
 
-        for (const bloco of blocosAtuais) {
+        for (const bloco of blocosAtuais.filter((b: any) => b.ativo !== false)) {
           await removerBloco(bloco.id)
         }
 
