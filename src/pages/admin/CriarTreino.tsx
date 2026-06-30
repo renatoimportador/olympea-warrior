@@ -119,6 +119,20 @@ export function CriarTreino() {
             setSemanaId(semana.id)
             setFaseId(semana.fase_id)
 
+            const programacoesData = await listarProgramacoes()
+            setProgramacoes(programacoesData || [])
+
+            const programacaoAtual = programacoesData.find(
+              (p: any) => p.id === semana.programacao_id
+            )
+
+            if (programacaoAtual) {
+              setProgramacaoId(programacaoAtual.id)
+
+              const fasesData = await listarFasesByProg(programacaoAtual.id)
+              setFases(fasesData || [])
+            }
+
             const semanasData = await listarSemanasByFase(semana.fase_id)
             setSemanas(semanasData || [])
 
@@ -127,7 +141,11 @@ export function CriarTreino() {
           }
         }
 
-        setBlocos((treino as any).blocos || [])
+        const blocosTreino = await listarBlocosByTreino(editTreinoId)
+
+        setBlocos(
+          (blocosTreino || []).filter((b: any) => b.ativo !== false)
+        )
       } catch (error) {
         console.error(error)
         toast.error('Erro ao carregar treino')
@@ -185,7 +203,7 @@ export function CriarTreino() {
 
         const blocosAtuais = await listarBlocosByTreino(editTreinoId)
 
-        for (const bloco of blocosAtuais) {
+        for (const bloco of blocosAtuais.filter((b: any) => b.ativo !== false)) {
           await removerBloco(bloco.id)
         }
 
