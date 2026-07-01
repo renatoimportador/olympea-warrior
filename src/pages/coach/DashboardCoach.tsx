@@ -17,7 +17,6 @@ import {
   getPRsByAluno,
 } from '@/lib/api'
 import type {
-  Aluno,
   Resultado,
   PersonalRecord,
   Frequencia,
@@ -27,7 +26,7 @@ import { useNavigate } from 'react-router-dom'
 export function DashboardCoach() {
   const navigate = useNavigate()
 
-  const [alunos, setAlunos] = useState<Aluno[]>([])
+  const [alunos, setAlunos] = useState<any[]>([])
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [frequencias, setFrequencias] = useState<Frequencia[]>([])
   const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([])
@@ -40,7 +39,7 @@ export function DashboardCoach() {
   async function carregarDashboard() {
     try {
       const alunosData = await listarAlunos()
-      const alunosAtivos = (alunosData || []).filter((a) => a.ativo)
+      const alunosAtivos = (alunosData || []).filter((a: any) => a.ativo)
 
       setAlunos(alunosAtivos)
 
@@ -86,14 +85,11 @@ export function DashboardCoach() {
   }
 
   const totalAlunos = alunos.length
-
   const freqTotal = frequencias.filter((f) => f.presente).length
-
   const freqMedia =
     totalAlunos > 0 ? (freqTotal / totalAlunos).toFixed(1) : '0'
 
   const recentPRs = personalRecords.slice(0, 3)
-
   const ultimosResultados = resultados.slice(0, 5)
 
   const alunosSemRegistro = alunos.filter((a) => {
@@ -190,9 +186,7 @@ export function DashboardCoach() {
           <div className="space-y-2">
             {recentPRs.length > 0 ? (
               recentPRs.map((pr) => {
-                const aluno = alunos.find(
-                  (a) => a.id === pr.aluno_id
-                )
+                const aluno = alunos.find((a) => a.id === pr.aluno_id)
 
                 return (
                   <div
@@ -206,7 +200,7 @@ export function DashboardCoach() {
 
                       <div>
                         <p className="text-sm font-medium text-text-primary">
-                          {aluno?.nome || 'Aluno'}
+                          {aluno?.usuario?.nome || 'Aluno'}
                         </p>
 
                         <p className="text-xs text-text-secondary">
@@ -246,7 +240,7 @@ export function DashboardCoach() {
                   className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02]"
                 >
                   <span className="text-sm text-text-primary">
-                    {a.nome}
+                    {a.usuario?.nome || 'Aluno'}
                   </span>
 
                   <Badge variant="error">
@@ -283,9 +277,7 @@ export function DashboardCoach() {
         <div className="space-y-2">
           {ultimosResultados.length > 0 ? (
             ultimosResultados.map((r) => {
-              const aluno = alunos.find(
-                (a) => a.id === r.aluno_id
-              )
+              const aluno = alunos.find((a) => a.id === r.aluno_id)
 
               return (
                 <div
@@ -295,13 +287,13 @@ export function DashboardCoach() {
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center">
                       <span className="text-xs font-bold text-accent">
-                        {aluno?.nome?.charAt(0) || 'A'}
+                        {aluno?.usuario?.nome?.charAt(0) || 'A'}
                       </span>
                     </div>
 
                     <div>
                       <p className="text-sm text-text-primary">
-                        {aluno?.nome || 'Aluno'}
+                        {aluno?.usuario?.nome || 'Aluno'}
                       </p>
 
                       <p className="text-xs text-text-secondary">
