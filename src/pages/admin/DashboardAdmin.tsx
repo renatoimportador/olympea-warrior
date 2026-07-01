@@ -67,9 +67,15 @@ export function DashboardAdmin() {
     load()
   }, [])
 
-  const totalUsuarios = usuarios.filter((u) => u.ativo).length
-  const totalAlunos = alunos.filter((a) => a.ativo).length
-  const totalCoaches = coaches.filter((c) => c.ativo).length
+  const totalUsuarios = usuarios.filter(
+  (u) => u.ativo && u.auth_id !== null && u.box_id !== null
+).length
+  const totalAlunos = alunos.filter(
+  (a) => a.ativo && a.usuario?.auth_id && a.usuario?.box_id
+).length
+  const totalCoaches = coaches.filter(
+  (c) => c.ativo && c.usuario?.auth_id && c.usuario?.box_id
+).length
   const totalProgramacoes = programacoes.filter((p) => p.ativa).length
   const totalResultados = resultados.length
   const totalFases = fases.filter((f) => f.ativa).length
