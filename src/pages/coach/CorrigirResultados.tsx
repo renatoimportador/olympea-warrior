@@ -9,6 +9,7 @@ import {
   listarAlunos,
   listarComentariosByResultado,
   adicionarComentario,
+  listarUsuarios,
 } from '@/lib/api'
 
 export function CorrigirResultados() {
@@ -16,6 +17,7 @@ export function CorrigirResultados() {
 
   const [resultados, setResultados] = useState<any[]>([])
   const [alunos, setAlunos] = useState<any[]>([])
+  const [usuarios, setUsuarios] = useState<any[]>([])
   const [comentarios, setComentarios] = useState<Record<string, any[]>>({})
   const [comentarioPorResultado, setComentarioPorResultado] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
@@ -23,13 +25,15 @@ export function CorrigirResultados() {
   useEffect(() => {
     async function carregar() {
       try {
-        const [resData, alunosData] = await Promise.all([
+        const [resData, alunosData, usuariosData] = await Promise.all([
           listarResultados(),
           listarAlunos(),
+          listarUsuarios(),
         ])
 
         setResultados(resData || [])
         setAlunos(alunosData || [])
+        setUsuarios(usuariosData || [])
 
         const comentariosMap: Record<string, any[]> = {}
 
@@ -60,7 +64,7 @@ export function CorrigirResultados() {
         autor_id: user?.id,
         mensagem: texto,
         lido: false,
-      } as any)
+      })
 
       const novosComentarios = await listarComentariosByResultado(resultadoId)
 
@@ -92,7 +96,9 @@ export function CorrigirResultados() {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-text-primary">Corrigir Resultados</h1>
+        <h1 className="text-2xl font-bold text-text-primary">
+          Corrigir Resultados
+        </h1>
         <p className="text-sm text-text-secondary">
           Avalie e comente os resultados dos alunos
         </p>
@@ -101,7 +107,10 @@ export function CorrigirResultados() {
       <div className="space-y-3">
         {resultados.length === 0 && (
           <GlassCard className="p-8 text-center">
-            <ClipboardCheck size={32} className="mx-auto text-text-secondary mb-2" />
+            <ClipboardCheck
+              size={32}
+              className="mx-auto text-text-secondary mb-2"
+            />
             <p className="text-sm text-text-secondary">
               Nenhum resultado registrado ainda.
             </p>
@@ -110,6 +119,7 @@ export function CorrigirResultados() {
 
         {resultados.map((r) => {
           const aluno = alunos.find((a) => a.id === r.aluno_id)
+          const nomeAluno = aluno?.usuario?.nome || 'Aluno'
           const coms = comentarios[r.id] || []
 
           return (
@@ -117,13 +127,14 @@ export function CorrigirResultados() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center font-bold text-accent text-sm">
-                    {aluno?.nome?.charAt(0) || 'A'}
+                    {nomeAluno.charAt(0)}
                   </div>
 
                   <div>
                     <p className="text-sm font-medium text-text-primary">
-                      {aluno?.nome || 'Aluno'}
+                      {nomeAluno}
                     </p>
+
                     <p className="text-xs text-text-secondary">
                       {new Date(r.data).toLocaleDateString('pt-BR')}
                     </p>
@@ -145,12 +156,16 @@ export function CorrigirResultados() {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <div className="p-2 rounded-lg bg-white/[0.02] text-center">
-                  <p className="text-sm font-bold text-accent">{r.tempo || '--'}</p>
+                  <p className="text-sm font-bold text-accent">
+                    {r.tempo || '--'}
+                  </p>
                   <p className="text-[10px] text-text-secondary">Tempo</p>
                 </div>
 
                 <div className="p-2 rounded-lg bg-white/[0.02] text-center">
-                  <p className="text-sm font-bold text-warning">{r.rounds || '--'}</p>
+                  <p className="text-sm font-bold text-warning">
+                    {r.rounds || '--'}
+                  </p>
                   <p className="text-[10px] text-text-secondary">Rounds</p>
                 </div>
 
@@ -162,21 +177,27 @@ export function CorrigirResultados() {
                 </div>
 
                 <div className="p-2 rounded-lg bg-white/[0.02] text-center">
-                  <p className="text-sm font-bold text-secondary">{r.rpe || '--'}</p>
+                  <p className="text-sm font-bold text-secondary">
+                    {r.rpe || '--'}
+                  </p>
                   <p className="text-[10px] text-text-secondary">RPE</p>
                 </div>
               </div>
 
               {r.reflexao && (
                 <p className="text-sm text-text-secondary bg-white/[0.02] p-3 rounded-lg">
-                  <span className="text-text-primary font-medium">Reflexão: </span>
+                  <span className="text-text-primary font-medium">
+                    Reflexão:
+                  </span>{' '}
                   {r.reflexao}
                 </p>
               )}
 
               {r.meta_proxima && (
                 <p className="text-sm text-text-secondary bg-white/[0.02] p-3 rounded-lg">
-                  <span className="text-text-primary font-medium">Meta: </span>
+                  <span className="text-text-primary font-medium">
+                    Meta:
+                  </span>{' '}
                   {r.meta_proxima}
                 </p>
               )}
@@ -187,15 +208,21 @@ export function CorrigirResultados() {
                     Comentários anteriores
                   </p>
 
-                  {coms.map((c) => (
-                    <div
-                      key={c.id}
-                      className="p-2 rounded-lg bg-white/[0.02] text-sm text-text-secondary"
-                    >
-                      <span className="text-accent font-medium">Coach:</span>{' '}
-                      {c.mensagem}
-                    </div>
-                  ))}
+                  {coms.map((c) => {
+                    const autor = usuarios.find((u) => u.id === c.autor_id)
+
+                    return (
+                      <div
+                        key={c.id}
+                        className="p-2 rounded-lg bg-white/[0.02] text-sm text-text-secondary"
+                      >
+                        <span className="text-accent font-medium">
+                          {autor?.nome || 'Coach'}:
+                        </span>{' '}
+                        {c.mensagem}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
 
