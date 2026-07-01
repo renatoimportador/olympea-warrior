@@ -223,6 +223,7 @@ export async function criarProgramacao(prog: Partial<Programacao>) {
   if (error) throw error
   return data as Programacao
 }
+
 export async function atualizarProgramacao(id: string, prog: Partial<Programacao>) {
   const { error } = await supabase
     .from('programacoes')
@@ -276,6 +277,7 @@ export async function getFaseById(id: string) {
   if (error) return null
   return data as Fase
 }
+
 export async function criarFase(fase: Partial<Fase>) {
   const { data, error } = await supabase
     .from('fases')
@@ -343,6 +345,7 @@ export async function criarSemana(semana: Partial<Semana>) {
   if (error) throw error
   return data as Semana
 }
+
 export async function atualizarSemana(id: string, semana: Partial<Semana>) {
   const { data, error } = await supabase
     .from('semanas')
@@ -363,6 +366,7 @@ export async function excluirSemana(id: string) {
 
   if (error) throw error
 }
+
 /* =============================================================
    DIAS
 ============================================================= */
@@ -537,6 +541,16 @@ export async function listarResultadosByAluno(alunoId: string) {
   return data as Resultado[]
 }
 
+export async function listarResultados() {
+  const { data, error } = await supabase
+    .from('resultados')
+    .select('*')
+    .order('data', { ascending: false })
+
+  if (error) throw error
+  return data as Resultado[]
+}
+
 export async function criarResultado(resultado: Partial<Resultado>) {
   const { data, error } = await supabase
     .from('resultados')
@@ -546,6 +560,28 @@ export async function criarResultado(resultado: Partial<Resultado>) {
 
   if (error) throw error
   return data as Resultado
+}
+
+export async function listarComentariosByResultado(resultadoId: string) {
+  const { data, error } = await supabase
+    .from('comentarios')
+    .select('*')
+    .eq('resultado_id', resultadoId)
+    .order('created_at', { ascending: true })
+
+  if (error) throw error
+  return data as Comentario[]
+}
+
+export async function adicionarComentario(comentario: Partial<Comentario>) {
+  const { data, error } = await supabase
+    .from('comentarios')
+    .insert(comentario)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Comentario
 }
 
 /* =============================================================
@@ -589,5 +625,6 @@ export async function signInWithEmail(email: string, password: string) {
 
 export async function signOut() {
   const { error } = await supabase.auth.signOut()
+
   if (error) throw error
 }
