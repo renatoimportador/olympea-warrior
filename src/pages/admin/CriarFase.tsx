@@ -42,18 +42,18 @@ export function CriarFase() {
     setLoading(true)
 
     try {
-      const progs = await listarProgramacoes()
+      const progs = (await listarProgramacoes()) || []
       setProgramacoes(progs)
 
       const allFases: Fase[] = []
       const semanasPorFase: Record<string, Semana[]> = {}
 
       for (const prog of progs) {
-        const fasesProg = await listarFasesByProg(prog.id)
+        const fasesProg = (await listarFasesByProg(prog.id)) || []
         allFases.push(...fasesProg)
 
         for (const fase of fasesProg) {
-          const semanas = await listarSemanasByFase(fase.id)
+          const semanas = (await listarSemanasByFase(fase.id)) || []
           semanasPorFase[fase.id] = semanas
         }
       }
@@ -94,8 +94,9 @@ export function CriarFase() {
         } as any)
 
         toast.success('Fase atualizada!')
+        await loadData()
       } else {
-        await criarFase({
+        const novaFase = await criarFase({
           nome: form.nome,
           ordem: form.ordem,
           descricao: form.descricao,
@@ -105,10 +106,12 @@ export function CriarFase() {
           created_by: user.id,
         } as any)
 
+        if (novaFase) {
+          setFases((prev) => [...prev, novaFase as Fase])
+        }
+
         toast.success('Fase criada!')
       }
-
-      await loadData()
 
       setShowForm(false)
       setForm({
@@ -130,8 +133,8 @@ export function CriarFase() {
 
     try {
       await excluirFase(id)
+      setFases((prev) => prev.filter((f) => f.id !== id))
       toast.success('Fase excluída!')
-      await loadData()
     } catch {
       toast.error('Erro ao excluir fase')
     }
@@ -252,11 +255,7 @@ export function CriarFase() {
 
           <div className="flex gap-2">
             <Button onClick={handleSave}>Salvar</Button>
-
-            <Button
-              variant="ghost"
-              onClick={() => setShowForm(false)}
-            >
+            <Button variant="ghost" onClick={() => setShowForm(false)}>
               Cancelar
             </Button>
           </div>
@@ -264,9 +263,7 @@ export function CriarFase() {
       )}
 
       {loading && (
-        <p className="text-sm text-text-secondary">
-          Carregando...
-        </p>
+        <p className="text-sm text-text-secondary">Carregando...</p>
       )}
 
       <div className="space-y-3">
@@ -288,7 +285,6 @@ export function CriarFase() {
                     <p className="text-sm font-semibold text-text-primary">
                       {f.nome}
                     </p>
-
                     <p className="text-xs text-text-secondary">
                       {prog?.nome || ''}
                     </p>
@@ -298,7 +294,7 @@ export function CriarFase() {
                 <div className="flex gap-1">
                   <button
                     onClick={() => handleEdit(f)}
-                    className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary"
+                    className="p-1.5 rounded-lg hover:bg-white/[0.03]"
                   >
                     <Edit2 size={14} />
                   </button>
@@ -312,33 +308,9 @@ export function CriarFase() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                <div className="p-3 rounded-xl bg-white/[0.02] text-center">
-                  <p className="text-lg font-bold text-text-primary">
-                    {f.ordem}
-                  </p>
-                  <p className="text-[10px] text-text-secondary">
-                    Ordem
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/[0.02] text-center">
-                  <p className="text-lg font-bold text-text-primary">
-                    {semanasFase.length}
-                  </p>
-                  <p className="text-[10px] text-text-secondary">
-                    Semanas
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/[0.02] text-center">
-                  <p className="text-lg font-bold text-text-primary">
-                    {semanasFase.length}
-                  </p>
-                  <p className="text-[10px] text-text-secondary">
-                    Duração total
-                  </p>
-                </div>
+              <div className="flex gap-2">
+                <Badge>{f.ordem}ª Fase</Badge>
+                <Badge>{semanasFase.length} Semanas</Badge>
               </div>
 
               {f.descricao && (
