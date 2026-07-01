@@ -260,13 +260,26 @@ export const criarDia = async (dia: Partial<DiaTreino>) =>
 
 /* ========================= TREINOS ========================= */
 export const listarTreinosByDia = async (diaTreinoId: string) =>
-  (await supabase.from('treinos').select('*').eq('dia_treino_id', diaTreinoId)).data as Treino[]
+  (
+    await supabase
+      .from('treinos')
+      .select('*')
+      .eq('dia_treino_id', diaTreinoId)
+      .eq('ativo', true)
+  ).data as Treino[]
 
 export const getTreinoById = async (id: string) =>
   (await supabase.from('treinos').select('*').eq('id', id).single()).data as Treino
 
 export const getTreinoByDia = async (diaTreinoId: string) =>
-  (await supabase.from('treinos').select('*').eq('dia_treino_id', diaTreinoId).single()).data as Treino
+  (
+    await supabase
+      .from('treinos')
+      .select('*')
+      .eq('dia_treino_id', diaTreinoId)
+      .eq('ativo', true)
+      .single()
+  ).data as Treino
 
 export const criarTreino = async (treino: Partial<Treino>) =>
   (await supabase.from('treinos').insert(treino).select().single()).data
@@ -274,8 +287,22 @@ export const criarTreino = async (treino: Partial<Treino>) =>
 export const atualizarTreino = async (id: string, treino: Partial<Treino>) =>
   supabase.from('treinos').update(treino).eq('id', id)
 
-export const excluirTreino = async (id: string) =>
-  supabase.from('treinos').update({ ativo: false }).eq('id', id)
+export async function excluirTreino(id: string) {
+  const { data, error } = await supabase
+    .from('treinos')
+    .update({ ativo: false })
+    .eq('id', id)
+    .select()
+
+  if (error) {
+    console.error('Erro ao excluir treino:', error)
+    throw error
+  }
+
+  console.log('Treino excluído:', data)
+
+  return data
+}
 
 /* ========================= BLOCOS ========================= */
 export const listarBlocosByTreino = async (treinoId: string) =>
