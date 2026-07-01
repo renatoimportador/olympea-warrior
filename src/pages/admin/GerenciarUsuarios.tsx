@@ -84,17 +84,18 @@ export function GerenciarUsuarios() {
       toast.success('Usuário atualizado!')
     } else {
       const { error } = await supabase.from('usuarios').insert([
-        {
-          nome: form.nome,
-          email: form.email,
-          role: form.role,
-          telefone: form.telefone,
-          ativo: true,
-          auth_provider: 'email',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ])
+  {
+    box_id: 'box-1',
+    nome: form.nome,
+    email: form.email,
+    role: form.role,
+    telefone: form.telefone || null,
+    ativo: true,
+    auth_provider: 'email',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+])
 
       if (error) {
         toast.error('Erro ao criar usuário')
