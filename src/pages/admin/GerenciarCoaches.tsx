@@ -77,7 +77,7 @@ export function GerenciarCoaches() {
       const { data: usuario } = await supabase
         .from('usuarios')
         .insert({
-          box_id: 'box-1',
+          box_id: '89b16bd4-69f8-43ae-ba6e-7434d424fef0',
           nome: form.nome,
           email: form.email,
           telefone: form.telefone,
