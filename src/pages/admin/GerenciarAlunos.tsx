@@ -64,7 +64,6 @@ export function GerenciarAlunos() {
       return
     }
 
-    console.log('ALUNOS CARREGADOS:', data)
     setAlunos(data || [])
   }
 
@@ -113,7 +112,9 @@ export function GerenciarAlunos() {
         .update({
           categoria: form.categoria,
           peso_atual: form.peso ? parseFloat(form.peso) : null,
-          altura: form.altura ? parseFloat(form.altura) : null,
+          altura: form.altura
+            ? parseFloat(form.altura.replace(',', '.'))
+            : null,
         })
         .eq('id', editingId)
 
@@ -167,18 +168,19 @@ export function GerenciarAlunos() {
           box_id: usuario.box_id,
           categoria: form.categoria,
           peso_atual: form.peso ? parseFloat(form.peso) : null,
-          altura: form.altura ? parseFloat(form.altura) : null,
+          altura: form.altura
+            ? parseFloat(form.altura.replace(',', '.'))
+            : null,
           ativo: true,
         })
         .select()
-
-      console.log('NOVO ALUNO:', novoAluno)
-      console.log('ERRO ALUNO:', alunoError)
 
       if (alunoError) {
         toast.error(alunoError.message)
         return
       }
+
+      console.log('NOVO ALUNO:', novoAluno)
 
       toast.success('Aluno criado!')
     }
@@ -283,7 +285,9 @@ export function GerenciarAlunos() {
 
             <select
               value={form.categoria}
-              onChange={(e) => setForm({ ...form, categoria: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, categoria: e.target.value })
+              }
               className="glass-input w-full"
             >
               {niveis.map((nivel) => (
@@ -308,7 +312,9 @@ export function GerenciarAlunos() {
             <Input
               placeholder="Telefone"
               value={form.telefone}
-              onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, telefone: e.target.value })
+              }
             />
           </div>
 
@@ -318,7 +324,10 @@ export function GerenciarAlunos() {
               Salvar
             </Button>
 
-            <Button variant="ghost" onClick={() => setShowForm(false)}>
+            <Button
+              variant="ghost"
+              onClick={() => setShowForm(false)}
+            >
               Cancelar
             </Button>
           </div>
@@ -344,9 +353,10 @@ export function GerenciarAlunos() {
                 <Edit2 size={14} />
               </button>
 
-              <button onClick={() => handleDelete(a.id)}
+              <button
+                onClick={() => handleDelete(a.id)}
                 className="p-1.5 rounded-lg hover:bg-error/5 text-error"
-                >
+              >
                 <Ban size={14} />
               </button>
             </div>
