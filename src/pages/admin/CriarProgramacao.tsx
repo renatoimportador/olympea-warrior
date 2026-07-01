@@ -20,7 +20,7 @@ import toast from 'react-hot-toast'
 type ProgramacaoForm = {
   id?: string
   nome: string
-  tipo: string
+  tipo: Programacao['tipo']
   descricao: string
   data_inicio: string
   data_fim: string
