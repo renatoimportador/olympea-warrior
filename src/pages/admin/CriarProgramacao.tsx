@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -27,7 +26,6 @@ type ProgramacaoForm = {
 }
 
 export function CriarProgramacao() {
-  const navigate = useNavigate()
   const { user } = useAuth()
 
   const [showForm, setShowForm] = useState(false)
@@ -55,6 +53,7 @@ export function CriarProgramacao() {
   async function loadBox() {
     try {
       const box = await getBox()
+
       if (box?.id) {
         setBoxId(box.id)
       }
@@ -69,6 +68,7 @@ export function CriarProgramacao() {
 
     try {
       const progs = await listarProgramacoes()
+
       setProgramacoes(progs || [])
 
       const mapa: Record<string, Fase[]> = {}
@@ -132,7 +132,7 @@ export function CriarProgramacao() {
           data_fim: form.data_fim,
           box_id: boxId,
           created_by: user.id,
-          ativa: true, // CORREÇÃO IMPORTANTE
+          ativa: true,
         })
 
         toast.success('Programação criada!')
@@ -168,7 +168,7 @@ export function CriarProgramacao() {
       await excluirProgramacao(id)
       toast.success('Programação excluída!')
       await loadProgramacoes()
-    } catch (e) {
+    } catch {
       toast.error('Erro ao excluir programação')
     }
   }
@@ -182,6 +182,7 @@ export function CriarProgramacao() {
           <h1 className="text-2xl font-bold text-text-primary">
             Programações
           </h1>
+
           <p className="text-sm text-text-secondary">
             {programacoesAtivas.length} programações criadas
           </p>
@@ -209,14 +210,20 @@ export function CriarProgramacao() {
               placeholder="Nome da programação"
               value={form.nome}
               onChange={(e) =>
-                setForm({ ...form, nome: e.target.value })
+                setForm({
+                  ...form,
+                  nome: e.target.value,
+                })
               }
             />
 
             <select
               value={form.tipo}
               onChange={(e) =>
-                setForm({ ...form, tipo: e.target.value })
+                setForm({
+                  ...form,
+                  tipo: e.target.value as Programacao['tipo'],
+                })
               }
               className="glass-input w-full text-sm"
             >
@@ -232,7 +239,10 @@ export function CriarProgramacao() {
               type="date"
               value={form.data_inicio}
               onChange={(e) =>
-                setForm({ ...form, data_inicio: e.target.value })
+                setForm({
+                  ...form,
+                  data_inicio: e.target.value,
+                })
               }
             />
 
@@ -240,7 +250,10 @@ export function CriarProgramacao() {
               type="date"
               value={form.data_fim}
               onChange={(e) =>
-                setForm({ ...form, data_fim: e.target.value })
+                setForm({
+                  ...form,
+                  data_fim: e.target.value,
+                })
               }
             />
 
@@ -249,14 +262,19 @@ export function CriarProgramacao() {
               placeholder="Descrição"
               value={form.descricao}
               onChange={(e) =>
-                setForm({ ...form, descricao: e.target.value })
+                setForm({
+                  ...form,
+                  descricao: e.target.value,
+                })
               }
               className="glass-input w-full resize-none sm:col-span-2"
             />
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={handleSave}>Salvar</Button>
+            <Button onClick={handleSave}>
+              Salvar
+            </Button>
 
             <Button
               variant="ghost"
@@ -269,7 +287,9 @@ export function CriarProgramacao() {
       )}
 
       {loading && (
-        <p className="text-sm text-text-secondary">Carregando...</p>
+        <p className="text-sm text-text-secondary">
+          Carregando...
+        </p>
       )}
 
       <div className="space-y-3">
@@ -288,6 +308,7 @@ export function CriarProgramacao() {
                     <p className="text-sm font-semibold text-text-primary">
                       {p.nome}
                     </p>
+
                     <p className="text-xs text-text-secondary">
                       {p.tipo}
                     </p>
@@ -309,7 +330,10 @@ export function CriarProgramacao() {
                     onClick={() => handleDelete(p.id)}
                     className="p-1.5 rounded-lg hover:bg-error/5"
                   >
-                    <Trash2 size={14} className="text-error" />
+                    <Trash2
+                      size={14}
+                      className="text-error"
+                    />
                   </button>
                 </div>
               </div>
@@ -324,9 +348,13 @@ export function CriarProgramacao() {
                 </Badge>
 
                 {p.ativa ? (
-                  <Badge variant="success">Ativa</Badge>
+                  <Badge variant="success">
+                    Ativa
+                  </Badge>
                 ) : (
-                  <Badge>Inativa</Badge>
+                  <Badge>
+                    Inativa
+                  </Badge>
                 )}
               </div>
 
