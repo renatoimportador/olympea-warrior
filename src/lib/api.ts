@@ -378,7 +378,42 @@ export async function getFrequenciasByAluno(alunoId: string) {
 
   return data as Frequencia[]
 }
+export async function getProgramacoesByAluno(alunoId: string) {
+  const { data } = await supabase
+    .from('inscricoes')
+    .select('programacao:programacoes(*)')
+    .eq('aluno_id', alunoId)
 
+  return (data?.map((i: any) => i.programacao) || []) as Programacao[]
+}
+
+export const getTreinoByDia = async (diaTreinoId: string) =>
+  (
+    await supabase
+      .from('treinos')
+      .select('*')
+      .eq('dia_treino_id', diaTreinoId)
+      .eq('ativo', true)
+      .single()
+  ).data as Treino
+
+export async function listarResultados() {
+  const { data } = await supabase
+    .from('resultados')
+    .select('*')
+    .order('data', { ascending: false })
+
+  return data as Resultado[]
+}
+
+export async function listarComentarios() {
+  const { data } = await supabase
+    .from('comentarios')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  return data as Comentario[]
+}
 /* ========================= AUTH ========================= */
 export async function signInWithEmail(email: string, password: string) {
   return await supabase.auth.signInWithPassword({ email, password })
