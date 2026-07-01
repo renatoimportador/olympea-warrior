@@ -1,65 +1,146 @@
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
-import { usuarios, resultados, comentarios, getAlunoById } from '@/data/seed'
 import { ClipboardCheck, MessageSquare } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/context/AuthContext'
+import {
+  listarResultados,
+  listarAlunos,
+  listarComentariosByResultado,
+  adicionarComentario,
+} from '@/lib/api'
 
 export function CorrigirResultados() {
   const { user } = useAuth()
+
+  const [resultados, setResultados] = useState<any[]>([])
+  const [alunos, setAlunos] = useState<any[]>([])
+  const [comentarios, setComentarios] = useState<Record<string, any[]>>({})
   const [comentarioPorResultado, setComentarioPorResultado] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
 
-  function getComentariosDoResultado(resultadoId: string) {
-    return comentarios.filter((c) => c.resultado_id === resultadoId)
-  }
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const [resData, alunosData] = await Promise.all([
+          listarResultados(),
+          listarAlunos(),
+        ])
 
-  function handleAddComment(resultadoId: string) {
+        setResultados(resData || [])
+        setAlunos(alunosData || [])
+
+        const comentariosMap: Record<string, any[]> = {}
+
+        for (const r of resData || []) {
+          const coms = await listarComentariosByResultado(r.id)
+          comentariosMap[r.id] = coms || []
+        }
+
+        setComentarios(comentariosMap)
+      } catch (error) {
+        console.error(error)
+        toast.error('Erro ao carregar resultados')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    carregar()
+  }, [])
+
+  async function handleAddComment(resultadoId: string) {
     const texto = (comentarioPorResultado[resultadoId] || '').trim()
     if (!texto) return
-    comentarios.push({
-      id: `com-${Date.now()}`,
-      resultado_id: resultadoId,
-      autor_id: user?.id || 'u-coach1',
-      mensagem: texto,
-      lido: false,
-      created_at: new Date().toISOString(),
-    })
-    setComentarioPorResultado((prev) => ({ ...prev, [resultadoId]: '' }))
-    toast.success('Comentario adicionado!')
+
+    try {
+      await adicionarComentario({
+        resultado_id: resultadoId,
+        autor_id: user?.id,
+        mensagem: texto,
+        lido: false,
+      } as any)
+
+      const novosComentarios = await listarComentariosByResultado(resultadoId)
+
+      setComentarios((prev) => ({
+        ...prev,
+        [resultadoId]: novosComentarios || [],
+      }))
+
+      setComentarioPorResultado((prev) => ({
+        ...prev,
+        [resultadoId]: '',
+      }))
+
+      toast.success('Comentário adicionado!')
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao comentar')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <p className="text-sm text-text-secondary">Carregando resultados...</p>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-text-primary">Corrigir Resultados</h1>
-        <p className="text-sm text-text-secondary">Avalie e comente os resultados dos alunos</p>
+        <p className="text-sm text-text-secondary">
+          Avalie e comente os resultados dos alunos
+        </p>
       </div>
 
       <div className="space-y-3">
         {resultados.length === 0 && (
           <GlassCard className="p-8 text-center">
             <ClipboardCheck size={32} className="mx-auto text-text-secondary mb-2" />
-            <p className="text-sm text-text-secondary">Nenhum resultado registrado ainda.</p>
+            <p className="text-sm text-text-secondary">
+              Nenhum resultado registrado ainda.
+            </p>
           </GlassCard>
         )}
+
         {resultados.map((r) => {
-          const aluno = getAlunoById(r.aluno_id)
-          const alunoUsuario = aluno ? usuarios.find((u) => u.id === aluno.usuario_id) : undefined
-          const coms = getComentariosDoResultado(r.id)
+          const aluno = alunos.find((a) => a.id === r.aluno_id)
+          const coms = comentarios[r.id] || []
+
           return (
             <GlassCard key={r.id} className="p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center font-bold text-accent text-sm">
-                    {alunoUsuario?.nome?.charAt(0) || 'A'}
+                    {aluno?.nome?.charAt(0) || 'A'}
                   </div>
+
                   <div>
-                    <p className="text-sm font-medium text-text-primary">{alunoUsuario?.nome || 'Aluno'}</p>
-                    <p className="text-xs text-text-secondary">{new Date(r.data).toLocaleDateString('pt-BR')}</p>
+                    <p className="text-sm font-medium text-text-primary">
+                      {aluno?.nome || 'Aluno'}
+                    </p>
+                    <p className="text-xs text-text-secondary">
+                      {new Date(r.data).toLocaleDateString('pt-BR')}
+                    </p>
                   </div>
                 </div>
-                <Badge variant="accent">{r.categoria}</Badge>
+
+                <Badge
+                  variant={
+                    r.categoria === 'RX'
+                      ? 'accent'
+                      : r.categoria === 'SCALING'
+                      ? 'warning'
+                      : 'success'
+                  }
+                >
+                  {r.categoria}
+                </Badge>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -67,14 +148,19 @@ export function CorrigirResultados() {
                   <p className="text-sm font-bold text-accent">{r.tempo || '--'}</p>
                   <p className="text-[10px] text-text-secondary">Tempo</p>
                 </div>
+
                 <div className="p-2 rounded-lg bg-white/[0.02] text-center">
                   <p className="text-sm font-bold text-warning">{r.rounds || '--'}</p>
                   <p className="text-[10px] text-text-secondary">Rounds</p>
                 </div>
+
                 <div className="p-2 rounded-lg bg-white/[0.02] text-center">
-                  <p className="text-sm font-bold text-success">{r.carga || '--'}kg</p>
+                  <p className="text-sm font-bold text-success">
+                    {r.carga || '--'}kg
+                  </p>
                   <p className="text-[10px] text-text-secondary">Carga</p>
                 </div>
+
                 <div className="p-2 rounded-lg bg-white/[0.02] text-center">
                   <p className="text-sm font-bold text-secondary">{r.rpe || '--'}</p>
                   <p className="text-[10px] text-text-secondary">RPE</p>
@@ -83,38 +169,50 @@ export function CorrigirResultados() {
 
               {r.reflexao && (
                 <p className="text-sm text-text-secondary bg-white/[0.02] p-3 rounded-lg">
-                  <span className="text-text-primary font-medium">Reflexao: </span>{r.reflexao}
+                  <span className="text-text-primary font-medium">Reflexão: </span>
+                  {r.reflexao}
                 </p>
               )}
 
               {r.meta_proxima && (
                 <p className="text-sm text-text-secondary bg-white/[0.02] p-3 rounded-lg">
-                  <span className="text-text-primary font-medium">Meta: </span>{r.meta_proxima}
+                  <span className="text-text-primary font-medium">Meta: </span>
+                  {r.meta_proxima}
                 </p>
               )}
 
               {coms.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-text-secondary">Comentarios anteriores</p>
-                  {coms.map((c) => {
-                    const autor = usuarios.find((u) => u.id === c.autor_id)
-                    return (
-                      <div key={c.id} className="p-2 rounded-lg bg-white/[0.02] text-sm text-text-secondary">
-                        <span className="text-accent font-medium">{autor?.nome || 'Coach'}:</span> {c.mensagem}
-                      </div>
-                    )
-                  })}
+                  <p className="text-xs font-medium text-text-secondary">
+                    Comentários anteriores
+                  </p>
+
+                  {coms.map((c) => (
+                    <div
+                      key={c.id}
+                      className="p-2 rounded-lg bg-white/[0.02] text-sm text-text-secondary"
+                    >
+                      <span className="text-accent font-medium">Coach:</span>{' '}
+                      {c.mensagem}
+                    </div>
+                  ))}
                 </div>
               )}
 
               <div className="flex gap-2">
                 <textarea
                   rows={2}
-                  placeholder="Adicionar observacao..."
+                  placeholder="Adicionar observação..."
                   value={comentarioPorResultado[r.id] || ''}
-                  onChange={(e) => setComentarioPorResultado((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                  onChange={(e) =>
+                    setComentarioPorResultado((prev) => ({
+                      ...prev,
+                      [r.id]: e.target.value,
+                    }))
+                  }
                   className="glass-input flex-1 resize-none text-sm"
                 />
+
                 <button
                   onClick={() => handleAddComment(r.id)}
                   className="px-3 py-2 rounded-xl bg-accent/10 text-accent text-sm font-medium hover:bg-accent/20 transition-colors flex items-center gap-1.5"
