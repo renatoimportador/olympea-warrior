@@ -98,9 +98,10 @@ export function GerenciarUsuarios() {
 ])
 
       if (error) {
-        toast.error('Erro ao criar usuário')
-        return
-      }
+  console.log('ERRO SUPABASE:', error)
+  toast.error(error.message)
+  return
+}
 
       toast.success('Usuário criado!')
     }
