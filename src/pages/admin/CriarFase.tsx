@@ -149,7 +149,7 @@ export function CriarFase() {
     setShowForm(true)
   }
 
-  const fasesAtivas = fases.filter((f) => f.ativa)
+  const fasesAtivas = fases.filter((f) => f.ativa !== false)
 
   return (
     <div className="space-y-5 animate-fade-in">
