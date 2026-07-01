@@ -19,6 +19,7 @@ import { CriarFase } from '@/pages/admin/CriarFase'
 import { CriarSemana } from '@/pages/admin/CriarSemana'
 import { CriarTreino } from '@/pages/admin/CriarTreino'
 import { ListarTreinos } from '@/pages/admin/ListarTreinos'
+import { VisualizarTreino } from '@/pages/admin/VisualizarTreino'
 import { GerenciarWODs } from '@/pages/admin/GerenciarWODs'
 import { GerenciarNiveis } from '@/pages/admin/GerenciarNiveis'
 import { BibliotecaExercicios } from '@/pages/admin/BibliotecaExercicios'
@@ -74,16 +75,17 @@ export function AppRoutes() {
         }
       >
         <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-<Route path="/admin/usuarios" element={<GerenciarUsuarios />} />
-<Route path="/admin/coaches" element={<GerenciarCoaches />} />
-<Route path="/admin/alunos" element={<GerenciarAlunos />} />
-<Route path="/admin/programacao" element={<CriarProgramacao />} />
-<Route path="/admin/fases" element={<CriarFase />} />
-<Route path="/admin/semanas" element={<CriarSemana />} />
-<Route path="/admin/treinos" element={<ListarTreinos />} />
-<Route path="/admin/treinos/novo" element={<CriarTreino />} />
-<Route path="/admin/wods" element={<GerenciarWODs />} />
-<Route path="/admin/niveis" element={<GerenciarNiveis />} />
+        <Route path="/admin/usuarios" element={<GerenciarUsuarios />} />
+        <Route path="/admin/coaches" element={<GerenciarCoaches />} />
+        <Route path="/admin/alunos" element={<GerenciarAlunos />} />
+        <Route path="/admin/programacao" element={<CriarProgramacao />} />
+        <Route path="/admin/fases" element={<CriarFase />} />
+        <Route path="/admin/semanas" element={<CriarSemana />} />
+        <Route path="/admin/treinos" element={<ListarTreinos />} />
+        <Route path="/admin/treinos/novo" element={<CriarTreino />} />
+        <Route path="/admin/treinos/:id" element={<VisualizarTreino />} />
+        <Route path="/admin/wods" element={<GerenciarWODs />} />
+        <Route path="/admin/niveis" element={<GerenciarNiveis />} />
         <Route path="/admin/biblioteca" element={<BibliotecaExercicios />} />
         <Route path="/admin/rankings" element={<RankingsAdmin />} />
         <Route path="/admin/relatorios" element={<RelatoriosAdmin />} />
