@@ -14,7 +14,15 @@ import {
   getFaseById,
 } from '@/lib/api'
 import type { Treino, DiaTreino, Semana, Fase, Programacao } from '@/data/types'
-import { Dumbbell, Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Dumbbell,
+  Plus,
+  Edit2,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+} from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface TreinoView {
@@ -38,22 +46,22 @@ export function ListarTreinos() {
 
   const [loading, setLoading] = useState(true)
 
-  // Ref para cancelar atualizacoes de estado apos desmontagem
   const mounted = useRef(true)
+
   useEffect(() => {
     mounted.current = true
-    return () => { mounted.current = false }
+    return () => {
+      mounted.current = false
+    }
   }, [])
 
-  // Carga inicial: busca programacao, fases, semanas e treinos de forma atomica
   useEffect(() => {
-    let semanaSelecionadaInicial = ''
-
     async function carregar() {
       setLoading(true)
+
       try {
         const progs = await listarProgramacoes()
-        const prog = progs.find(p => p.ativa) || progs[0]
+        const prog = progs.find((p) => p.ativa) || progs[0]
 
         if (!prog) {
           if (mounted.current) {
@@ -62,154 +70,83 @@ export function ListarTreinos() {
             setSemanas([])
             setDias([])
             setTreinos([])
-            setFaseAtiva('')
-            setSemanaAtiva('')
             setLoading(false)
           }
           return
         }
 
-        if (!mounted.current) return
         setProgramacao(prog)
 
-        const f = await listarFasesByProg(prog.id)
-        const fasesAtivas = f.filter(fa => fa.ativa)
+        const fasesData = await listarFasesByProg(prog.id)
+        const fasesAtivas = fasesData.filter((f) => f.ativa)
 
-        if (!mounted.current) return
         setFases(fasesAtivas)
 
-        let faseCorrente = faseAtiva
-        if (!faseCorrente && fasesAtivas.length > 0) {
-          faseCorrente = fasesAtivas[0].id
-          setFaseAtiva(faseCorrente)
+        if (fasesAtivas.length > 0) {
+          setFaseAtiva(fasesAtivas[0].id)
         }
-
-        if (!faseCorrente) {
-          if (mounted.current) setLoading(false)
-          return
-        }
-
-        const s = await listarSemanasByFase(faseCorrente)
-        const semanasAtivas = s.filter(sm => sm.ativa)
-
-        if (!mounted.current) return
-        setSemanas(semanasAtivas)
-
-        let semanaCorrente = semanaSelecionadaInicial || semanaAtiva
-        if (!semanaCorrente && semanasAtivas.length > 0) {
-          semanaCorrente = semanasAtivas[0].id
-          setSemanaAtiva(semanaCorrente)
-        }
-
-        if (!semanaCorrente) {
-          if (mounted.current) {
-            setDias([])
-            setTreinos([])
-            setLoading(false)
-          }
-          return
-        }
-
-        const d = await listarDiasBySemana(semanaCorrente)
-
-        if (!mounted.current) return
-        setDias(d)
-
-        const semanaAtual = await getSemanaById(semanaCorrente)
-        const faseAtual = semanaAtual ? await getFaseById(semanaAtual.fase_id) : null
-
-        const views: TreinoView[] = []
-
-        for (const dia of d) {
-          const ts = await listarTreinosByDia(dia.id)
-
-          for (const t of ts) {
-            if (semanaAtual && faseAtual) {
-              views.push({
-                treino: t,
-                dia,
-                semana: semanaAtual,
-                fase: faseAtual,
-              })
-            }
-          }
-        }
-
-        if (mounted.current) {
-          setTreinos(views)
-          setLoading(false)
-        }
-      } catch (e) {
-        console.error('Erro ao carregar treinos:', e)
-        if (mounted.current) {
-          setTreinos([])
-          setLoading(false)
-        }
+      } catch (error) {
+        console.error(error)
+        toast.error('Erro ao carregar treinos')
+        setLoading(false)
       }
     }
 
     carregar()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Quando o usuario TROCA a fase manualmente: recarrega semanas, mantem a semana ativa se possivel
   useEffect(() => {
-    if (!faseAtiva) return
+    async function carregarSemanas() {
+      if (!faseAtiva) return
 
-    async function recarregar() {
       setLoading(true)
-      try {
-        const s = await listarSemanasByFase(faseAtiva)
-        const semanasAtivas = s.filter(sm => sm.ativa)
 
-        if (!mounted.current) return
+      try {
+        const semanasData = await listarSemanasByFase(faseAtiva)
+        const semanasAtivas = semanasData.filter((s) => s.ativa)
+
         setSemanas(semanasAtivas)
 
-        const semanaAindaExiste = semanasAtivas.some(s => s.id === semanaAtiva)
-        let semanaCorrente = semanaAindaExiste ? semanaAtiva : (semanasAtivas[0]?.id || '')
-
-        if (semanaCorrente) {
-          setSemanaAtiva(semanaCorrente)
+        if (semanasAtivas.length > 0) {
+          setSemanaAtiva(semanasAtivas[0].id)
         } else {
-          setDias([])
           setTreinos([])
           setLoading(false)
         }
-      } catch (e) {
-        console.error('Erro ao carregar semanas:', e)
-        if (mounted.current) setLoading(false)
+      } catch (error) {
+        console.error(error)
+        toast.error('Erro ao carregar semanas')
+        setLoading(false)
       }
     }
 
-    recarregar()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    carregarSemanas()
   }, [faseAtiva])
 
-  // Quando o usuario TROCA a semana manualmente ou semana foi setada: carrega dias e treinos
   useEffect(() => {
-    if (!semanaAtiva) return
+    async function carregarTreinos() {
+      if (!semanaAtiva) return
 
-    async function carregarDados() {
       setLoading(true)
 
       try {
-        const d = await listarDiasBySemana(semanaAtiva)
-
-        if (!mounted.current) return
-        setDias(d)
+        const diasData = await listarDiasBySemana(semanaAtiva)
+        setDias(diasData)
 
         const semanaAtual = await getSemanaById(semanaAtiva)
-        const faseAtual = semanaAtual ? await getFaseById(semanaAtual.fase_id) : null
+        const faseAtual = semanaAtual
+          ? await getFaseById(semanaAtual.fase_id)
+          : null
 
         const views: TreinoView[] = []
 
-        for (const dia of d) {
+        for (const dia of diasData) {
           const ts = await listarTreinosByDia(dia.id)
 
-          for (const t of ts) {
+          for (const treino of ts) {
             if (semanaAtual && faseAtual) {
               views.push({
-                treino: t,
+                treino,
                 dia,
                 semana: semanaAtual,
                 fase: faseAtual,
@@ -218,39 +155,37 @@ export function ListarTreinos() {
           }
         }
 
-        if (mounted.current) {
-          setTreinos(views)
-          setLoading(false)
-        }
-      } catch (e) {
-        console.error('Erro ao carregar dados:', e)
-        if (mounted.current) setLoading(false)
+        setTreinos(views)
+      } catch (error) {
+        console.error(error)
+        toast.error('Erro ao carregar treinos')
+      } finally {
+        setLoading(false)
       }
     }
 
-    carregarDados()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    carregarTreinos()
   }, [semanaAtiva])
 
   async function handleDelete(id: string) {
-  if (!confirm('Deseja realmente excluir este treino?')) return
+    if (!confirm('Deseja realmente excluir este treino?')) return
 
-  try {
-    await excluirTreino(id)
+    try {
+      await excluirTreino(id)
 
-    setTreinos((prev) =>
-      prev.filter((item) => item.treino.id !== id)
-    )
+      setTreinos((prev) =>
+        prev.filter((item) => item.treino.id !== id)
+      )
 
-    toast.success('Treino excluído!')
-  } catch (error) {
-    console.error(error)
-    toast.error('Erro ao excluir treino')
+      toast.success('Treino excluído!')
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao excluir treino')
+    }
   }
-}
 
   function semanaAnterior() {
-    const idx = semanas.findIndex(s => s.id === semanaAtiva)
+    const idx = semanas.findIndex((s) => s.id === semanaAtiva)
 
     if (idx > 0) {
       setSemanaAtiva(semanas[idx - 1].id)
@@ -258,7 +193,7 @@ export function ListarTreinos() {
   }
 
   function semanaProxima() {
-    const idx = semanas.findIndex(s => s.id === semanaAtiva)
+    const idx = semanas.findIndex((s) => s.id === semanaAtiva)
 
     if (idx < semanas.length - 1) {
       setSemanaAtiva(semanas[idx + 1].id)
@@ -280,7 +215,9 @@ export function ListarTreinos() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Treinos</h1>
-          <p className="text-sm text-text-secondary">{treinos.length} treinos cadastrados</p>
+          <p className="text-sm text-text-secondary">
+            {treinos.length} treinos cadastrados
+          </p>
         </div>
 
         <Button onClick={() => navigate('/admin/treinos/novo')}>
@@ -292,10 +229,10 @@ export function ListarTreinos() {
       <div className="flex items-center gap-3">
         <select
           value={faseAtiva}
-          onChange={e => { setFaseAtiva(e.target.value); setSemanas([]); setSemanaAtiva(''); setTreinos([]); setDias([]); }}
+          onChange={(e) => setFaseAtiva(e.target.value)}
           className="glass-input w-full sm:w-auto text-sm px-3 py-2"
         >
-          {fases.map(f => (
+          {fases.map((f) => (
             <option key={f.id} value={f.id}>
               {f.nome} (Ordem {f.ordem})
             </option>
@@ -307,7 +244,7 @@ export function ListarTreinos() {
         <div className="flex items-center justify-between">
           <button
             onClick={semanaAnterior}
-            disabled={semanas.findIndex(s => s.id === semanaAtiva) <= 0}
+            disabled={semanas.findIndex((s) => s.id === semanaAtiva) <= 0}
             className="p-2 rounded-lg hover:bg-white/[0.03] disabled:opacity-30"
           >
             <ChevronLeft size={18} className="text-text-secondary" />
@@ -315,13 +252,16 @@ export function ListarTreinos() {
 
           <div className="text-center">
             <p className="text-sm font-medium text-text-primary">
-              {semanas.find(s => s.id === semanaAtiva)?.nome || 'Semana'}
+              {semanas.find((s) => s.id === semanaAtiva)?.nome || 'Semana'}
             </p>
           </div>
 
           <button
             onClick={semanaProxima}
-            disabled={semanas.findIndex(s => s.id === semanaAtiva) >= semanas.length - 1}
+            disabled={
+              semanas.findIndex((s) => s.id === semanaAtiva) >=
+              semanas.length - 1
+            }
             className="p-2 rounded-lg hover:bg-white/[0.03] disabled:opacity-30"
           >
             <ChevronRight size={18} className="text-text-secondary" />
@@ -354,7 +294,7 @@ export function ListarTreinos() {
                     </p>
 
                     <div className="flex items-center gap-2 text-xs text-text-secondary mt-0.5">
-                      <span>{(nomes as any)[dia.dia_semana] || dia.dia_semana}</span>
+                      <span>{(nomes as any)[dia.dia_semana]}</span>
                       <span>/</span>
                       <span>{semana.nome}</span>
                       <span>/</span>
@@ -364,6 +304,13 @@ export function ListarTreinos() {
                 </div>
 
                 <div className="flex gap-1">
+                  <button
+                    onClick={() => navigate(`/admin/treinos/${treino.id}`)}
+                    className="p-1.5 rounded-lg hover:bg-white/[0.03]"
+                  >
+                    <Eye size={14} className="text-accent" />
+                  </button>
+
                   <button
                     onClick={() =>
                       navigate('/admin/treinos/novo', {
