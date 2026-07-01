@@ -221,8 +221,22 @@ export const listarFasesByProg = async (programacaoId: string) =>
 export const getFaseById = async (id: string) =>
   (await supabase.from('fases').select('*').eq('id', id).single()).data as Fase
 
-export const criarFase = async (fase: Partial<Fase>) =>
-  (await supabase.from('fases').insert(fase).select().single()).data
+export async function criarFase(fase: Partial<Fase>) {
+  const { data, error } = await supabase
+    .from('fases')
+    .insert(fase)
+    .select()
+    .single()
+
+  console.log('NOVA FASE:', data)
+  console.log('ERRO FASE:', error)
+
+  if (error) {
+    throw error
+  }
+
+  return data as Fase
+}
 
 export const atualizarFase = async (id: string, fase: Partial<Fase>) =>
   supabase.from('fases').update(fase).eq('id', id)
@@ -282,6 +296,16 @@ export const listarTreinosByDia = async (diaTreinoId: string) =>
 export const getTreinoById = async (id: string) =>
   (await supabase.from('treinos').select('*').eq('id', id).single()).data as Treino
 
+export const getTreinoByDia = async (diaTreinoId: string) =>
+  (
+    await supabase
+      .from('treinos')
+      .select('*')
+      .eq('dia_treino_id', diaTreinoId)
+      .eq('ativo', true)
+      .single()
+  ).data as Treino
+
 export const criarTreino = async (treino: Partial<Treino>) =>
   (await supabase.from('treinos').insert(treino).select().single()).data
 
@@ -318,6 +342,15 @@ export async function listarExercicios() {
 }
 
 /* ========================= RESULTADOS ========================= */
+export async function listarResultados() {
+  const { data } = await supabase
+    .from('resultados')
+    .select('*')
+    .order('data', { ascending: false })
+
+  return data as Resultado[]
+}
+
 export async function listarResultadosByAluno(alunoId: string) {
   const { data } = await supabase
     .from('resultados')
@@ -339,6 +372,15 @@ export async function criarResultado(resultado: Partial<Resultado>) {
 }
 
 /* ========================= COMENTARIOS ========================= */
+export async function listarComentarios() {
+  const { data } = await supabase
+    .from('comentarios')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  return data as Comentario[]
+}
+
 export async function listarComentariosByResultado(resultadoId: string) {
   const { data } = await supabase
     .from('comentarios')
@@ -378,6 +420,7 @@ export async function getFrequenciasByAluno(alunoId: string) {
 
   return data as Frequencia[]
 }
+
 export async function getProgramacoesByAluno(alunoId: string) {
   const { data } = await supabase
     .from('inscricoes')
@@ -387,33 +430,6 @@ export async function getProgramacoesByAluno(alunoId: string) {
   return (data?.map((i: any) => i.programacao) || []) as Programacao[]
 }
 
-export const getTreinoByDia = async (diaTreinoId: string) =>
-  (
-    await supabase
-      .from('treinos')
-      .select('*')
-      .eq('dia_treino_id', diaTreinoId)
-      .eq('ativo', true)
-      .single()
-  ).data as Treino
-
-export async function listarResultados() {
-  const { data } = await supabase
-    .from('resultados')
-    .select('*')
-    .order('data', { ascending: false })
-
-  return data as Resultado[]
-}
-
-export async function listarComentarios() {
-  const { data } = await supabase
-    .from('comentarios')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  return data as Comentario[]
-}
 /* ========================= AUTH ========================= */
 export async function signInWithEmail(email: string, password: string) {
   return await supabase.auth.signInWithPassword({ email, password })
