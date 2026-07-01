@@ -68,13 +68,15 @@ export function DashboardAdmin() {
   }, [])
 
   const totalUsuarios = usuarios.filter(
-  (u) => u.ativo && u.auth_id !== null && u.box_id !== null
+  (u: any) => u.ativo && u.auth_id && u.box_id
 ).length
-  const totalAlunos = alunos.filter(
-  (a) => a.ativo && a.usuario?.auth_id && a.usuario?.box_id
+
+const totalAlunos = alunos.filter(
+  (a: any) => a.ativo
 ).length
-  const totalCoaches = coaches.filter(
-  (c) => c.ativo && c.usuario?.auth_id && c.usuario?.box_id
+
+const totalCoaches = coaches.filter(
+  (c: any) => c.ativo
 ).length
   const totalProgramacoes = programacoes.filter((p) => p.ativa).length
   const totalResultados = resultados.length
