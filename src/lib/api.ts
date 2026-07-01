@@ -207,18 +207,16 @@ export const atualizarProgramacao = async (id: string, data: Partial<Programacao
 export const excluirProgramacao = async (id: string) =>
   supabase.from('programacoes').update({ ativa: false }).eq('id', id)
 
-export async function getProgramacoesByAluno(alunoId: string) {
-  const { data } = await supabase
-    .from('inscricoes')
-    .select('programacao:programacoes(*)')
-    .eq('aluno_id', alunoId)
-
-  return (data?.map((i: any) => i.programacao) || []) as Programacao[]
-}
-
 /* ========================= FASES ========================= */
 export const listarFasesByProg = async (programacaoId: string) =>
-  (await supabase.from('fases').select('*').eq('programacao_id', programacaoId)).data as Fase[]
+  (
+    await supabase
+      .from('fases')
+      .select('*')
+      .eq('programacao_id', programacaoId)
+      .eq('ativa', true)
+      .order('ordem', { ascending: true })
+  ).data as Fase[]
 
 export const getFaseById = async (id: string) =>
   (await supabase.from('fases').select('*').eq('id', id).single()).data as Fase
@@ -234,7 +232,14 @@ export const excluirFase = async (id: string) =>
 
 /* ========================= SEMANAS ========================= */
 export const listarSemanasByFase = async (faseId: string) =>
-  (await supabase.from('semanas').select('*').eq('fase_id', faseId)).data as Semana[]
+  (
+    await supabase
+      .from('semanas')
+      .select('*')
+      .eq('fase_id', faseId)
+      .eq('ativa', true)
+      .order('ordem', { ascending: true })
+  ).data as Semana[]
 
 export const getSemanaById = async (id: string) =>
   (await supabase.from('semanas').select('*').eq('id', id).single()).data as Semana
@@ -250,7 +255,13 @@ export const excluirSemana = async (id: string) =>
 
 /* ========================= DIAS ========================= */
 export const listarDiasBySemana = async (semanaId: string) =>
-  (await supabase.from('dias_treino').select('*').eq('semana_id', semanaId)).data as DiaTreino[]
+  (
+    await supabase
+      .from('dias_treino')
+      .select('*')
+      .eq('semana_id', semanaId)
+      .order('data', { ascending: true })
+  ).data as DiaTreino[]
 
 export const getDiaById = async (id: string) =>
   (await supabase.from('dias_treino').select('*').eq('id', id).single()).data as DiaTreino
@@ -271,42 +282,25 @@ export const listarTreinosByDia = async (diaTreinoId: string) =>
 export const getTreinoById = async (id: string) =>
   (await supabase.from('treinos').select('*').eq('id', id).single()).data as Treino
 
-export const getTreinoByDia = async (diaTreinoId: string) =>
-  (
-    await supabase
-      .from('treinos')
-      .select('*')
-      .eq('dia_treino_id', diaTreinoId)
-      .eq('ativo', true)
-      .single()
-  ).data as Treino
-
 export const criarTreino = async (treino: Partial<Treino>) =>
   (await supabase.from('treinos').insert(treino).select().single()).data
 
 export const atualizarTreino = async (id: string, treino: Partial<Treino>) =>
   supabase.from('treinos').update(treino).eq('id', id)
 
-export async function excluirTreino(id: string) {
-  const { data, error } = await supabase
-    .from('treinos')
-    .update({ ativo: false })
-    .eq('id', id)
-    .select()
-
-  if (error) {
-    console.error('Erro ao excluir treino:', error)
-    throw error
-  }
-
-  console.log('Treino excluído:', data)
-
-  return data
-}
+export const excluirTreino = async (id: string) =>
+  supabase.from('treinos').update({ ativo: false }).eq('id', id)
 
 /* ========================= BLOCOS ========================= */
 export const listarBlocosByTreino = async (treinoId: string) =>
-  (await supabase.from('blocos_treino').select('*').eq('treino_id', treinoId)).data as BlocoTreino[]
+  (
+    await supabase
+      .from('blocos_treino')
+      .select('*')
+      .eq('treino_id', treinoId)
+      .eq('ativo', true)
+      .order('ordem', { ascending: true })
+  ).data as BlocoTreino[]
 
 export const adicionarBloco = async (bloco: Partial<BlocoTreino>) =>
   (await supabase.from('blocos_treino').insert(bloco).select().single()).data
@@ -319,23 +313,11 @@ export const removerBloco = async (id: string) =>
 
 /* ========================= EXERCICIOS ========================= */
 export async function listarExercicios() {
-  const { data } = await supabase
-    .from('exercicios')
-    .select('*')
-
+  const { data } = await supabase.from('exercicios').select('*')
   return data as Exercicio[]
 }
 
 /* ========================= RESULTADOS ========================= */
-export async function listarResultados() {
-  const { data } = await supabase
-    .from('resultados')
-    .select('*')
-    .order('data', { ascending: false })
-
-  return data as Resultado[]
-}
-
 export async function listarResultadosByAluno(alunoId: string) {
   const { data } = await supabase
     .from('resultados')
@@ -357,15 +339,6 @@ export async function criarResultado(resultado: Partial<Resultado>) {
 }
 
 /* ========================= COMENTARIOS ========================= */
-export async function listarComentarios() {
-  const { data } = await supabase
-    .from('comentarios')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  return data as Comentario[]
-}
-
 export async function listarComentariosByResultado(resultadoId: string) {
   const { data } = await supabase
     .from('comentarios')
@@ -408,10 +381,7 @@ export async function getFrequenciasByAluno(alunoId: string) {
 
 /* ========================= AUTH ========================= */
 export async function signInWithEmail(email: string, password: string) {
-  return await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  return await supabase.auth.signInWithPassword({ email, password })
 }
 
 export async function signOut() {
