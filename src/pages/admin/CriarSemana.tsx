@@ -150,21 +150,13 @@ export function CriarSemana() {
           'DOM',
         ] as const
 
-        const semanaDiaMap: Record<string, string> = {
-          SEG: 'Segunda-Feira',
-          TER: 'Terca-Feira',
-          QUA: 'Quarta-Feira',
-          QUI: 'Quinta-Feira',
-          SEX: 'Sexta-Feira',
-          SAB: 'Sabado',
-          DOM: 'Domingo',
-        }
 
         for (const ds of diasSemanaArray) {
           try {
             await criarDia({
   semana_id: novaSemana.id,
   dia_semana: ds,
+  data_especifica: null,
   ativo: true,
 } as any)
           } catch (error) {
