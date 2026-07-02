@@ -410,15 +410,19 @@ export async function criarResultado(resultado: Partial<Resultado>) {
   return data as Resultado
 }
 export async function buscarResultadoDoDia(usuarioId: string, treinoId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('resultados')
     .select('*')
     .eq('usuario_id', usuarioId)
     .eq('treino_id', treinoId)
     .limit(1)
-    .single()
 
-  return data
+  if (error) {
+    console.error('Erro buscando resultado:', error)
+    return null
+  }
+
+  return data?.[0] || null
 }
 /* ========================= COMENTARIOS ========================= */
 export async function listarComentarios() {
