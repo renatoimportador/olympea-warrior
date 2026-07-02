@@ -280,10 +280,16 @@ export async function listarDiasBySemana(semanaId: string) {
     .select('*')
     .eq('semana_id', semanaId)
     .eq('ativo', true)
-    .order('dia_semana', { ascending: true })
+    
 
   console.log('DIAS ENCONTRADOS:', data)
+const ordemDias = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM']
 
+data?.sort(
+  (a, b) =>
+    ordemDias.indexOf(a.dia_semana) -
+    ordemDias.indexOf(b.dia_semana)
+)
   if (error) throw error
   return data as DiaTreino[]
 }
