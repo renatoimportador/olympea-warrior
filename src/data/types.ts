@@ -204,7 +204,7 @@ export interface DiaTreino {
   id: UUID;
   semana_id: UUID;
   dia_semana: DiaSemana;
-  data_especifica?: string;
+  data: string;
   ativo: boolean;
 }
 
@@ -229,7 +229,7 @@ export interface Nivel {
 export interface Treino {
   id: UUID;
   dia_treino_id: UUID;
-  titulo?: string;
+  titulo: string;
   liberado: boolean;
   blocos: BlocoTreino[];
   wod?: WODConfig;
