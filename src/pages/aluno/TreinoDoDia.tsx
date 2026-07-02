@@ -25,6 +25,7 @@ export function TreinoDoDia() {
   const [dias, setDias] = useState<DiaTreino[]>([])
   const [diaAtivo, setDiaAtivo] = useState<string>('')
   const [treino, setTreino] = useState<Treino | null>(null)
+  const [resultadoJaSalvo, setResultadoJaSalvo] = useState(false)
   const [blocos, setBlocos] = useState<BlocoTreino[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -77,6 +78,13 @@ export function TreinoDoDia() {
         const t = ts[0] || null
         setTreino(t)
 
+
+if (t && user?.id) {
+  const resultado = await buscarResultadoDoDia(user.id, t.id)
+  setResultadoJaSalvo(!!resultado)
+} else {
+  setResultadoJaSalvo(false)
+}
         if (t) {
           const bs = await listarBlocosByTreino(t.id)
           setBlocos(bs)
