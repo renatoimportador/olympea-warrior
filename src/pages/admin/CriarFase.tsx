@@ -96,20 +96,14 @@ export function CriarFase() {
         toast.success('Fase atualizada!')
         await loadData()
       } else {
-        console.log('PROGRAMACAO SELECIONADA:', form.programacao_id)
-        console.log('PROGRAMACOES:', programacoes)
-
         const novaFase = await criarFase({
           nome: form.nome,
           ordem: form.ordem,
           descricao: form.descricao,
           programacao_id: form.programacao_id,
           ativa: true,
-          duracao_semanas: 1,
           created_by: user.id,
         } as any)
-
-        console.log('FASE CRIADA:', novaFase)
 
         if (novaFase) {
           setFases((prev) => [...prev, novaFase as Fase])
