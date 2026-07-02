@@ -237,7 +237,7 @@ export function criarDia(data: Partial<DiaTreino>) {
     ...data,
     id: uid('dt'),
     ativo: true,
-    data: data.data || '',
+    data_especifica: data.data_especifica || '',
   } as DiaTreino
 
   diasTreino.push(n)
