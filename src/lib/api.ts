@@ -301,7 +301,7 @@ export async function criarDia(dia: Partial<DiaTreino>) {
       {
         semana_id: dia.semana_id,
         dia_semana: dia.dia_semana,
-        data_especifica: dia.descricao || null,
+        data_especifica: dia.data_especifica || null,
         ativo: true,
       },
     ])
