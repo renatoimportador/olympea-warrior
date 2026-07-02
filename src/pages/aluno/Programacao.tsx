@@ -173,7 +173,9 @@ export function Programacao() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-text-primary">{(nomes as any)[d.dia_semana] || d.dia_semana}</p>
-                  <p className="text-xs text-text-secondary">{d.data || d.dia_semana}</p>
+                  <p className="text-xs text-text-secondary">
+  {d.data_especifica || d.dia_semana}
+</p>
                 </div>
                 <Badge variant="success">Liberado</Badge>
                 <ChevronRight size={16} className="text-text-secondary group-hover:text-accent transition-colors" />
