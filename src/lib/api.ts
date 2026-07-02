@@ -222,20 +222,20 @@ export const getFaseById = async (id: string) =>
   (await supabase.from('fases').select('*').eq('id', id).single()).data as Fase
 
 export async function criarFase(fase: Partial<Fase>) {
-  const { data, error } = await supabase
+  console.log('DADOS ENVIADOS:', fase)
+
+  const response = await supabase
     .from('fases')
-    .insert(fase)
+    .insert([fase])
     .select()
-    .single()
 
-  console.log('NOVA FASE:', data)
-  console.log('ERRO FASE:', error)
+  console.log('RESPOSTA COMPLETA:', response)
 
-  if (error) {
-    throw error
+  if (response.error) {
+    throw response.error
   }
 
-  return data as Fase
+  return response.data?.[0] as Fase
 }
 
 export const atualizarFase = async (id: string, fase: Partial<Fase>) =>
