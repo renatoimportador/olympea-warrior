@@ -287,7 +287,7 @@ export const listarDiasBySemana = async (semanaId: string) =>
       .from('dias_treino')
       .select('*')
       .eq('semana_id', semanaId)
-      .order('data', { ascending: true })
+      .order('dia_semana', { ascending: true })
   ).data as DiaTreino[]
 
 export const getDiaById = async (id: string) =>
