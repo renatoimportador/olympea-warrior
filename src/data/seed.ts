@@ -71,11 +71,41 @@ export let semanas: Semana[] = [
 ]
 
 export let diasTreino: DiaTreino[] = [
-  { id: 'dt-1', semana_id: 's-1', dia_semana: 'SEG', data_especifica: '2024-06-03' },
-{ id: 'dt-2', semana_id: 's-1', dia_semana: 'TER', data_especifica: '2024-06-04' },
-{ id: 'dt-3', semana_id: 's-1', dia_semana: 'QUA', data_especifica: '2024-06-05' },
-{ id: 'dt-4', semana_id: 's-1', dia_semana: 'QUI', data_especifica: '2024-06-06' },
-{ id: 'dt-5', semana_id: 's-1', dia_semana: 'SEX', data_especifica: '2024-06-07' },
+  {
+    id: 'dt-1',
+    semana_id: 's-1',
+    dia_semana: 'SEG',
+    data: '2024-06-03',
+    ativo: true,
+  },
+  {
+    id: 'dt-2',
+    semana_id: 's-1',
+    dia_semana: 'TER',
+    data: '2024-06-04',
+    ativo: true,
+  },
+  {
+    id: 'dt-3',
+    semana_id: 's-1',
+    dia_semana: 'QUA',
+    data: '2024-06-05',
+    ativo: true,
+  },
+  {
+    id: 'dt-4',
+    semana_id: 's-1',
+    dia_semana: 'QUI',
+    data: '2024-06-06',
+    ativo: true,
+  },
+  {
+    id: 'dt-5',
+    semana_id: 's-1',
+    dia_semana: 'SEX',
+    data: '2024-06-07',
+    ativo: true,
+  },
 ]
 
 /* =============================================================
@@ -202,7 +232,17 @@ export function excluirSemana(id: string) { const i = semanas.findIndex(s => s.i
 
 /* DIAS */
 export function listarDiasBySemana(semanaId: string) { return diasTreino.filter(d => d.semana_id === semanaId) }
-export function criarDia(data: Partial<DiaTreino>) { const n: DiaTreino = { ...data, id: uid('dt') } as DiaTreino; diasTreino.push(n); return n }
+export function criarDia(data: Partial<DiaTreino>) {
+  const n: DiaTreino = {
+    ...data,
+    id: uid('dt'),
+    ativo: true,
+    data: data.data || '',
+  } as DiaTreino
+
+  diasTreino.push(n)
+  return n
+}
 
 /* TREINOS */
 export function listarTreinosByDia(diaTreinoId: string) { return treinos.filter(t => t.ativo && t.dia_treino_id === diaTreinoId) }
