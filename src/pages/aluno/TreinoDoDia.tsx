@@ -11,6 +11,7 @@ import {
   listarDiasBySemana,
   listarTreinosByDia,
   listarBlocosByTreino,
+  buscarResultadoDoDia
 } from '@/lib/api'
 import type { DiaTreino, Treino, BlocoTreino, Fase, Semana } from '@/data/types'
 import { CalendarDays, ArrowRight, PlayCircle, Layers, Calendar } from 'lucide-react'
