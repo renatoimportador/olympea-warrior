@@ -13,18 +13,29 @@ import {
   listarDiasBySemana,
   criarDia,
 } from '@/lib/api'
-import type { Semana, Fase, Programacao } from '@/data/types'
+import type {
+  Semana,
+  Fase,
+  Programacao,
+  TipoSemana,
+} from '@/data/types'
 import { useAuth } from '@/context/AuthContext'
 import { Calendar, Plus, Edit2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const tiposSemana = ['ORDINARIA', 'FORTE', 'DELOAD', 'PEAK', 'TESTE']
+const tiposSemana: TipoSemana[] = [
+  'ORDINARIA',
+  'FORTE',
+  'DELOAD',
+  'PEAK',
+  'TESTE',
+]
 
 type SemanaForm = {
   id?: string
   fase_id: string
   nome: string
-  tipo: string
+  tipo: TipoSemana
   ordem: number
   descricao: string
 }
@@ -33,6 +44,7 @@ export function CriarSemana() {
   const { user } = useAuth()
 
   const [showForm, setShowForm] = useState(false)
+
   const [form, setForm] = useState<SemanaForm>({
     fase_id: '',
     nome: '',
@@ -112,11 +124,20 @@ export function CriarSemana() {
           ordem: form.ordem,
           descricao: form.descricao,
           fase_id: form.fase_id,
-        } as any)
+        } as Partial<Semana>)
 
         setSemanas((prev) =>
           prev.map((s) =>
-            s.id === form.id ? { ...s, ...form } : s
+            s.id === form.id
+              ? {
+                  ...s,
+                  nome: form.nome,
+                  tipo: form.tipo,
+                  ordem: form.ordem,
+                  descricao: form.descricao,
+                  fase_id: form.fase_id,
+                }
+              : s
           )
         )
 
@@ -129,13 +150,22 @@ export function CriarSemana() {
           descricao: form.descricao,
           fase_id: form.fase_id,
           ativa: true,
-        } as any)
+          created_by: user.id,
+        } as Partial<Semana>)
 
         if (novaSemana) {
           setSemanas((prev) => [...prev, novaSemana as Semana])
         }
 
-        const diasSemanaArray = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'] as const
+        const diasSemanaArray = [
+          'SEG',
+          'TER',
+          'QUA',
+          'QUI',
+          'SEX',
+          'SAB',
+          'DOM',
+        ] as const
 
         const semanaDiaMap: Record<string, string> = {
           SEG: 'Segunda-Feira',
@@ -290,7 +320,7 @@ export function CriarSemana() {
               onChange={(e) =>
                 setForm((prev) => ({
                   ...prev,
-                  tipo: e.target.value,
+                  tipo: e.target.value as TipoSemana,
                 }))
               }
               className="glass-input w-full text-sm"
