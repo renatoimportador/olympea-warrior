@@ -162,11 +162,10 @@ export function CriarSemana() {
 
         for (const ds of diasSemanaArray) {
           await criarDia({
-            semana_id: novaSemana.id,
-            dia_semana: ds,
-            descricao: semanaDiaMap[ds],
-            ativo: true,
-          })
+  semana_id: novaSemana.id,
+  dia_semana: ds,
+  ativo: true,
+} as any)
         }
 
         toast.success('Semana criada com 7 dias!')
