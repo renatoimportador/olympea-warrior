@@ -201,12 +201,11 @@ export interface Semana {
 }
 
 export interface DiaTreino {
-  id: UUID
-  semana_id: UUID
-  dia_semana: DiaSemana
-  descricao?: string
-  ativo: boolean
-  created_at?: string
+  id: UUID;
+  semana_id: UUID;
+  dia_semana: DiaSemana;
+  data_especifica?: string;
+  ativo: boolean;
 }
 
 /* =============================================================
