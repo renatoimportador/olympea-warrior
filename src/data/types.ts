@@ -204,7 +204,7 @@ export interface DiaTreino {
   id: UUID;
   semana_id: UUID;
   dia_semana: DiaSemana;
-  data: string;
+  data_especifica?: string;
   descricao?: string;
   ativo: boolean;
 }
