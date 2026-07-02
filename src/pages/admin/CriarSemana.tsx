@@ -150,7 +150,7 @@ export function CriarSemana() {
           descricao: form.descricao,
           fase_id: form.fase_id,
           ativa: true,
-          created_by: user.id,
+          
         } as Partial<Semana>)
 
         if (novaSemana) {
