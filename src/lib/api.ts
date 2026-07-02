@@ -293,8 +293,22 @@ export const listarDiasBySemana = async (semanaId: string) =>
 export const getDiaById = async (id: string) =>
   (await supabase.from('dias_treino').select('*').eq('id', id).single()).data as DiaTreino
 
-export const criarDia = async (dia: Partial<DiaTreino>) =>
-  (await supabase.from('dias_treino').insert(dia).select().single()).data
+export async function criarDia(dia: Partial<DiaTreino>) {
+  console.log('DADOS ENVIADOS DIA:', dia)
+
+  const response = await supabase
+    .from('dias_treino')
+    .insert([dia])
+    .select()
+
+  console.log('RESPOSTA COMPLETA DIA:', response)
+
+  if (response.error) {
+    throw response.error
+  }
+
+  return response.data?.[0] as DiaTreino
+}
 
 /* ========================= TREINOS ========================= */
 export const listarTreinosByDia = async (diaTreinoId: string) =>
