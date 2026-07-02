@@ -409,7 +409,17 @@ export async function criarResultado(resultado: Partial<Resultado>) {
 
   return data as Resultado
 }
+export async function buscarResultadoDoDia(usuarioId: string, treinoId: string) {
+  const { data } = await supabase
+    .from('resultados')
+    .select('*')
+    .eq('usuario_id', usuarioId)
+    .eq('treino_id', treinoId)
+    .limit(1)
+    .single()
 
+  return data
+}
 /* ========================= COMENTARIOS ========================= */
 export async function listarComentarios() {
   const { data } = await supabase
