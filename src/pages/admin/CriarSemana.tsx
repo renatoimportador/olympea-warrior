@@ -44,6 +44,11 @@ export function CriarSemana() {
   const { user } = useAuth()
 
   const [showForm, setShowForm] = useState(false)
+  const [semanas, setSemanas] = useState<Semana[]>([])
+  const [fases, setFases] = useState<Fase[]>([])
+  const [programacoes, setProgramacoes] = useState<Programacao[]>([])
+  const [diasMap, setDiasMap] = useState<Record<string, number>>({})
+  const [loading, setLoading] = useState(true)
 
   const [form, setForm] = useState<SemanaForm>({
     fase_id: '',
@@ -52,12 +57,6 @@ export function CriarSemana() {
     ordem: 1,
     descricao: '',
   })
-
-  const [semanas, setSemanas] = useState<Semana[]>([])
-  const [fases, setFases] = useState<Fase[]>([])
-  const [programacoes, setProgramacoes] = useState<Programacao[]>([])
-  const [diasMap, setDiasMap] = useState<Record<string, number>>({})
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadData()
@@ -124,22 +123,7 @@ export function CriarSemana() {
           ordem: form.ordem,
           descricao: form.descricao,
           fase_id: form.fase_id,
-        } as Partial<Semana>)
-
-        setSemanas((prev) =>
-          prev.map((s) =>
-            s.id === form.id
-              ? {
-                  ...s,
-                  nome: form.nome,
-                  tipo: form.tipo,
-                  ordem: form.ordem,
-                  descricao: form.descricao,
-                  fase_id: form.fase_id,
-                }
-              : s
-          )
-        )
+        })
 
         toast.success('Semana atualizada!')
       } else {
@@ -150,11 +134,10 @@ export function CriarSemana() {
           descricao: form.descricao,
           fase_id: form.fase_id,
           ativa: true,
-          
-        } as Partial<Semana>)
+        })
 
-        if (novaSemana) {
-          setSemanas((prev) => [...prev, novaSemana as Semana])
+        if (!novaSemana?.id) {
+          throw new Error('Erro ao criar semana')
         }
 
         const diasSemanaArray = [
@@ -177,28 +160,19 @@ export function CriarSemana() {
           DOM: 'Domingo',
         }
 
-        if (novaSemana?.id) {
-          for (const ds of diasSemanaArray) {
-            try {
-              await criarDia({
-                semana_id: novaSemana.id,
-                dia_semana: ds,
-                descricao: semanaDiaMap[ds],
-                ativo: true,
-              } as any)
-            } catch (e) {
-              console.warn('Erro ao criar dia:', ds, e)
-            }
-          }
-
-          setDiasMap((prev) => ({
-            ...prev,
-            [novaSemana.id]: 7,
-          }))
+        for (const ds of diasSemanaArray) {
+          await criarDia({
+            semana_id: novaSemana.id,
+            dia_semana: ds,
+            descricao: semanaDiaMap[ds],
+            ativo: true,
+          })
         }
 
-        toast.success('Semana criada!')
+        toast.success('Semana criada com 7 dias!')
       }
+
+      await loadData()
 
       setShowForm(false)
 
@@ -226,7 +200,6 @@ export function CriarSemana() {
     })
 
     setShowForm(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleDelete(id: string) {
@@ -234,11 +207,7 @@ export function CriarSemana() {
 
     try {
       await excluirSemana(id)
-
-      setSemanas((prev) =>
-        prev.filter((s) => s.id !== id)
-      )
-
+      await loadData()
       toast.success('Semana excluída!')
     } catch {
       toast.error('Erro ao excluir semana')
@@ -278,9 +247,7 @@ export function CriarSemana() {
 
       {showForm && (
         <GlassCard className="p-5 space-y-4">
-          <h3 className="font-semibold text-text-primary">
-            {form.id ? 'Editar Semana' : 'Nova Semana'}
-          </h3>
+          <h3>{form.id ? 'Editar Semana' : 'Nova Semana'}</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <select
@@ -291,20 +258,19 @@ export function CriarSemana() {
                   fase_id: e.target.value,
                 }))
               }
-              className="glass-input w-full text-sm"
+              className="glass-input w-full"
             >
               <option value="">Selecione a fase...</option>
 
-              {fases
-                .filter((f) => f.ativa !== false)
-                .map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.nome} (Ordem {f.ordem})
-                  </option>
-                ))}
+              {fases.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.nome}
+                </option>
+              ))}
             </select>
 
             <Input
+              placeholder="Nome da semana"
               value={form.nome}
               onChange={(e) =>
                 setForm((prev) => ({
@@ -312,7 +278,6 @@ export function CriarSemana() {
                   nome: e.target.value,
                 }))
               }
-              placeholder="Nome da semana"
             />
 
             <select
@@ -323,7 +288,7 @@ export function CriarSemana() {
                   tipo: e.target.value as TipoSemana,
                 }))
               }
-              className="glass-input w-full text-sm"
+              className="glass-input w-full"
             >
               {tiposSemana.map((t) => (
                 <option key={t} value={t}>
@@ -341,10 +306,10 @@ export function CriarSemana() {
                   ordem: parseInt(e.target.value) || 1,
                 }))
               }
-              placeholder="Ordem"
             />
 
             <textarea
+              rows={2}
               value={form.descricao}
               onChange={(e) =>
                 setForm((prev) => ({
@@ -352,8 +317,6 @@ export function CriarSemana() {
                   descricao: e.target.value,
                 }))
               }
-              placeholder="Descrição"
-              rows={2}
               className="glass-input w-full resize-none sm:col-span-2"
             />
           </div>
@@ -367,69 +330,51 @@ export function CriarSemana() {
         </GlassCard>
       )}
 
-      {loading && (
-        <p className="text-sm text-text-secondary">Carregando...</p>
-      )}
+      {loading && <p>Carregando...</p>}
 
       <div className="space-y-6">
-        {fases
-          .filter((f) => f.ativa !== false)
-          .map((f) => {
-            const semanasFase = semanasAtivas.filter(
-              (s) => s.fase_id === f.id
-            )
+        {fases.map((f) => {
+          const semanasFase = semanasAtivas.filter(
+            (s) => s.fase_id === f.id
+          )
 
-            const prog = programacoes.find(
-              (p) => p.id === f.programacao_id
-            )
+          return (
+            <div key={f.id} className="space-y-3">
+              <h2 className="text-sm flex items-center gap-2">
+                <Calendar size={14} />
+                {f.nome}
+              </h2>
 
-            return (
-              <div key={f.id} className="space-y-3">
-                <h2 className="text-sm font-medium text-text-secondary flex items-center gap-2">
-                  <Calendar size={14} className="text-accent" />
-                  {f.nome} {prog ? `- ${prog.nome}` : ''}
-                </h2>
+              {semanasFase.map((s) => (
+                <GlassCard key={s.id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p>{s.nome}</p>
+                      <p className="text-xs">
+                        {s.tipo} — Ordem {s.ordem}
+                      </p>
+                    </div>
 
-                {semanasFase.length === 0 ? (
-                  <p className="text-xs text-text-secondary ml-6">
-                    Nenhuma semana criada nesta fase.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {semanasFase.map((s) => (
-                      <GlassCard key={s.id} className="p-4 space-y-2">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-sm font-semibold text-text-primary">
-                              {s.nome}
-                            </p>
-                            <p className="text-xs text-text-secondary">
-                              {s.tipo} — Ordem {s.ordem}
-                            </p>
-                          </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(s)}>
+                        <Edit2 size={14} />
+                      </button>
 
-                          <div className="flex gap-1">
-                            <button onClick={() => handleEdit(s)}>
-                              <Edit2 size={14} />
-                            </button>
-
-                            <button onClick={() => handleDelete(s.id)}>
-                              <Trash2 size={14} className="text-error" />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Badge>{s.tipo}</Badge>
-                          <Badge>{diasMap[s.id] || 0} dias</Badge>
-                        </div>
-                      </GlassCard>
-                    ))}
+                      <button onClick={() => handleDelete(s.id)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
-            )
-          })}
+
+                  <div className="flex gap-2">
+                    <Badge>{s.tipo}</Badge>
+                    <Badge>{diasMap[s.id] || 0} dias</Badge>
+                  </div>
+                </GlassCard>
+              ))}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
