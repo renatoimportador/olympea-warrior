@@ -201,8 +201,10 @@ export async function listarProgramacoes() {
 export const criarProgramacao = async (data: Partial<Programacao>) =>
   (await supabase.from('programacoes').insert(data).select().single()).data
 
-export const atualizarProgramacao = async (id: string, data: Partial<Programacao>) =>
-  supabase.from('programacoes').update(data).eq('id', id)
+export const atualizarProgramacao = async (
+  id: string,
+  data: Partial<Programacao>
+) => supabase.from('programacoes').update(data).eq('id', id)
 
 export const excluirProgramacao = async (id: string) =>
   supabase.from('programacoes').update({ ativa: false }).eq('id', id)
@@ -219,23 +221,17 @@ export const listarFasesByProg = async (programacaoId: string) =>
   ).data as Fase[]
 
 export const getFaseById = async (id: string) =>
-  (await supabase.from('fases').select('*').eq('id', id).single()).data as Fase
+  (await supabase.from('fases').select('*').eq('id', id).single())
+    .data as Fase
 
 export async function criarFase(fase: Partial<Fase>) {
-  console.log('DADOS ENVIADOS:', fase)
-
-  const response = await supabase
+  const { data, error } = await supabase
     .from('fases')
     .insert([fase])
     .select()
 
-  console.log('RESPOSTA COMPLETA:', response)
-
-  if (response.error) {
-    throw response.error
-  }
-
-  return response.data?.[0] as Fase
+  if (error) throw error
+  return data?.[0] as Fase
 }
 
 export const atualizarFase = async (id: string, fase: Partial<Fase>) =>
@@ -251,27 +247,22 @@ export const listarSemanasByFase = async (faseId: string) =>
       .from('semanas')
       .select('*')
       .eq('fase_id', faseId)
+      .eq('ativa', true)
       .order('ordem', { ascending: true })
   ).data as Semana[]
 
 export const getSemanaById = async (id: string) =>
-  (await supabase.from('semanas').select('*').eq('id', id).single()).data as Semana
+  (await supabase.from('semanas').select('*').eq('id', id).single())
+    .data as Semana
 
 export async function criarSemana(semana: Partial<Semana>) {
-  console.log('DADOS ENVIADOS SEMANA:', semana)
-
-  const response = await supabase
+  const { data, error } = await supabase
     .from('semanas')
     .insert([semana])
     .select()
 
-  console.log('RESPOSTA COMPLETA SEMANA:', response)
-
-  if (response.error) {
-    throw response.error
-  }
-
-  return response.data?.[0] as Semana
+  if (error) throw error
+  return data?.[0] as Semana
 }
 
 export const atualizarSemana = async (id: string, semana: Partial<Semana>) =>
@@ -281,18 +272,6 @@ export const excluirSemana = async (id: string) =>
   supabase.from('semanas').update({ ativa: false }).eq('id', id)
 
 /* ========================= DIAS ========================= */
-export const listarDiasBySemana = async (semanaId: string) =>
-  (
-    await supabase
-      .from('dias_treino')
-      .select('*')
-      .eq('semana_id', semanaId)
-      .order('dia_semana', { ascending: true })
-  ).data as DiaTreino[]
-
-export const getDiaById = async (id: string) =>
-  (await supabase.from('dias_treino').select('*').eq('id', id).single()).data as DiaTreino
-
 export async function listarDiasBySemana(semanaId: string) {
   console.log('BUSCANDO DIAS DA SEMANA:', semanaId)
 
@@ -304,11 +283,34 @@ export async function listarDiasBySemana(semanaId: string) {
     .order('dia_semana', { ascending: true })
 
   console.log('DIAS ENCONTRADOS:', data)
-  console.log('ERRO AO BUSCAR DIAS:', error)
 
   if (error) throw error
-
   return data as DiaTreino[]
+}
+
+export const getDiaById = async (id: string) =>
+  (await supabase.from('dias_treino').select('*').eq('id', id).single())
+    .data as DiaTreino
+
+export async function criarDia(dia: Partial<DiaTreino>) {
+  console.log('CRIANDO DIA:', dia)
+
+  const { data, error } = await supabase
+    .from('dias_treino')
+    .insert([
+      {
+        semana_id: dia.semana_id,
+        dia_semana: dia.dia_semana,
+        descricao: dia.descricao || null,
+        ativo: true,
+      },
+    ])
+    .select()
+
+  console.log('RESULTADO INSERT DIA:', data)
+
+  if (error) throw error
+  return data?.[0] as DiaTreino
 }
 
 /* ========================= TREINOS ========================= */
@@ -322,7 +324,8 @@ export const listarTreinosByDia = async (diaTreinoId: string) =>
   ).data as Treino[]
 
 export const getTreinoById = async (id: string) =>
-  (await supabase.from('treinos').select('*').eq('id', id).single()).data as Treino
+  (await supabase.from('treinos').select('*').eq('id', id).single())
+    .data as Treino
 
 export const getTreinoByDia = async (diaTreinoId: string) =>
   (
