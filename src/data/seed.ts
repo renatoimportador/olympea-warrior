@@ -71,11 +71,11 @@ export let semanas: Semana[] = [
 ]
 
 export let diasTreino: DiaTreino[] = [
-  { id: 'dt-1', semana_id: 's-1', dia_semana: 'SEG', descricao: 'Segunda-feira', ativo: true },
-  { id: 'dt-2', semana_id: 's-1', dia_semana: 'TER', descricao: 'Terça-feira', ativo: true },
-  { id: 'dt-3', semana_id: 's-1', dia_semana: 'QUA', descricao: 'Quarta-feira', ativo: true },
-  { id: 'dt-4', semana_id: 's-1', dia_semana: 'QUI', descricao: 'Quinta-feira', ativo: true },
-  { id: 'dt-5', semana_id: 's-1', dia_semana: 'SEX', descricao: 'Sexta-feira', ativo: true },
+  { id: 'dt-1', semana_id: 's-1', dia_semana: 'SEG', data_especifica: '2024-06-03' }
+{ id: 'dt-2', semana_id: 's-1', dia_semana: 'TER', data_especifica: '2024-06-04' }
+{ id: 'dt-3', semana_id: 's-1', dia_semana: 'QUA', data_especifica: '2024-06-05' }
+{ id: 'dt-4', semana_id: 's-1', dia_semana: 'QUI', data_especifica: '2024-06-06' }
+{ id: 'dt-5', semana_id: 's-1', dia_semana: 'SEX', data_especifica: '2024-06-07' }
 ]
 
 /* =============================================================
