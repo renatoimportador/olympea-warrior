@@ -251,15 +251,28 @@ export const listarSemanasByFase = async (faseId: string) =>
       .from('semanas')
       .select('*')
       .eq('fase_id', faseId)
-      .eq('ativa', true)
       .order('ordem', { ascending: true })
   ).data as Semana[]
 
 export const getSemanaById = async (id: string) =>
   (await supabase.from('semanas').select('*').eq('id', id).single()).data as Semana
 
-export const criarSemana = async (semana: Partial<Semana>) =>
-  (await supabase.from('semanas').insert(semana).select().single()).data
+export async function criarSemana(semana: Partial<Semana>) {
+  console.log('DADOS ENVIADOS SEMANA:', semana)
+
+  const response = await supabase
+    .from('semanas')
+    .insert([semana])
+    .select()
+
+  console.log('RESPOSTA COMPLETA SEMANA:', response)
+
+  if (response.error) {
+    throw response.error
+  }
+
+  return response.data?.[0] as Semana
+}
 
 export const atualizarSemana = async (id: string, semana: Partial<Semana>) =>
   supabase.from('semanas').update(semana).eq('id', id)
