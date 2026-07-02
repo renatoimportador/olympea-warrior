@@ -98,8 +98,34 @@ export function CriarTreino() {
 
     if (!id) return
 
-    const data = await listarDiasBySemana(id)
-    setDias(data || [])
+    try {
+      const data = await listarDiasBySemana(id)
+
+      if (!data || data.length === 0) {
+        console.warn('Nenhum dia encontrado para semana:', id)
+        return
+      }
+
+      const ordemDias: Record<string, number> = {
+        SEG: 1,
+        TER: 2,
+        QUA: 3,
+        QUI: 4,
+        SEX: 5,
+        SAB: 6,
+        DOM: 7,
+      }
+
+      const diasOrdenados = [...data].sort(
+        (a, b) =>
+          ordemDias[a.dia_semana] - ordemDias[b.dia_semana]
+      )
+
+      setDias(diasOrdenados)
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao carregar dias')
+    }
   }
 
   useEffect(() => {
