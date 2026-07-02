@@ -302,15 +302,16 @@ export async function criarDia(dia: Partial<DiaTreino>) {
         semana_id: dia.semana_id,
         dia_semana: dia.dia_semana,
         data_especifica: dia.data_especifica || null,
-
         ativo: true,
       },
     ])
     .select()
-
-  console.log('RESULTADO INSERT DIA:', data)
-
-  if (error) throw error
+if (error) {
+  console.error('ERRO AO CRIAR DIA:', error)
+  alert(JSON.stringify(error))
+  throw error
+}
+  
   return data?.[0] as DiaTreino
 }
 
