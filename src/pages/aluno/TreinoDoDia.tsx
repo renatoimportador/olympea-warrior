@@ -162,8 +162,7 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
       <PlayCircle size={18} className="mr-2" />
       Registrar Resultado
     </Button>
-  
-
+  )}
   <Button variant="secondary" onClick={() => navigate('/aluno/historico')}>
     <ArrowRight size={18} />
   </Button>
