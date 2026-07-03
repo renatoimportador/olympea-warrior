@@ -150,10 +150,10 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
       </GlassCard>
 
       {/* Blocos reais do Supabase */}
-      {treino && blocos.length > 0 ? (
-        <>
+      {treino && blocos.length > 0 && (
+        
           <BlocoViewer blocos={blocos} wod={undefined} />
-
+)}
           {/* CTA Registrar Resultado */}
 
           <div className="flex gap-3 pt-2">
@@ -168,8 +168,8 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
     <ArrowRight size={18} />
   </Button>
 </div>
-          )}
-        </>
+          
+        
       ) : (
         <GlassCard className="p-8 text-center">
           <CalendarDays size={32} className="mx-auto text-text-secondary mb-3" />
