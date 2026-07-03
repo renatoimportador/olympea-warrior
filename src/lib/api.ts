@@ -424,6 +424,17 @@ export async function buscarResultadoDoDia(usuarioId: string, treinoId: string) 
 
   return data?.[0] || null
 }
+export async function getResultadoById(id: string) {
+  const { data, error } = await supabase
+    .from('resultados')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
+
+  return data as Resultado
+}
 /* ========================= COMENTARIOS ========================= */
 export async function listarComentarios() {
   const { data } = await supabase
