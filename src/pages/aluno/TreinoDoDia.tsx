@@ -152,6 +152,7 @@ if (t && user?.id) {
           <BlocoViewer blocos={blocos} wod={undefined} />
 
           {/* CTA Registrar Resultado */}
+          {!resultadoJaSalvo && (
           <div className="flex gap-3 pt-2">
             <Button className="flex-1" onClick={() => navigate('/aluno/resultado', { state: { treinoId: treino.id, tituloTreino: treino.titulo } })}>
               <PlayCircle size={18} className="mr-2" />
@@ -161,6 +162,7 @@ if (t && user?.id) {
               <ArrowRight size={18} />
             </Button>
           </div>
+          )}
         </>
       ) : (
         <GlassCard className="p-8 text-center">
