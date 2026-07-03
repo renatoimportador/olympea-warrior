@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { getResultadoById, getTreinoById } from '@/lib/api'
@@ -8,9 +8,7 @@ import { Calendar } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export function ResultadoDetalhe() {
-  const location = useLocation()
-
-  const resultadoId = (location.state as any)?.resultadoId
+  const { id: resultadoId } = useParams()
 
   const [resultado, setResultado] = useState<Resultado | null>(null)
   const [treino, setTreino] = useState<Treino | null>(null)
@@ -18,7 +16,10 @@ export function ResultadoDetalhe() {
 
   useEffect(() => {
     async function load() {
-      if (!resultadoId) return
+      if (!resultadoId) {
+  setLoading(false)
+  return
+}
 
       try {
         const res = await getResultadoById(resultadoId)
