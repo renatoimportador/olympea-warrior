@@ -97,7 +97,7 @@ if (t && user?.id) {
       }
     }
     loadTreino()
-  }, [diaAtivo, usser?.id])
+  }, [diaAtivo, user?.id])
 
   const nomes = { SEG: 'Seg', TER: 'Ter', QUA: 'Qua', QUI: 'Qui', SEX: 'Sex', SAB: 'Sab', DOM: 'Dom' }
 
