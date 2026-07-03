@@ -43,6 +43,7 @@ import { SeletorProgramacao } from '@/pages/aluno/SeletorProgramacao'
 import { Programacao } from '@/pages/aluno/Programacao'
 import { TreinoDoDia } from '@/pages/aluno/TreinoDoDia'
 import { RegistrarResultado } from '@/pages/aluno/RegistrarResultado'
+import { ResultadoDetalhe } from '@/pages/aluno/ResultadoDetalhe'
 import { Historico } from '@/pages/aluno/Historico'
 import { MeusPRs } from '@/pages/aluno/MeusPRs'
 import { MinhaFrequencia } from '@/pages/aluno/MinhaFrequencia'
@@ -123,6 +124,7 @@ export function AppRoutes() {
         <Route path="/aluno/programacao" element={<Programacao />} />
         <Route path="/aluno/treino" element={<TreinoDoDia />} />
         <Route path="/aluno/resultado" element={<RegistrarResultado />} />
+        <Route path="/aluno/resultado/:id" element={<ResultadoDetalhe />} />
         <Route path="/aluno/historico" element={<Historico />} />
         <Route path="/aluno/prs" element={<MeusPRs />} />
         <Route path="/aluno/frequencia" element={<MinhaFrequencia />} />
