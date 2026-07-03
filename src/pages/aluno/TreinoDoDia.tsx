@@ -158,7 +158,7 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
 
           <div className="flex gap-3 pt-2">
   {!resultadoJaSalvo && (
-    <Button className="flex-1" onClick={() => navigate('/aluno/resultado', { state: { treinoId: treino.id } })}>
+    <Button className="flex-1" onClick={() => navigate('/aluno/resultado', { state: { treinoId: treino!.id } })}>
       <PlayCircle size={18} className="mr-2" />
       Registrar Resultado
     </Button>
