@@ -155,16 +155,19 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
           <BlocoViewer blocos={blocos} wod={undefined} />
 
           {/* CTA Registrar Resultado */}
-          {!resultadoJaSalvo && (
+
           <div className="flex gap-3 pt-2">
-            <Button className="flex-1" onClick={() => navigate('/aluno/resultado', { state: { treinoId: treino.id, tituloTreino: treino.titulo } })}>
-              <PlayCircle size={18} className="mr-2" />
-              Registrar Resultado
-            </Button>
-            <Button variant="secondary" onClick={() => navigate('/aluno/historico')}>
-              <ArrowRight size={18} />
-            </Button>
-          </div>
+  {!resultadoJaSalvo && (
+    <Button className="flex-1" onClick={() => navigate('/aluno/resultado', { state: { treinoId: treino.id } })}>
+      <PlayCircle size={18} className="mr-2" />
+      Registrar Resultado
+    </Button>
+  
+
+  <Button variant="secondary" onClick={() => navigate('/aluno/historico')}>
+    <ArrowRight size={18} />
+  </Button>
+</div>
           )}
         </>
       ) : (
