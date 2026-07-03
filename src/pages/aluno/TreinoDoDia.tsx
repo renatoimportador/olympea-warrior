@@ -170,14 +170,14 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
 </div>
           
         
-      ) : (
+      
         <GlassCard className="p-8 text-center">
           <CalendarDays size={32} className="mx-auto text-text-secondary mb-3" />
           <p className="text-sm text-text-secondary">
             {treino ? 'Nenhum bloco cadastrado para este treino.' : 'Nenhum treino cadastrado para este dia.'}
           </p>
         </GlassCard>
-      )}
+      
     </div>
   )
 }
