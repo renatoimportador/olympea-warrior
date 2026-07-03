@@ -413,7 +413,7 @@ export async function buscarResultadoDoDia(usuarioId: string, treinoId: string) 
   const { data, error } = await supabase
     .from('resultados')
     .select('*')
-    .eq('usuario_id', usuarioId)
+    .eq('aluno_id', usuarioId)
     .eq('treino_id', treinoId)
     .limit(1)
 
