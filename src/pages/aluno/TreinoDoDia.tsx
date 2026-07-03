@@ -11,7 +11,8 @@ import {
   listarDiasBySemana,
   listarTreinosByDia,
   listarBlocosByTreino,
-  buscarResultadoDoDia
+  buscarResultadoDoDia,
+  getAlunoByUsuarioId
 } from '@/lib/api'
 import type { DiaTreino, Treino, BlocoTreino, Fase, Semana } from '@/data/types'
 import { CalendarDays, ArrowRight, PlayCircle, Layers, Calendar } from 'lucide-react'
@@ -81,7 +82,9 @@ export function TreinoDoDia() {
 
 
 if (t && user?.id) {
-  const resultado = await buscarResultadoDoDia(user.id, t.id)
+  const aluno = await getAlunoByUsuarioId(user.id)
+  if (!aluno) return
+const resultado = await buscarResultadoDoDia(aluno.id, t.id)
   setResultadoJaSalvo(!!resultado)
 } else {
   setResultadoJaSalvo(false)
