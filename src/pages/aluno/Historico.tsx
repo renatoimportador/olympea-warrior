@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
@@ -10,6 +11,7 @@ import toast from 'react-hot-toast'
 
 export function Historico() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [busca, setBusca] = useState('')
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [treinosMap, setTreinosMap] = useState<Record<string, string>>({})
@@ -132,6 +134,14 @@ export function Historico() {
                     {r.reflexao}
                   </p>
                 )}
+                <div className="flex justify-end">
+  <button
+    onClick={() => navigate(`/aluno/resultado/${r.id}`)}
+    className="text-accent text-sm font-medium"
+  >
+    Ver detalhes →
+  </button>
+</div>
               </GlassCard>
             )
           })
