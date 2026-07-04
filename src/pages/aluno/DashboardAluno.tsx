@@ -116,12 +116,12 @@ console.log('Programações:', progs.length)
   const dataHoje = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 
   const frequenciaData = semanaNomes.map(nome => ({
-    name: nome,
-    freq: frequencias.filter(f => {
-      const d = new Date(f.data)
-      return semanaNomes[d.getDay()] === nome
-    }).length
-  }))
+  name: nome,
+  freq: resultados.filter(r => {
+    const d = new Date(r.data)
+    return semanaNomes[d.getDay()] === nome
+  }).length
+}))
 
   if (loading) {
     return (
