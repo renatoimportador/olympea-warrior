@@ -76,12 +76,18 @@ export function ResultadoDetalhe() {
           {new Date(resultado.data).toLocaleDateString('pt-BR')}
         </p>
       </div>
+      <h2 className="text-lg font-semibold text-text-primary mt-6 mb-3">
+  Treino realizado
+</h2>
 {blocos.length > 0 && (
   <BlocoViewer
     blocos={blocos}
     wod={treino?.wod}
   />
 )}
+      <h2 className="text-lg font-semibold text-text-primary mt-6 mb-3">
+  Resultado registrado
+</h2>
       <GlassCard className="p-5 space-y-4">
 
         <Badge>
