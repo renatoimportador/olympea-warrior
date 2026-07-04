@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Trophy, Medal } from 'lucide-react'
 
+import { listarResultados, listarUsuarios } from '@/lib/api'
+import type { Resultado, Usuario } from '@/data/types'
 const categorias = ['RX', 'Scaling', 'Beginner'] as const
 const periodos = ['Semanal', 'Mensal', 'Anual'] as const
 
@@ -16,7 +18,19 @@ const rankingsMock = [
 export function RankingsAluno() {
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('RX')
   const [periodoAtivo, setPeriodoAtivo] = useState<string>('Semanal')
+  const [resultados, setResultados] = useState<Resultado[]>([])
+  const [usuarios, setUsuarios] = useState<Usuario[]>([])
+useEffect(() => {
+  async function load() {
+    const resultadosBanco = await listarResultados()
+    const usuariosBanco = await listarUsuarios()
 
+    setResultados(resultadosBanco || [])
+    setUsuarios(usuariosBanco || [])
+  }
+
+  load()
+}, [])
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
