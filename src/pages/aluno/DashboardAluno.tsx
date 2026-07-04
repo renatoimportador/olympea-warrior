@@ -59,12 +59,15 @@ export function DashboardAluno() {
             if (semanas.length > 0) {
               const { listarDiasBySemana } = await import('@/lib/api')
               const dias = await listarDiasBySemana(semanas[0].id)
+              console.log('Dias cadastrados:', dias)
+
               setDiasTreino(dias)
 
               // Buscar treino do dia atual
               const hoje = new Date()
               const semanaNomes = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
               const diaSemana = semanaNomes[hoje.getDay()]
+              console.log('Hoje é:', diaSemana)
               const diaAtual = dias.find(d => d.dia_semana === diaSemana.toUpperCase())
               if (diaAtual) {
                 const t = await getTreinoByDia(diaAtual.id)
