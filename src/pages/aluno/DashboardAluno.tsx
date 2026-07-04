@@ -139,19 +139,7 @@ export function DashboardAluno() {
         </div>
       </div>
 
-      {/* Streak banner */}
-      <div className="glass-card p-4 flex items-center justify-between bg-gradient-to-r from-accent/5 to-transparent border-accent/10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-            <Flame size={20} className="text-accent" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-text-primary">Streak de {streak} treinos!</p>
-            <p className="text-xs text-text-secondary">Voce esta treinando consistentemente</p>
-          </div>
-        </div>
-        <ChevronRight size={18} className="text-text-secondary" />
-      </div>
+  
 
       {/* Metricas Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
