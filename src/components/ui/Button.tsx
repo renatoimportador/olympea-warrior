@@ -18,7 +18,7 @@ export function Button({
 
   const variants = {
     primary: 'bg-gradient-to-r from-accent to-accent-secondary text-bg-primary shadow-[0_4px_16px_rgba(0,229,255,0.2)] hover:shadow-[0_6px_24px_rgba(0,229,255,0.35)] hover:-translate-y-0.5',
-    secondary: 'bg-white/[0.06] text-text-primary border border-white/[0.08] hover:bg-white/[0.1] hover:border-accent/20',
+    secondary: 'bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 hover:border-accent',
     ghost: 'text-text-secondary hover:text-text-primary hover:bg-white/[0.03]',
     danger: 'bg-error/10 text-error border border-error/20 hover:bg-error/20',
   }
