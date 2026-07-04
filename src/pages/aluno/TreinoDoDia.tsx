@@ -15,7 +15,7 @@ import {
   getAlunoByUsuarioId
 } from '@/lib/api'
 import type { DiaTreino, Treino, BlocoTreino, Fase, Semana } from '@/data/types'
-import { CalendarDays, ArrowRight, PlayCircle, Layers, Calendar } from 'lucide-react'
+import { CalendarDays, History, PlayCircle, Layers, Calendar } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 export function TreinoDoDia() {
@@ -163,9 +163,14 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
       Registrar Resultado
     </Button>
   )}
-  <Button variant="secondary" onClick={() => navigate('/aluno/historico')}>
-    <ArrowRight size={18} />
-  </Button>
+  <Button
+  variant="secondary"
+  onClick={() => navigate('/aluno/historico')}
+  className="flex items-center gap-2 px-4 whitespace-nowrap"
+>
+  <History size={18} />
+  <span>Meus resultados</span>
+</Button>
 </div>
           
         
