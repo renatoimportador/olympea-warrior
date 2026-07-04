@@ -204,12 +204,9 @@ console.log('Programações:', progs.length)
     Consulte seu treino na aba <strong>Treino</strong>.
   </p>
 
-  <Button
-    className="mt-4 w-full"
-    onClick={() => navigate('/aluno/treino')}
-  >
-    Abrir treino
-  </Button>
+  <p className="mt-4 text-xs text-accent">
+  Acesse a aba Treino para visualizar o treino do dia.
+</p>
 </GlassCard>
 
       {/* Grafico de Frequencia */}
