@@ -18,6 +18,7 @@ import {
 } from 'recharts'
 
 export function DashboardAluno() {
+  alert('Dashboard carregou!')
   const { user } = useAuth()
   const { programacaoAtiva } = useProgramacao()
   const [aluno, setAluno] = useState<Aluno | null>(null)
