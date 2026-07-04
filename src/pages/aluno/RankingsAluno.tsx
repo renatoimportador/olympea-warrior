@@ -80,7 +80,7 @@ useEffect(() => {
 
       {/* Lista */}
       <div className="space-y-2">
-        {rankingsMock
+        {ranking
           .filter((r) => r.categoria === categoriaAtiva)
           .map((r) => (
             <GlassCard key={r.posicao} className="p-4 flex items-center gap-4">
