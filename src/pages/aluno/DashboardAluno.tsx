@@ -35,6 +35,7 @@ export function DashboardAluno() {
       if (!user) { setLoading(false); return }
       try {
         const a = await getAlunoByUsuarioId(user.id)
+        console.log('Aluno:', a)
         if (!a) { setLoading(false); return }
         setAluno(a)
 
@@ -48,7 +49,10 @@ export function DashboardAluno() {
         setFrequencias(f)
         setResultados(r)
         setProgramacoes(progs)
-
+console.log('PRs:', p.length)
+console.log('Frequências:', f.length)
+console.log('Resultados:', r.length)
+console.log('Programações:', progs.length)
         // Buscar dias da semana da programacao ativa
         if (programacaoAtiva?.id) {
           // Buscar fases da programacao
@@ -60,6 +64,7 @@ export function DashboardAluno() {
             if (semanas.length > 0) {
               const { listarDiasBySemana } = await import('@/lib/api')
               const dias = await listarDiasBySemana(semanas[0].id)
+              console.log('Dias:', dias)
               console.log('Dias cadastrados:', dias)
 
               setDiasTreino(dias)
