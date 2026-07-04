@@ -64,6 +64,7 @@ console.log('Programações:', progs.length)
             if (semanas.length > 0) {
               const { listarDiasBySemana } = await import('@/lib/api')
               const dias = await listarDiasBySemana(semanas[0].id)
+              alert("Dias encontrados: " + dias.length)
               console.log('Dias:', dias)
               console.log('Dias cadastrados:', dias)
 
@@ -75,6 +76,7 @@ console.log('Programações:', progs.length)
               const diaSemana = semanaNomes[hoje.getDay()]
               console.log('Hoje é:', diaSemana)
               const diaAtual = dias.find(d => d.dia_semana === diaSemana.toUpperCase())
+              alert("Dia atual: " + JSON.stringify(diaAtual))
               if (diaAtual) {
                 const t = await getTreinoByDia(diaAtual.id)
                 setTreinoHoje(t)
