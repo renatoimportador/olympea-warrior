@@ -68,6 +68,7 @@ console.log('Programações:', progs.length)
               //alert("Dias encontrados: " + dias.length)
               console.log('Dias:', dias)
               console.log('Dias cadastrados:', dias)
+              console.table(dias)
 
               setDiasTreino(dias)
 
