@@ -20,6 +20,13 @@ export function RankingsAluno() {
   const [periodoAtivo, setPeriodoAtivo] = useState<string>('Semanal')
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
+
+  const ranking = resultados
+  .filter((r) => r.categoria?.toUpperCase() === categoriaAtiva.toUpperCase())
+  .map((r) => ({
+    ...r,
+    pontos: 0
+  }))
 useEffect(() => {
   async function load() {
     const resultadosBanco = await listarResultados()
