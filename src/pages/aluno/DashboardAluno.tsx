@@ -159,7 +159,7 @@ export function DashboardAluno() {
           </div>
           <div>
             <p className="text-2xl font-bold text-text-primary">{treinosTotal}</p>
-            <p className="text-xs text-text-secondary">Treinos totais</p>
+            <p className="text-xs text-text-secondary">Treinos realizados</p>
           </div>
         </GlassCard>
         <GlassCard className="p-4 space-y-2">
