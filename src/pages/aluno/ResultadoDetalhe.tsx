@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
+import { BlocoViewer } from '@/components/treino/BlocoViewer'
+import { listarBlocosByTreino } from '@/lib/api'
 import { Badge } from '@/components/ui/Badge'
 import { getResultadoById, getTreinoById } from '@/lib/api'
-import type { Resultado, Treino } from '@/data/types'
+import type { Resultado, Treino, BlocoTreino } from '@/data/types'
 import { Calendar } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -12,6 +14,7 @@ export function ResultadoDetalhe() {
 
   const [resultado, setResultado] = useState<Resultado | null>(null)
   const [treino, setTreino] = useState<Treino | null>(null)
+  const [blocos, setBlocos] = useState<BlocoTreino[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -26,9 +29,12 @@ export function ResultadoDetalhe() {
         setResultado(res)
 
         if (res?.treino_id) {
-          const t = await getTreinoById(res.treino_id)
-          setTreino(t)
-        }
+  const t = await getTreinoById(res.treino_id)
+  setTreino(t)
+
+  const bs = await listarBlocosByTreino(res.treino_id)
+  setBlocos(bs)
+}
       } catch (e) {
         console.error(e)
         toast.error('Erro ao carregar resultado')
@@ -69,7 +75,12 @@ export function ResultadoDetalhe() {
           {new Date(resultado.data).toLocaleDateString('pt-BR')}
         </p>
       </div>
-
+{blocos.length > 0 && (
+  <BlocoViewer
+    blocos={blocos}
+    wod={treino?.wod}
+  />
+)}
       <GlassCard className="p-5 space-y-4">
 
         <Badge>
