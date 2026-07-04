@@ -59,7 +59,7 @@ interface BlocoViewerProps {
 }
 
 export function BlocoViewer({ blocos, wod: wodProp }: BlocoViewerProps) {
-  const ordenados = blocos.filter(b => b.ativo).sort((a, b) => a.ordem - b.ordem)
+  const ordenados = blocos.sort((a, b) => a.ordem - b.ordem)
   const wodBloco = ordenados.find(b => b.tipo === 'WORKOUT')
   const wod = wodProp || (wodBloco ? { tipo: 'WOD', nome: wodBloco.titulo || 'Workout (WOD)', descricao: wodBloco.descricao || '', time_cap: wodBloco.observacoes } : undefined)
   const gamePlan = ordenados.find(b => b.tipo === 'GAME_PLAN')
