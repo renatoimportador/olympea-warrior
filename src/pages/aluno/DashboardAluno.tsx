@@ -214,7 +214,7 @@ export function DashboardAluno() {
       <GlassCard className="p-5 space-y-3">
         <h2 className="font-semibold text-text-primary flex items-center gap-2">
           <CalendarCheck size={16} className="text-accent" />
-          Frequencia Semanal
+          Treinos por dia da semana
         </h2>
         <div className="h-40">
           <ResponsiveContainer width="100%" height="100%">
