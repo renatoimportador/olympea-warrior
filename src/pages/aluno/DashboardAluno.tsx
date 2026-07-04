@@ -194,32 +194,23 @@ console.log('Programações:', progs.length)
       </div>
 
       {/* Proximo Treino */}
-      <GlassCard className="p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Clock size={16} className="text-accent" />
-            <h2 className="font-semibold text-text-primary">Proximo Treino</h2>
-          </div>
-          <span className="text-xs text-text-secondary">{diaSemana}, {dataHoje}</span>
-        </div>
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-text-primary">{treinoHoje?.titulo || 'Sem treino programado para hoje'}</p>
-          {treinoHoje ? (
-            <>
-              <p className="text-xs text-text-secondary">{programacaoAtiva?.nome || ''}</p>
-              <div className="flex gap-2 pt-1">
-                {['RX', 'Scaling', 'Beginner'].map((n) => (
-                  <span key={n} className="px-2 py-1 rounded-lg bg-white/[0.03] text-xs text-text-secondary border border-white/[0.05]">
-                    {n}
-                  </span>
-                ))}
-              </div>
-            </>
-          ) : (
-            <p className="text-xs text-text-secondary">Aproveite o dia de descanso e recupere bem!</p>
-          )}
-        </div>
-      </GlassCard>
+<GlassCard className="p-5">
+  <div className="flex items-center gap-2">
+    <Clock size={16} className="text-accent" />
+    <h2 className="font-semibold text-text-primary">Próximo Treino</h2>
+  </div>
+
+  <p className="mt-3 text-sm text-text-secondary">
+    Consulte seu treino na aba <strong>Treino</strong>.
+  </p>
+
+  <Button
+    className="mt-4 w-full"
+    onClick={() => navigate('/aluno/treino')}
+  >
+    Abrir treino
+  </Button>
+</GlassCard>
 
       {/* Grafico de Frequencia */}
       <GlassCard className="p-5 space-y-3">
