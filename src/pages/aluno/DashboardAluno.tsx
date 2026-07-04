@@ -54,6 +54,7 @@ console.log('Frequências:', f.length)
 console.log('Resultados:', r.length)
 console.log('Programações:', progs.length)
         // Buscar dias da semana da programacao ativa
+        alert("Programação ativa: " + JSON.stringify(programacaoAtiva))
         if (programacaoAtiva?.id) {
           // Buscar fases da programacao
           const { listarFasesByProg } = await import('@/lib/api')
