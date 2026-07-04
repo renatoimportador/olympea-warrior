@@ -66,9 +66,7 @@ console.log('Programações:', progs.length)
               const { listarDiasBySemana } = await import('@/lib/api')
               const dias = await listarDiasBySemana(semanas[0].id)
               //alert("Dias encontrados: " + dias.length)
-              console.log('Dias:', dias)
-              console.log('Dias cadastrados:', dias)
-              console.table(dias)
+              console.log('Dias:', JSON.stringify(dias, null, 2))
 
               setDiasTreino(dias)
 
