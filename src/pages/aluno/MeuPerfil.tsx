@@ -1,12 +1,25 @@
 import { useAuth } from '@/context/AuthContext'
-import { getAlunoByUsuarioId } from '@/data/seed'
+import { useState, useEffect } from 'react'
+import type { Aluno } from '@/data/types'
+import { getAlunoByUsuarioId } from '@/lib/api'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { Edit3, Phone, AlertTriangle, Shield, Target, User, Ruler, Weight } from 'lucide-react'
 
 export function MeuPerfil() {
   const { user } = useAuth()
-  const aluno = user ? getAlunoByUsuarioId(user.id) : undefined
+  const [aluno, setAluno] = useState<Aluno | null>(null)
+
+useEffect(() => {
+  async function loadAluno() {
+    if (!user) return
+    const a = await getAlunoByUsuarioId(user.id)
+    if (a) {
+    setAluno(a)
+  }
+  }
+  loadAluno()
+}, [user])
 
   return (
     <div className="space-y-5 animate-fade-in">
