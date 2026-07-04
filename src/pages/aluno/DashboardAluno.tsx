@@ -18,7 +18,7 @@ import {
 } from 'recharts'
 
 export function DashboardAluno() {
-  alert('Dashboard carregou!')
+  //alert('Dashboard carregou!')
   const { user } = useAuth()
   const { programacaoAtiva } = useProgramacao()
   const [aluno, setAluno] = useState<Aluno | null>(null)
@@ -54,7 +54,7 @@ console.log('Frequências:', f.length)
 console.log('Resultados:', r.length)
 console.log('Programações:', progs.length)
         // Buscar dias da semana da programacao ativa
-        alert("Programação ativa: " + JSON.stringify(programacaoAtiva))
+        //alert("Programação ativa: " + JSON.stringify(programacaoAtiva))
         if (programacaoAtiva?.id) {
           // Buscar fases da programacao
           const { listarFasesByProg } = await import('@/lib/api')
@@ -65,7 +65,7 @@ console.log('Programações:', progs.length)
             if (semanas.length > 0) {
               const { listarDiasBySemana } = await import('@/lib/api')
               const dias = await listarDiasBySemana(semanas[0].id)
-              alert("Dias encontrados: " + dias.length)
+              //alert("Dias encontrados: " + dias.length)
               console.log('Dias:', dias)
               console.log('Dias cadastrados:', dias)
 
@@ -77,7 +77,7 @@ console.log('Programações:', progs.length)
               const diaSemana = semanaNomes[hoje.getDay()]
               console.log('Hoje é:', diaSemana)
               const diaAtual = dias.find(d => d.dia_semana === diaSemana.toUpperCase())
-              alert("Dia atual: " + JSON.stringify(diaAtual))
+              //alert("Dia atual: " + JSON.stringify(diaAtual))
               if (diaAtual) {
                 const t = await getTreinoByDia(diaAtual.id)
                 setTreinoHoje(t)
