@@ -33,6 +33,7 @@ export function ResultadoDetalhe() {
   setTreino(t)
 
   const bs = await listarBlocosByTreino(res.treino_id)
+          console.log('Blocos carregados:',bs)
   setBlocos(bs)
 }
       } catch (e) {
