@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { listarResultadosByAluno, getTreinoById, getAlunoByUsuarioId } from '@/lib/api'
 import type { Resultado } from '@/data/types'
 import { useAuth } from '@/context/AuthContext'
-import { Calendar, Search } from 'lucide-react'
+import { Calendar, Search, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export function Historico() {
@@ -136,11 +136,12 @@ export function Historico() {
                 )}
                 <div className="flex justify-end">
   <button
-    onClick={() => navigate(`/aluno/resultado/${r.id}`)}
-    className="text-accent text-sm font-medium"
-  >
-    Ver detalhes →
-  </button>
+  onClick={() => navigate(`/aluno/resultado/${r.id}`)}
+  className="flex items-center gap-2 text-accent hover:opacity-80 text-sm font-medium"
+>
+  <Eye size={16} />
+  <span>Ver detalhes</span>
+</button>
 </div>
               </GlassCard>
             )
