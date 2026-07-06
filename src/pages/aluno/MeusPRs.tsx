@@ -1,21 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useAuth } from '@/context/AuthContext'
-import { getAlunoByUsuarioId, getPRsByAluno, criarPR, atualizarPR, excluirPR } from '@/data/seed'
+import { supabase } from '@/lib/supabase'
 import { Trophy, Zap, TrendingUp, Plus, Save, X, Pencil, Trash2 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 
-const movimentosPadrao = [
-  'Snatch', 'Clean & Jerk', 'Clean', 'Clean Pull', 'Snatch Pull', 'Jerk',
-  'Back Squat', 'Front Squat', 'Overhead Squat',
-  'Deadlift', 'Bench Press', 'Strict Press', 'Push Press',
-  'Thruster', 'Pull Up', 'Chest To Bar', 'Bar Muscle Up', 'Ring Muscle Up',
-  'Handstand Walk', 'Wall Ball', 'Double Under', 'Burpee',
-]
+
 
 function PRForm({ initial, alunoId, onSave, onCancel }: {
   initial?: any
@@ -29,25 +23,51 @@ function PRForm({ initial, alunoId, onSave, onCancel }: {
   const [data, setData] = useState(initial?.data ? new Date(initial.data).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
   const [observacao, setObservacao] = useState(initial?.observacao || '')
 
-  function handleSalvar() {
-    if (!exercicio.trim() || !valor) return
-    const payload = {
-      aluno_id: alunoId,
-      exercicio_id: initial?.exercicio_id || 'ex-mov',
-      exercicio: { id: initial?.exercicio_id || 'ex-mov', nome: exercicio, descricao: '', video_url: '', imagem_url: '', tipo: 'LPO', categoria: 'LPO', ativo: true, created_by: '', created_at: '' } as any,
-      valor: parseFloat(String(valor)),
-      unidade,
-      data: new Date(data).toISOString(),
-      observacao,
-      is_pr: true,
-    }
-    if (initial?.id) {
-      atualizarPR(initial.id, payload)
-    } else {
-      criarPR(payload)
-    }
-    onSave()
+  async function handleSalvar() {
+  if (!exercicio || !valor) return
+
+  const { data: ex } = await supabase
+    .from('exercicios')
+    .select('id,nome')
+    .eq('nome', exercicio)
+    .single()
+
+  if (!ex) return
+
+  const payload = {
+    aluno_id: alunoId,
+    exercicio_id: ex.id,
+    exercicio_nome: ex.nome,
+    valor: Number(valor),
+    unidade,
+    data,
+    observacao,
+    is_pr: true,
   }
+
+  if (initial?.id) {
+    const { error } = await supabase
+      .from('prs')
+      .update(payload)
+      .eq('id', initial.id)
+
+    if (error) {
+      console.error(error)
+      return
+    }
+  } else {
+    const { error } = await supabase
+      .from('prs')
+      .insert(payload)
+
+    if (error) {
+      console.error(error)
+      return
+    }
+  }
+
+  onSave()
+}
 
   return (
     <GlassCard className="p-4 space-y-3">
@@ -55,13 +75,19 @@ function PRForm({ initial, alunoId, onSave, onCancel }: {
         <h4 className="font-semibold text-sm text-text-primary">{initial ? 'Editar PR' : 'Novo PR'}</h4>
         <button onClick={onCancel}><X size={14} className="text-text-secondary" /></button>
       </div>
-      <select value={exercicio} onChange={e => setExercicio(e.target.value)} className="glass-input w-full text-sm">
-        <option value="">Selecione o movimento...</option>
-        {movimentosPadrao.map(m => (
-          <option key={m} value={m}>{m}</option>
-        ))}
-      </select>
-      <Input value={exercicio} onChange={e => setExercicio(e.target.value)} placeholder="Ou digite um movimento" className="text-sm" />
+      <select
+  value={exercicio}
+  onChange={(e) => setExercicio(e.target.value)}
+  className="glass-input w-full text-sm"
+>
+  <option value="">Selecione um exercício</option>
+
+  {exercicios.map((ex: any) => (
+    <option key={ex.id} value={ex.nome}>
+      {ex.nome}
+    </option>
+  ))}
+</select>
       <div className="grid grid-cols-3 gap-2">
         <Input type="number" value={valor} onChange={e => setValor(e.target.value)} placeholder="Valor" className="text-sm" />
         <select value={unidade} onChange={e => setUnidade(e.target.value)} className="glass-input w-full text-sm">
@@ -82,11 +108,56 @@ function PRForm({ initial, alunoId, onSave, onCancel }: {
 
 export function MeusPRs() {
   const { user } = useAuth()
-  const aluno = user ? getAlunoByUsuarioId(user.id) : undefined
-  const [editPR, setEditPR] = useState<any>(null)
-  const [showForm, setShowForm] = useState(false)
 
-  const prs = aluno ? getPRsByAluno(aluno.id) : []
+const [alunoId, setAlunoId] = useState('')
+const [prs, setPRs] = useState<any[]>([])
+const [exercicios, setExercicios] = useState<any[]>([])
+
+const [editPR, setEditPR] = useState<any>(null)
+const [showForm, setShowForm] = useState(false)
+const [loading, setLoading] = useState(true)
+
+useEffect(() => {
+  if (user) {
+    carregarDados()
+  }
+}, [user])
+
+async function carregarDados() {
+  if (!user) return
+
+  setLoading(true)
+
+  const { data: aluno } = await supabase
+    .from('alunos')
+    .select('id')
+    .eq('usuario_id', user.id)
+    .single()
+
+  if (!aluno) {
+    setLoading(false)
+    return
+  }
+
+  setAlunoId(aluno.id)
+
+  const { data: listaPrs } = await supabase
+    .from('prs')
+    .select('*')
+    .eq('aluno_id', aluno.id)
+    .order('data', { ascending: false })
+
+  const { data: listaExercicios } = await supabase
+    .from('exercicios')
+    .select('id,nome')
+    .eq('ativo', true)
+    .order('nome')
+
+  setPRs(listaPrs || [])
+  setExercicios(listaExercicios || [])
+
+  setLoading(false)
+}
 
   return (
     <div className="space-y-5 animate-fade-in">
