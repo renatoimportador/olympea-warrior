@@ -24,11 +24,7 @@ function PRForm({
   onSave: () => void
   onCancel: () => void
 }) {
-  initial?: any
-  alunoId: string
-  onSave: () => void
-  onCancel: () => void
-}) {
+ 
   const [exercicio, setExercicio] = useState(initial?.exercicio?.nome || initial?.exercicio?.nome || '')
   const [valor, setValor] = useState(initial?.valor || '')
   const [unidade, setUnidade] = useState(initial?.unidade || 'kg')
@@ -188,7 +184,7 @@ async function carregarDados() {
           initial={editPR}
           alunoId={alunoId}
           exercicios={exercicios}
-          onSave={() => { carregarDados() setShowForm(false); setEditPR(null) }}
+          onSave={() => { carregarDados(); setShowForm(false); setEditPR(null) }}
           onCancel={() => { setShowForm(false); setEditPR(null) }}
         />
       )}
