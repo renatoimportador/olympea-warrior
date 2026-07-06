@@ -119,7 +119,6 @@ export function MeusPRs() {
 
 const [alunoId, setAlunoId] = useState('')
 const [prs, setPRs] = useState<any[]>([])
-const [prs, setPRs] = useState<any[]>([])
 const [exercicios, setExercicios] = useState<any[]>([])
 const [editPR, setEditPR] = useState<any>(null)
 const [showForm, setShowForm] = useState(false)
