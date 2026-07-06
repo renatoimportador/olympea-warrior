@@ -399,7 +399,16 @@ export async function listarResultadosByAluno(alunoId: string) {
 
   return data as Resultado[]
 }
+export async function listarResultadosByTreino(treinoId: string) {
+  const { data, error } = await supabase
+    .from('resultados')
+    .select('*')
+    .eq('treino_id', treinoId)
 
+  if (error) throw error
+
+  return data as Resultado[]
+}
 export async function criarResultado(resultado: Partial<Resultado>) {
   const { data } = await supabase
     .from('resultados')
