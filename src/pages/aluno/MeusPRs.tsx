@@ -25,7 +25,7 @@ function PRForm({
   onCancel: () => void
 }) {
  
-  const [exercicio, setExercicio] = useState(initial?.exercicio?.nome || initial?.exercicio?.nome || '')
+  const [exercicio, setExercicio] = useState(initial?.exercicio_nome || '')
   const [valor, setValor] = useState(initial?.valor || '')
   const [unidade, setUnidade] = useState(initial?.unidade || 'kg')
   const [data, setData] = useState(initial?.data ? new Date(initial.data).toISOString().split('T')[0] : new Date().toISOString().split('T')[0])
