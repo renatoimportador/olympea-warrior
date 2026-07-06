@@ -23,10 +23,17 @@ export function RankingsAluno() {
 
   const ranking = resultados
   .filter((r) => r.categoria?.toUpperCase() === categoriaAtiva.toUpperCase())
-  .map((r) => ({
-    ...r,
-    pontos: 0
-  }))
+  .map((r, index) => {
+    const usuario = usuarios.find((u) => u.id === r.aluno_id)
+
+    return {
+      ...r,
+      posicao: index + 1,
+      nome: usuario?.nome || 'Atleta',
+      treinos: 1,
+      pontos: r.pontos ?? 0,
+    }
+  })
 useEffect(() => {
   async function load() {
     const resultadosBanco = await listarResultados()
@@ -83,7 +90,7 @@ useEffect(() => {
         {ranking
           .filter((r) => r.categoria === categoriaAtiva)
           .map((r) => (
-            <GlassCard key={r.posicao} className="p-4 flex items-center gap-4">
+            <GlassCard key={r.id} className="p-4 flex items-center gap-4">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
                 r.posicao === 1 ? 'bg-warning/15 text-warning' :
                 r.posicao === 2 ? 'bg-text-secondary/15 text-text-secondary' :
