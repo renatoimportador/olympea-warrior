@@ -23,8 +23,8 @@ export function RankingsAluno() {
       ...r,
       posicao: index + 1,
       nome: usuario?.nome || 'Atleta',
-      treinos: r.treinos ?? 1,
-      pontos: r.pontos ?? 0,
+      treinos: 1,
+      pontos: r.valor || 0,
     }
   })
 useEffect(() => {
