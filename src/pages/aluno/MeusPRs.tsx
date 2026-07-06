@@ -11,7 +11,19 @@ import {
 
 
 
-function PRForm({ initial, alunoId, onSave, onCancel }: {
+function PRForm({
+  initial,
+  alunoId,
+  exercicios,
+  onSave,
+  onCancel,
+}: {
+  initial?: any
+  alunoId: string
+  exercicios: any[]
+  onSave: () => void
+  onCancel: () => void
+}) {
   initial?: any
   alunoId: string
   onSave: () => void
@@ -171,11 +183,12 @@ async function carregarDados() {
         </Button>
       </div>
 
-      {showForm && aluno && (
+      {showForm && alunoId && (
         <PRForm
           initial={editPR}
-          alunoId={aluno.id}
-          onSave={() => { setShowForm(false); setEditPR(null) }}
+          alunoId={alunoId}
+          exercicios={exercicios}
+          onSave={() => { carregarDados() setShowForm(false); setEditPR(null) }}
           onCancel={() => { setShowForm(false); setEditPR(null) }}
         />
       )}
@@ -213,7 +226,7 @@ async function carregarDados() {
               <Zap size={22} className="text-warning" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-text-primary">{pr.exercicio?.nome}</p>
+              <p className="text-sm font-semibold text-text-primary">{pr.exercicio_nome}</p>
               <p className="text-xs text-text-secondary">{new Date(pr.data).toLocaleDateString('pt-BR')}</p>
               {pr.observacao && <p className="text-xs text-text-secondary">{pr.observacao}</p>}
             </div>
@@ -224,9 +237,19 @@ async function carregarDados() {
               <button onClick={() => { setEditPR(pr); setShowForm(true) }} className="p-1.5 rounded-lg hover:bg-white/[0.03]">
                 <Pencil size={14} className="text-text-secondary" />
               </button>
-              <button onClick={() => { excluirPR(pr.id) }} className="p-1.5 rounded-lg hover:bg-error/5">
-                <Trash2 size={14} className="text-error" />
-              </button>
+              <button
+  onClick={async () => {
+    await supabase
+      .from('prs')
+      .delete()
+      .eq('id', pr.id)
+
+    carregarDados()
+  }}
+  className="p-1.5 rounded-lg hover:bg-error/5"
+>
+  <Trash2 size={14} className="text-error" />
+</button>
             </div>
           </GlassCard>
         ))}
