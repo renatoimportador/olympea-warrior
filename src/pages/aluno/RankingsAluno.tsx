@@ -7,13 +7,6 @@ import type { Resultado, Usuario } from '@/data/types'
 const categorias = ['RX', 'Scaling', 'Beginner'] as const
 const periodos = ['Semanal', 'Mensal', 'Anual'] as const
 
-const rankingsMock = [
-  { posicao: 1, nome: 'Bruno Almeida', pontos: 950, treinos: 5, categoria: 'RX' },
-  { posicao: 2, nome: 'Carla Mendes', pontos: 920, treinos: 5, categoria: 'RX' },
-  { posicao: 3, nome: 'Diego Costa', pontos: 890, treinos: 4, categoria: 'RX' },
-  { posicao: 4, nome: 'Ana Silva', pontos: 850, treinos: 4, categoria: 'SCALING' },
-  { posicao: 5, nome: 'Pedro Santos', pontos: 820, treinos: 3, categoria: 'BEGINNER' },
-]
 
 export function RankingsAluno() {
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('RX')
@@ -30,8 +23,8 @@ export function RankingsAluno() {
       ...r,
       posicao: index + 1,
       nome: usuario?.nome || 'Atleta',
-      treinos: 1,
-      pontos: 0,
+      treinos: r.treinos ?? 1,
+      pontos: r.pontos ?? 0,
     }
   })
 useEffect(() => {
