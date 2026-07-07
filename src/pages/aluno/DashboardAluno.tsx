@@ -50,11 +50,7 @@ export function DashboardAluno() {
         setFrequencias(f)
         setResultados(r)
         setProgramacoes(progs)
-        const { getRankingSemanal } = await import('@/lib/api')
-
-const ranking = await getRankingSemanal()
-
-setRankingSemana(ranking || [])
+        
 console.log('PRs:', p.length)
 console.log('Frequências:', f.length)
 console.log('Resultados:', r.length)
