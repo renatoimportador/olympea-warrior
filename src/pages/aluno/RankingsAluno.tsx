@@ -32,7 +32,7 @@ export function RankingsAluno() {
       pontos: resultadosAluno.length * 100,
       ultimoTreino:
         resultadosAluno.length > 0
-      ? resultadosAluno[resultadoAluno.length - 1].data
+      ? resultadosAluno[resultadosAluno.length - 1].data
         : null,
     }
   })
