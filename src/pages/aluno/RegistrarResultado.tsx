@@ -36,7 +36,7 @@ export function RegistrarResultado() {
   if (!user?.id || !treinoId) return
 
   async function load() {
-    const aluno = await getAlunoByUsuarioId(user.id)
+    const aluno = await getAlunoByUsuarioId(user!.id)
 
     if (aluno) {
       setAlunoId(aluno.id)
