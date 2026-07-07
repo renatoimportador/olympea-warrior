@@ -6,7 +6,7 @@ import {
   listarAlunos,
   listarResultadosByAluno,
 } from '@/lib/api'
-import { getTreinoDoDia, listarResultadosbyTreino } from '@/lib/api'
+import { getTreinoDoDia, listarResultadosByTreino } from '@/lib/api'
 
 export function RankingsCoach() {
   const [rankings, setRankings] = useState<any[]>([])
