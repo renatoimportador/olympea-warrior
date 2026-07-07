@@ -14,19 +14,28 @@ export function RankingsAluno() {
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
 
-  const ranking = resultados
-  .filter((r) => r.categoria?.toUpperCase() === categoriaAtiva.toUpperCase())
-  .map((r, index) => {
-    const usuario = usuarios.find((u) => u.id === r.aluno_id)
+  const ranking = usuarios
+  .map((usuario) => {
+    const resultadosAluno = resultados.filter(
+      (r) =>
+        r.aluno_id === usuario.id &&
+        r.categoria?.toUpperCase() === categoriaAtiva.toUpperCase()
+    )
 
     return {
-      ...r,
-      posicao: index + 1,
-      nome: usuario?.nome || 'Atleta',
-      treinos: 1,
-      pontos: 100,
+      id: usuario.id,
+      nome: usuario.nome,
+      categoria: categoriaAtiva,
+      treinos: resultadosAluno.length,
+      pontos: resultadosAluno.length * 100,
     }
   })
+  .filter((a) => a.treinos > 0)
+  .sort((a, b) => b.pontos - a.pontos)
+  .map((a, index) => ({
+    ...a,
+    posicao: index + 1,
+  }))
 useEffect(() => {
   async function load() {
     const resultadosBanco = await listarResultados()
