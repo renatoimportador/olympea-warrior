@@ -6,6 +6,7 @@ import {
   listarAlunos,
   listarResultadosByAluno,
 } from '@/lib/api'
+import { getTreinoDoDia, listarResultadosbyTreino } from '@lib/api'
 
 export function RankingsCoach() {
   const [rankings, setRankings] = useState<any[]>([])
@@ -14,6 +15,12 @@ export function RankingsCoach() {
   useEffect(() => {
     async function carregar() {
       try {
+        const treinohoje = await getTreinoDoDia()
+        if (!treinoHoje) {
+          setLoading(false)
+          return
+        }
+        const resultadosHoje = await listarResultadosByTreino(treinoHoje.id)
         const alunosData = await listarAlunos()
         const alunosAtivos = (alunosData || []).filter(
           (a) => a.ativo
@@ -22,9 +29,9 @@ export function RankingsCoach() {
         const rankingData = []
 
         for (const aluno of alunosAtivos) {
-          const resultados = await listarResultadosByAluno(
-            aluno.id
-          )
+          const resultados = resultadosHoje.filter(
+  r => r.aluno_id === aluno.id
+)
 
           const totalResultados = resultados?.length || 0
 
