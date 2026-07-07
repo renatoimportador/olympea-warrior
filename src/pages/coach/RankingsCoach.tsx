@@ -159,15 +159,17 @@ rankingData.push({
                 {r.categoria}
               </Badge>
 
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-bold text-text-primary">
-                  {r.pontos}
-                </span>
-                <ArrowUpRight
-                  size={14}
-                  className="text-success"
-                />
-              </div>
+              <div className="text-right">
+  <p className="text-sm font-bold text-accent">
+    {r.resultado
+      ? treinoHoje?.tipo_wod === 'FOR_TIME'
+        ? r.resultado.tempo
+        : treinoHoje?.tipo_wod === 'AMRAP'
+        ? `${r.resultado.rounds} R • ${r.resultado.repeticoes} Rep`
+        : `${r.resultado.carga} kg`
+      : '-'}
+  </p>
+</div>
             </div>
           ))}
         </div>
