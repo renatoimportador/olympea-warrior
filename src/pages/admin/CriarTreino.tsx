@@ -222,6 +222,7 @@ export function CriarTreino() {
       setSalvando(true)
 
       if (editTreinoId) {
+        console.log('TIPO WOD:', tipoWod)
         await atualizarTreino(editTreinoId,{
     titulo,
     tipo_wod: tipoWod,
@@ -250,6 +251,7 @@ export function CriarTreino() {
 
         toast.success('Treino atualizado!')
       } else {
+        console.log('TIPO WOD:', tipoWod)
         const novoTreino = await criarTreino({
     titulo,
     tipo_wod: tipoWod,
