@@ -33,13 +33,34 @@ export function RegistrarResultado() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!user?.id) return
-    async function load() {
-      const aluno = await getAlunoByUsuarioId(user!.id)
-      if (aluno) setAlunoId(aluno.id)
+  if (!user?.id) return
+
+  async function load() {
+    const aluno = await getAlunoByUsuarioId(user!.id)
+
+    if (aluno) {
+      setAlunoId(aluno.id)
     }
-    load()
-  }, [user?.id])
+
+    if (treinoId) {
+      const treino = await getTreinoById(treinoId)
+
+      if (treino?.tipo_wod === 'tempo') {
+        setTipo('TEMPO')
+      }
+
+      if (treino?.tipo_wod === 'reps') {
+        setTipo('ROUNDS_REPS')
+      }
+
+      if (treino?.tipo_wod === 'carga') {
+        setTipo('CARGA')
+      }
+    }
+  }
+
+  load()
+}, [user?.id, treinoId])
 
   function onChange(field: string, value: string) {
     setForm(prev => ({ ...prev, [field]: value }))
