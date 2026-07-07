@@ -376,7 +376,10 @@ export async function getTreinoDoDia() {
 
 const treino = await getTreinoByDia(dia.id)
 
+console.log('========================')
+console.log('DIA ID:', dia.id)
 console.log('TREINO DO DIA:', treino)
+console.log('========================')
 
 return treino
 }
