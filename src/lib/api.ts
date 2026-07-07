@@ -370,7 +370,11 @@ export async function getTreinoDoDia() {
 
   if (!dia) return null
 
-  return await getTreinoByDia(dia.id)
+const treino = await getTreinoByDia(dia.id)
+
+console.log('TREINO DO DIA:', treino)
+
+return treino
 }
 
 export const criarTreino = async (treino: Partial<Treino>) =>
