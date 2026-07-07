@@ -3,7 +3,11 @@ import {useAuth } from '@/context/AuthContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Trophy, Medal } from 'lucide-react'
 
-import { listarResultados, listarUsuarios } from '@/lib/api'
+import {
+  listarResultadosByTreino,
+  listarUsuarios,
+  getTreinoDoDia,
+} from '@/lib/api'
 import type { Resultado, Usuario } from '@/data/types'
 const categorias = ['RX', 'Scaling', 'Beginner'] as const
 const periodos = ['Semanal', 'Mensal', 'Anual'] as const
@@ -44,12 +48,16 @@ export function RankingsAluno() {
   }))
 useEffect(() => {
   async function load() {
-    const resultadosBanco = await listarResultados()
-    const usuariosBanco = await listarUsuarios()
+  const treino = await getTreinoDoDia()
 
-    setResultados(resultadosBanco || [])
-    setUsuarios(usuariosBanco || [])
-  }
+  if (!treino) return
+
+  const resultadosBanco = await listarResultadosByTreino(treino.id)
+  const usuariosBanco = await listarUsuarios()
+
+  setResultados(resultadosBanco || [])
+  setUsuarios(usuariosBanco || [])
+}
 
   load()
 }, [])
