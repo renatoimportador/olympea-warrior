@@ -141,7 +141,7 @@ rankingData.push({
   ? treinoHoje.tipo_wod === 'FOR_TIME'
     ? `Tempo: ${r.resultado.tempo}`
     : treinoHoje.tipo_wod === 'AMRAP'
-    ? `${r.resultado.rounds} rounds + ${r.resultado.repeticoes} reps`
+    ? `${r.resultado.rounds} Rounds • ${r.resultado.repeticoes} Reps`
     : `${r.resultado.carga} kg`
   : 'Sem resultado'}
                 </p>
