@@ -380,8 +380,25 @@ return treino
 export const criarTreino = async (treino: Partial<Treino>) =>
   (await supabase.from('treinos').insert(treino).select().single()).data
 
-export const atualizarTreino = async (id: string, treino: Partial<Treino>) =>
-  supabase.from('treinos').update(treino).eq('id', id)
+export const atualizarTreino = async (
+  id: string,
+  treino: Partial<Treino>
+) => {
+  console.log('ATUALIZANDO TREINO:', treino)
+
+  const { data, error } = await supabase
+    .from('treinos')
+    .update(treino)
+    .eq('id', id)
+    .select()
+
+  console.log('DATA:', data)
+  console.log('ERROR:', error)
+
+  if (error) throw error
+
+  return data
+}
 
 export const excluirTreino = async (id: string) =>
   supabase.from('treinos').update({ ativo: false }).eq('id', id)
