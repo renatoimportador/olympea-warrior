@@ -11,11 +11,13 @@ import { getTreinoDoDia, listarResultadosByTreino } from '@/lib/api'
 export function RankingsCoach() {
   const [rankings, setRankings] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [treinoHoje, setTreinoHoje] = useState<any>(null)
 
   useEffect(() => {
     async function carregar() {
       try {
         const treinoHoje = await getTreinoDoDia()
+        setTreinoHoje(treinoHoje)
         if (!treinoHoje) {
           setLoading(false)
           return
