@@ -4,9 +4,16 @@ import { useProgramacao } from '@/context/ProgramacaoContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import {
-  getAlunoByUsuarioId, getPRsByAluno, getFrequenciasByAluno,
-  listarResultadosByAluno, getProgramacoesByAluno,
-  listarDiasBySemana, getTreinoByDia,
+  getAlunoByUsuarioId,
+  getPRsByAluno,
+  getFrequenciasByAluno,
+  listarResultadosByAluno,
+  getProgramacoesByAluno,
+  listarDiasBySemana,
+  getTreinoByDia,
+  listarResultadosByTreino,
+  listarUsuarios,
+  getTreinoDoDia,
 } from '@/lib/api'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
@@ -28,6 +35,7 @@ export function DashboardAluno() {
   const [programacoes, setProgramacoes] = useState<Programacao[]>([])
   const [diasTreino, setDiasTreino] = useState<DiaTreino[]>([])
   const [treinoHoje, setTreinoHoje] = useState<Treino | null>(null)
+  const [rankingPosicao, setRankingPosicao] = useState<any>(null)
   const [rankingSemana, setRankingSemana] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -50,6 +58,39 @@ export function DashboardAluno() {
         setFrequencias(f)
         setResultados(r)
         setProgramacoes(progs)
+        const treino = await getTreinoDoDia()
+
+if (treino) {
+  const resultados = await listarResultadosByTreino(treino.id)
+  const usuarios = await listarUsuarios()
+
+  const ranking = usuarios
+    .map((usuario) => {
+      const resultadosAluno = resultados.filter(
+        (r) =>
+          r.aluno_id === usuario.id &&
+          r.categoria === usuario.categoria
+      )
+
+      return {
+        id: usuario.id,
+        nome: usuario.nome,
+        categoria: usuario.categoria,
+        treinos: resultadosAluno.length,
+        pontos: resultadosAluno.length * 100,
+      }
+    })
+    .filter((a) => a.treinos > 0)
+    .sort((a, b) => b.pontos - a.pontos)
+    .map((a, index) => ({
+      ...a,
+      posicao: index + 1,
+    }))
+
+  setRankingPosicao(
+    ranking.find((r) => r.id === user.id) || null
+  )
+}
         
 console.log('PRs:', p.length)
 console.log('Frequências:', f.length)
