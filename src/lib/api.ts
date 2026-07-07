@@ -335,15 +335,19 @@ export const getTreinoById = async (id: string) =>
   (await supabase.from('treinos').select('*').eq('id', id).single())
     .data as Treino
 
-export const getTreinoByDia = async (diaTreinoId: string) =>
-  (
-    await supabase
-      .from('treinos')
-      .select('*')
-      .eq('dia_treino_id', diaTreinoId)
-      .eq('ativo', true)
-      .single()
-  ).data as Treino
+export const getTreinoByDia = async (diaTreinoId: string) => {
+  const { data, error } = await supabase
+    .from('treinos')
+    .select('*')
+    .eq('dia_treino_id', diaTreinoId)
+    .eq('ativo', true)
+
+  console.log('TREINOS ENCONTRADOS:', data)
+
+  if (error) throw error
+
+  return data?.[0] as Treino
+}
 export async function getTreinoDoDia() {
   const programacoes = await listarProgramacoes()
   const programacao = programacoes.find(p => p.ativa) || programacoes[0]
