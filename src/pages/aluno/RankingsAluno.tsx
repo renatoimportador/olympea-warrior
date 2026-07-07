@@ -24,7 +24,7 @@ export function RankingsAluno() {
       posicao: index + 1,
       nome: usuario?.nome || 'Atleta',
       treinos: 1,
-      pontos: 0,
+      pontos: 100,
     }
   })
 useEffect(() => {
