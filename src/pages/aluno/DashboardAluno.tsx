@@ -28,6 +28,7 @@ export function DashboardAluno() {
   const [programacoes, setProgramacoes] = useState<Programacao[]>([])
   const [diasTreino, setDiasTreino] = useState<DiaTreino[]>([])
   const [treinoHoje, setTreinoHoje] = useState<Treino | null>(null)
+  const [rankingSemana, setRankingSemana] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -49,6 +50,11 @@ export function DashboardAluno() {
         setFrequencias(f)
         setResultados(r)
         setProgramacoes(progs)
+        const { getRankingSemanal } = await import('@/lib/api')
+
+const ranking = await getRankingSemanal()
+
+setRankingSemana(ranking || [])
 console.log('PRs:', p.length)
 console.log('Frequências:', f.length)
 console.log('Resultados:', r.length)
@@ -208,7 +214,39 @@ console.log('Programações:', progs.length)
   Acesse a aba Treino para visualizar o treino do dia.
 </p>
 </GlassCard>
+<GlassCard className="p-5 space-y-3">
+  <h2 className="font-semibold text-text-primary flex items-center gap-2">
+    <Trophy size={16} className="text-warning" />
+    Ranking da Semana
+  </h2>
 
+  {rankingSemana.slice(0,3).map((r, index) => (
+    <div
+      key={r.id}
+      className="flex items-center justify-between py-2 border-b border-white/5 last:border-0"
+    >
+      <div>
+        <p className="font-medium text-text-primary">
+          {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {r.nome}
+        </p>
+
+        <p className="text-xs text-text-secondary">
+          {r.tipo === 'AMRAP'
+            ? `${r.resultado.rounds}R • ${r.resultado.repeticoes} Rep`
+            : r.tipo === 'FOR_TIME'
+            ? r.resultado.tempo
+            : `${r.resultado.carga} kg`}
+        </p>
+      </div>
+
+      {r.id === aluno?.id && (
+        <Badge variant="accent">
+          Você
+        </Badge>
+      )}
+    </div>
+  ))}
+</GlassCard>
       {/* Grafico de Frequencia */}
       <GlassCard className="p-5 space-y-3">
         <h2 className="font-semibold text-text-primary flex items-center gap-2">
