@@ -36,6 +36,7 @@ export function CriarTreino() {
   const editTreinoId = (location.state as any)?.treinoId || ''
 
   const [titulo, setTitulo] = useState('')
+  const [tipoWod, setTipoWod] = useState('tempo')
   const [blocos, setBlocos] = useState<BlocoTreino[]>([])
   const [salvando, setSalvando] = useState(false)
 
@@ -138,6 +139,7 @@ export function CriarTreino() {
 
         setTitulo(treino.titulo || '')
         setDiaTreinoId(treino.dia_treino_id || '')
+        setTipoWod(treino.tipo_wod || 'tempo')
 
         const dia = await getDiaById(treino.dia_treino_id)
 
@@ -220,10 +222,11 @@ export function CriarTreino() {
       setSalvando(true)
 
       if (editTreinoId) {
-        await atualizarTreino(editTreinoId, {
-          titulo,
-          dia_treino_id: diaTreinoId,
-        } as any)
+        await atualizarTreino(editTreinoId,{
+    titulo,
+    tipo_wod: tipoWod,
+    dia_treino_id: diaTreinoId,
+} as any)
 
         const blocosAtuais = await listarBlocosByTreino(editTreinoId)
 
@@ -248,10 +251,11 @@ export function CriarTreino() {
         toast.success('Treino atualizado!')
       } else {
         const novoTreino = await criarTreino({
-          titulo,
-          dia_treino_id: diaTreinoId,
-          ativo: true,
-        } as any)
+    titulo,
+    tipo_wod: tipoWod,
+    dia_treino_id: diaTreinoId,
+    ativo: true,
+} as any)
 
         for (let i = 0; i < blocosValidos.length; i++) {
           await adicionarBloco({
@@ -307,6 +311,15 @@ export function CriarTreino() {
           onChange={(e) => setTitulo(e.target.value)}
           placeholder="Título do treino"
         />
+        <select
+  value={tipoWod}
+  onChange={(e) => setTipoWod(e.target.value)}
+  className="glass-input"
+>
+  <option value="tempo">For Time</option>
+  <option value="reps">AMRAP / Rounds + Reps</option>
+  <option value="carga">Carga</option>
+</select>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <select
