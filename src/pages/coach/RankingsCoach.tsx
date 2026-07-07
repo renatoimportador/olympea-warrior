@@ -137,14 +137,8 @@ rankingData.push({
                 </p>
 
                 <p className="text-xs text-text-secondary">
-                  {r.resultado
-  ? treinoHoje.tipo_wod === 'FOR_TIME'
-    ? `Tempo: ${r.resultado.tempo}`
-    : treinoHoje.tipo_wod === 'AMRAP'
-    ? `${r.resultado.rounds} Rounds • ${r.resultado.repeticoes} Reps`
-    : `${r.resultado.carga} kg`
-  : 'Sem resultado'}
-                </p>
+  {r.categoria}
+</p>
               </div>
 
               <Badge
