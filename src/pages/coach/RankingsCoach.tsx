@@ -6,7 +6,7 @@ import {
   listarAlunos,
   listarResultadosByAluno,
 } from '@/lib/api'
-import { getTreinoDoDia, listarResultadosbyTreino } from '@lib/api'
+import { getTreinoDoDia, listarResultadosbyTreino } from '@/lib/api'
 
 export function RankingsCoach() {
   const [rankings, setRankings] = useState<any[]>([])
@@ -15,7 +15,7 @@ export function RankingsCoach() {
   useEffect(() => {
     async function carregar() {
       try {
-        const treinohoje = await getTreinoDoDia()
+        const treinoHoje = await getTreinoDoDia()
         if (!treinoHoje) {
           setLoading(false)
           return
@@ -30,13 +30,13 @@ export function RankingsCoach() {
 
         for (const aluno of alunosAtivos) {
           const resultados = resultadosHoje.filter(
-  r => r.aluno_id === aluno.id
+  (r: any) => r.aluno_id === aluno.id
 )
 
           const totalResultados = resultados?.length || 0
 
           const pontos =
-            (resultados || []).reduce((acc, r) => {
+            (resultados || []).reduce((acc: number, r: any) => {
               return acc + (r.rpe || 0) * 10
             }, 0)
 
@@ -49,7 +49,7 @@ export function RankingsCoach() {
         }
 
         const rankingOrdenado = rankingData
-          .sort((a, b) => b.pontos - a.pontos)
+          .sort((a: any, b: any) => b.pontos - a.pontos)
           .map((r, index) => ({
             ...r,
             posicao: index + 1,
