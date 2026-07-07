@@ -32,16 +32,32 @@ export function RankingsAluno() {
       id: usuario.id,
       nome: usuario.nome,
       categoria: categoriaAtiva,
-      treinos: resultadosAluno.length,
-      pontos: resultadosAluno.length * 100,
+      resultado: resultadosAluno[0] || null,
       ultimoTreino:
         resultadosAluno.length > 0
       ? resultadosAluno[resultadosAluno.length - 1].data
         : null,
     }
   })
-  .filter((a) => a.treinos > 0)
-  .sort((a, b) => b.pontos - a.pontos)
+  .filter((a) => a.resultado)
+  .sort((a: any, b: any) => {
+  if (!a.resultado) return 1
+  if (!b.resultado) return -1
+
+  if (treinoHoje?.tipo_wod === 'FOR_TIME') {
+    return (a.resultado.tempo || '').localeCompare(b.resultado.tempo || '')
+  }
+
+  if (treinoHoje?.tipo_wod === 'AMRAP') {
+    if ((b.resultado.rounds || 0) !== (a.resultado.rounds || 0)) {
+      return (b.resultado.rounds || 0) - (a.resultado.rounds || 0)
+    }
+
+    return (b.resultado.repeticoes || 0) - (a.resultado.repeticoes || 0)
+  }
+
+  return (b.resultado.carga || 0) - (a.resultado.carga || 0)
+})
   .map((a, index) => ({
     ...a,
     posicao: index + 1,
@@ -49,6 +65,7 @@ export function RankingsAluno() {
 useEffect(() => {
   async function load() {
   const treino = await getTreinoDoDia()
+    setTreinoHoje(treino)
 
   if (!treino) return
 
@@ -132,10 +149,24 @@ useEffect(() => {
     </span>
   )}
 </p>
-                <p className="text-xs text-text-secondary">{r.treinos} treinos concluidos</p>
+                <p className="text-xs text-text-secondary">
+  {r.resultado
+    ? treinoHoje?.tipo_wod === 'FOR_TIME'
+      ? `Tempo: ${r.resultado.tempo}`
+      : treinoHoje?.tipo_wod === 'AMRAP'
+      ? `${r.resultado.rounds} Rounds • ${r.resultado.repeticoes} Reps`
+      : `${r.resultado.carga} kg`
+    : 'Sem resultado'}
+</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-accent">{r.pontos}<span className="text-xs text-text-secondary">pts</span></p>
+                <p className="text-sm font-bold text-accent">
+  {treinoHoje?.tipo_wod === 'FOR_TIME'
+    ? r.resultado?.tempo
+    : treinoHoje?.tipo_wod === 'AMRAP'
+    ? `${r.resultado?.rounds}R • ${r.resultado?.repeticoes}Rep`
+    : `${r.resultado?.carga}kg`}
+</p>
               </div>
             </GlassCard>
           ))}
