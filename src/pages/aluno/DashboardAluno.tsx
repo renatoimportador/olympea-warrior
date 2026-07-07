@@ -66,16 +66,16 @@ if (treino) {
 
   const ranking = usuarios
     .map((usuario) => {
-      const resultadosAluno = resultados.filter(
-        (r) =>
-          r.aluno_id === usuario.id &&
-          r.categoria === usuario.categoria
-      )
+      
+          const resultadosAluno = resultados.filter(
+  (r) => r.aluno_id === usuario.id
+)
+      
 
       return {
         id: usuario.id,
         nome: usuario.nome,
-        categoria: usuario.categoria,
+        categoria: aluno?.categoria || '',
         treinos: resultadosAluno.length,
         pontos: resultadosAluno.length * 100,
       }
