@@ -19,6 +19,7 @@ export function RankingsAluno() {
   const [periodoAtivo, setPeriodoAtivo] = useState<string>('Semanal')
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const [treinoHoje, setTreinoHoje] = useState<any>(null)
 
   const ranking = usuarios
   .map((usuario) => {
