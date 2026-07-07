@@ -316,9 +316,9 @@ export function CriarTreino() {
   onChange={(e) => setTipoWod(e.target.value)}
   className="glass-input"
 >
-  <option value="tempo">For Time</option>
-  <option value="reps">AMRAP / Rounds + Reps</option>
-  <option value="carga">Carga</option>
+  <option value="FOR_TIME">For Time</option>
+<option value="AMRAP">AMRAP / Rounds + Reps</option>
+<option value="STRENGTH">Carga / Strength</option>
 </select>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
