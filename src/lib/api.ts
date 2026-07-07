@@ -344,6 +344,34 @@ export const getTreinoByDia = async (diaTreinoId: string) =>
       .eq('ativo', true)
       .single()
   ).data as Treino
+export async function getTreinoDoDia() {
+  const programacoes = await listarProgramacoes()
+  const programacao = programacoes.find(p => p.ativa) || programacoes[0]
+
+  if (!programacao) return null
+
+  const fases = await listarFasesByProg(programacao.id)
+  const fase = fases.find(f => f.ativa) || fases[0]
+
+  if (!fase) return null
+
+  const semanas = await listarSemanasByFase(fase.id)
+  const semana = semanas.find(s => s.ativa) || semanas[0]
+
+  if (!semana) return null
+
+  const dias = await listarDiasBySemana(semana.id)
+
+  const hoje = new Date()
+  const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
+  const diaHoje = diasSemana[hoje.getDay()]
+
+  const dia = dias.find(d => d.dia_semana === diaHoje) || dias[0]
+
+  if (!dia) return null
+
+  return await getTreinoByDia(dia.id)
+}
 
 export const criarTreino = async (treino: Partial<Treino>) =>
   (await supabase.from('treinos').insert(treino).select().single()).data
