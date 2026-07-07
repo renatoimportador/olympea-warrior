@@ -90,6 +90,7 @@ if (treino) {
   setRankingPosicao(
     ranking.find((r) => r.id === user.id) || null
   )
+  setRankingSemana(ranking)
 }
         
 console.log('PRs:', p.length)
