@@ -33,23 +33,34 @@ export function RankingsCoach() {
   (r: any) => r.aluno_id === aluno.id
 )
 
-          const totalResultados = resultados?.length || 0
+          const resultado = resultados[0]
 
-          const pontos =
-            (resultados || []).reduce((acc: number, r: any) => {
-              return acc + (r.rpe || 0) * 10
-            }, 0)
-
-          rankingData.push({
-            nome: aluno.usuario?.nome || aluno.nome,
-            categoria: aluno.categoria,
-            pontos,
-            treinos: totalResultados,
-          })
+rankingData.push({
+  id: aluno.id,
+  nome: aluno.usuario?.nome || aluno.nome,
+  categoria: aluno.categoria,
+  resultado,
+})
         }
 
         const rankingOrdenado = rankingData
-          .sort((a: any, b: any) => b.pontos - a.pontos)
+          .sort((a: any, b: any) => {
+  if (treinoHoje.tipo_wod === 'FOR_TIME') {
+    return (a.resultado?.tempo || '').localeCompare(
+      b.resultado?.tempo || ''
+    )
+  }
+
+  if (treinoHoje.tipo_wod === 'AMRAP') {
+    if ((b.resultado?.rounds || 0) !== (a.resultado?.rounds || 0)) {
+      return (b.resultado?.rounds || 0) - (a.resultado?.rounds || 0)
+    }
+
+    return (b.resultado?.repeticoes || 0) - (a.resultado?.repeticoes || 0)
+  }
+
+  return (b.resultado?.carga || 0) - (a.resultado?.carga || 0)
+})
           .map((r, index) => ({
             ...r,
             posicao: index + 1,
