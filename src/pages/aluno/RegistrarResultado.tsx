@@ -33,29 +33,27 @@ export function RegistrarResultado() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-  if (!user?.id) return
+  if (!user?.id || !treinoId) return
 
   async function load() {
-    const aluno = await getAlunoByUsuarioId(user!.id)
+    const aluno = await getAlunoByUsuarioId(user.id)
 
     if (aluno) {
       setAlunoId(aluno.id)
     }
 
-    if (treinoId) {
-      const treino = await getTreinoById(treinoId)
+    const treino = await getTreinoById(treinoId)
 
-      if (treino?.tipo_wod === 'tempo') {
-        setTipo('TEMPO')
-      }
+    if (treino?.tipo_wod === 'FOR_TIME') {
+      setTipo('TEMPO')
+    }
 
-      if (treino?.tipo_wod === 'reps') {
-        setTipo('ROUNDS_REPS')
-      }
+    if (treino?.tipo_wod === 'AMRAP') {
+      setTipo('ROUNDS_REPS')
+    }
 
-      if (treino?.tipo_wod === 'carga') {
-        setTipo('CARGA')
-      }
+    if (treino?.tipo_wod === 'CARGA') {
+      setTipo('CARGA')
     }
   }
 
