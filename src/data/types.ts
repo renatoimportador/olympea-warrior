@@ -238,6 +238,7 @@ export interface Treino {
   created_by: UUID;
   created_at: string;
   updated_at: string;
+   tipo_wod?: string
 }
 
 export interface TreinoNivel {
