@@ -102,11 +102,7 @@ console.log('TIPO_WOD:', treino?.tipo_wod)
     { id: 'BEGINNER', label: 'Beginner' },
   ]
 
-  const tiposResultado: Array<{ id: TipoResultado; label: string }> = [
-    { id: 'TEMPO', label: 'Tempo' },
-    { id: 'ROUNDS_REPS', label: 'Rounds / Reps' },
-    { id: 'CARGA', label: 'Carga' },
-  ]
+  
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -139,23 +135,20 @@ console.log('TIPO_WOD:', treino?.tipo_wod)
 
         {/* Tipo de resultado */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-text-primary">Tipo de Resultado</label>
-          <div className="flex gap-2">
-            {tiposResultado.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setTipo(t.id)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  tipo === t.id
-                    ? 'bg-success/15 text-success border border-success/20'
-                    : 'bg-white/[0.02] text-text-secondary border border-white/[0.05]'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
+  <label className="text-sm font-medium text-text-primary">
+    Tipo do WOD
+  </label>
+
+  <div className="rounded-xl border border-success/20 bg-success/10 px-4 py-3">
+    <span className="font-semibold text-success">
+      {tipo === 'TEMPO'
+        ? 'FOR TIME'
+        : tipo === 'ROUNDS_REPS'
+        ? 'AMRAP'
+        : 'CARGA'}
+    </span>
+  </div>
+</div>
 
         {/* Campos condicionais */}
         {tipo === 'TEMPO' && (
