@@ -43,6 +43,8 @@ export function RegistrarResultado() {
     }
 
     const treino = await getTreinoById(treinoId)
+    console.log('TREINO:', treino)
+console.log('TIPO_WOD:', treino?.tipo_wod)
 
     if (treino?.tipo_wod === 'FOR_TIME') {
       setTipo('TEMPO')
