@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import {useAuth } from '@/context/AuthContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Trophy, Medal } from 'lucide-react'
 
@@ -9,6 +10,7 @@ const periodos = ['Semanal', 'Mensal', 'Anual'] as const
 
 
 export function RankingsAluno() {
+  const { user } = useAuth()
   const [categoriaAtiva, setCategoriaAtiva] = useState<string>('RX')
   const [periodoAtivo, setPeriodoAtivo] = useState<string>('Semanal')
   const [resultados, setResultados] = useState<Resultado[]>([])
@@ -28,6 +30,10 @@ export function RankingsAluno() {
       categoria: categoriaAtiva,
       treinos: resultadosAluno.length,
       pontos: resultadosAluno.length * 100,
+      ultimoTreino:
+        resultadosAluno.length > 0
+      ? resultadosAluno[resultadoAluno.length - 1].data
+        : null,
     }
   })
   .filter((a) => a.treinos > 0)
@@ -92,7 +98,14 @@ useEffect(() => {
         {ranking
           .filter((r) => r.categoria === categoriaAtiva)
           .map((r) => (
-            <GlassCard key={r.id} className="p-4 flex items-center gap-4">
+            <GlassCard
+  key={r.id}
+  className={`p-4 flex items-center gap-4 ${
+    r.id === user?.id
+      ? 'border border-accent bg-accent/5'
+      : ''
+  }`}
+>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
                 r.posicao === 1 ? 'bg-warning/15 text-warning' :
                 r.posicao === 2 ? 'bg-text-secondary/15 text-text-secondary' :
@@ -102,7 +115,15 @@ useEffect(() => {
                 {r.posicao <= 3 ? <Medal size={16} /> : r.posicao}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary">{r.nome}</p>
+                <p className="text-sm font-medium text-text-primary">
+  {r.nome}
+
+  {r.id === user?.id && (
+    <span className="ml-2 text-xs text-accent">
+      (Você)
+    </span>
+  )}
+</p>
                 <p className="text-xs text-text-secondary">{r.treinos} treinos concluidos</p>
               </div>
               <div className="text-right">
