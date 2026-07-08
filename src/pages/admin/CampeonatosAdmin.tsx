@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { Trophy, Plus, Calendar, MapPin, X } from 'lucide-react'
+import { Trophy, Plus, Calendar, MapPin, X, Edit2, Ban } from 'lucide-react'
 import {
   listarCampeonatos,
   criarCampeonato,
@@ -18,6 +18,7 @@ export default function CampeonatosAdmin() {
   const [dataInicio, setDataInicio] = useState('')
   const [dataFim, setDataFim] = useState('')
   const [imagem, setImagem] = useState('')
+  const [editingId, setEditingId] = useState<number | null>(null)
 
   async function carregar() {
     try {
@@ -33,7 +34,26 @@ export default function CampeonatosAdmin() {
   }, [])
 
   async function salvar() {
-    try {
+  try {
+
+    if (editingId) {
+
+      const { error } = await supabase
+        .from('campeonatos')
+        .update({
+          nome,
+          descricao,
+          local,
+          data_inicio: dataInicio,
+          data_fim: dataFim,
+          imagem
+        })
+        .eq('id', editingId)
+
+      if (error) throw error
+
+    } else {
+
       await criarCampeonato({
         nome,
         descricao,
@@ -53,6 +73,7 @@ export default function CampeonatosAdmin() {
       setDataInicio('')
       setDataFim('')
       setImagem('')
+      setEditingId(null)
 
       carregar()
     } catch (e: any) {
@@ -60,6 +81,18 @@ export default function CampeonatosAdmin() {
   alert(JSON.stringify(e))
 }
   }
+    function handleEdit(camp: any) {
+  setEditingId(camp.id)
+
+  setNome(camp.nome || '')
+  setDescricao(camp.descricao || '')
+  setLocal(camp.local || '')
+  setDataInicio(camp.data_inicio || '')
+  setDataFim(camp.data_fim || '')
+  setImagem(camp.imagem || '')
+
+  setAbrirModal(true)
+}
 async function excluirCampeonato(id: number) {
 
   const confirmar = window.confirm(
@@ -149,7 +182,23 @@ async function excluirCampeonato(id: number) {
 
                 <div className="flex flex-col items-end gap-2">
 
-  <Trophy className="text-warning" />
+  <div className="flex gap-2 items-start">
+
+  <button
+    onClick={() => handleEdit(camp)}
+    className="p-1.5 rounded-lg hover:bg-accent/10 text-accent"
+  >
+    <Edit2 size={14} />
+  </button>
+
+  <button
+    onClick={() => excluirCampeonato(camp.id)}
+    className="p-1.5 rounded-lg hover:bg-error/5 text-error"
+  >
+    <Ban size={14} />
+  </button>
+
+</div>
 
   <button
     onClick={() => excluirCampeonato(camp.id)}
