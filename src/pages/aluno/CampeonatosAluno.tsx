@@ -20,11 +20,24 @@ const [parceiro3, setParceiro3] = useState('')
 const [parceiro4, setParceiro4] = useState('')
 const [parceiro5, setParceiro5] = useState('')
 const [observacoes, setObservacoes] = useState('')
+const [minhasInscricoes, setMinhasInscricoes] = useState<any[]>([])
   useEffect(() => {
     async function carregar() {
       try {
         const dados = await listarCampeonatos()
         setCampeonatos(dados)
+        const {
+  data: { user }
+} = await supabase.auth.getUser()
+
+if (user) {
+  const { data } = await supabase
+    .from('participacoes_campeonato')
+    .select('*')
+    .eq('aluno_id', user.id)
+
+  setMinhasInscricoes(data || [])
+}
       } catch (e) {
         console.error(e)
       } finally {
@@ -69,6 +82,11 @@ async function confirmarInscricao() {
 
   alert('Inscrição realizada com sucesso!')
   setModalAberto(false)
+}
+  function jaInscrito(campeonatoId: number) {
+  return minhasInscricoes.some(
+    (i) => i.campeonato_id === campeonatoId
+  )
 }
   return (
     <div className="space-y-5 animate-fade-in">
@@ -136,7 +154,7 @@ async function confirmarInscricao() {
   }}
   className="mt-5 w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold hover:opacity-90 transition"
 >
-  Vou Participar
+  {jaInscrito(camp.id) ? 'Editar Inscrição' : 'Vou Participar'}
 </button>
           </GlassCard>
         ))
