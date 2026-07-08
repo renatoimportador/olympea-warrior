@@ -111,10 +111,10 @@ async function excluirCampeonato(id: number) {
   console.log(error)
 
   if (error) {
-    console.error(error)
-    alert('Erro ao excluir campeonato.')
-    return
-  }
+  console.error(error)
+  alert(JSON.stringify(error))
+  return
+}
 
   carregar()
 }
