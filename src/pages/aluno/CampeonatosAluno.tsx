@@ -79,6 +79,9 @@ console.log('FAZENDO UPDATE')
         observacoes
       })
       .eq('id', inscricaoAtual.id)
+    .select()
+    console.log(resultado.data)
+    console.log(resultado.error)
     console.log('RESULTADO UPDATE:', resultado)
 
     error = resultado.error
@@ -118,6 +121,12 @@ console.log('FAZENDO INSERT')
   setMinhasInscricoes(data || [])
 
   alert('Inscrição salva com sucesso!')
+  const { data } = await supabase
+  .from('participacoes_campeonato')
+  .select('*')
+  .eq('aluno_id', user.id)
+
+setMinhasInscricoes(data || [])
 
   setModalAberto(false)
 }
