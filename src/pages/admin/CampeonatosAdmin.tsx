@@ -6,6 +6,8 @@ import {
   criarCampeonato,
 } from '@/lib/api'
 
+import { supabase } from '@/lib/supabase'
+
 export default function CampeonatosAdmin() {
   const [campeonatos, setCampeonatos] = useState<any[]>([])
   const [abrirModal, setAbrirModal] = useState(false)
@@ -58,7 +60,27 @@ export default function CampeonatosAdmin() {
   alert(JSON.stringify(e))
 }
   }
+async function excluirCampeonato(id: number) {
 
+  const confirmar = window.confirm(
+    'Deseja realmente excluir este campeonato?'
+  )
+
+  if (!confirmar) return
+
+  const { error } = await supabase
+    .from('campeonatos')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error(error)
+    alert('Erro ao excluir campeonato.')
+    return
+  }
+
+  carregar()
+}
   return (
     <div className="space-y-5 animate-fade-in">
 
@@ -124,7 +146,18 @@ export default function CampeonatosAdmin() {
                   </div>
                 </div>
 
-                <Trophy className="text-warning" />
+                <div className="flex flex-col items-end gap-2">
+
+  <Trophy className="text-warning" />
+
+  <button
+    onClick={() => excluirCampeonato(camp.id)}
+    className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm"
+  >
+    Excluir
+  </button>
+
+</div>
               </div>
             </GlassCard>
           ))}
