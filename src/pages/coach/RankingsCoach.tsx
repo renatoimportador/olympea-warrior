@@ -36,7 +36,7 @@ export function RankingsCoach() {
 )
 
           const resultado = resultados[0]
-
+if (resultado( {
 rankingData.push({
   id: aluno.id,
   nome: aluno.usuario?.nome || aluno.nome,
@@ -108,65 +108,67 @@ rankingData.push({
         </h3>
 
         <div className="space-y-2">
-          {rankings.map((r) => (
-            <div
-              key={r.posicao}
-              className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.02]"
-            >
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-                  r.posicao === 1
-                    ? 'bg-warning/15 text-warning'
-                    : r.posicao === 2
-                    ? 'bg-text-secondary/15 text-text-secondary'
-                    : r.posicao === 3
-                    ? 'bg-orange-500/15 text-orange-500'
-                    : 'bg-white/[0.03] text-text-secondary'
-                }`}
-              >
-                {r.posicao <= 3 ? (
-                  <Medal size={16} />
-                ) : (
-                  r.posicao
-                )}
-              </div>
-
-              <div className="flex-1">
-                <p className="text-sm font-medium text-text-primary">
-                  {r.nome}
-                </p>
-
-                <p className="text-xs text-text-secondary">
-  {r.categoria}
-</p>
-              </div>
-
-              <Badge
-                variant={
-                  r.categoria === 'RX'
-                    ? 'accent'
-                    : r.categoria === 'SCALING'
-                    ? 'warning'
-                    : 'success'
-                }
-              >
-                {r.categoria}
-              </Badge>
-
-              <div className="text-right">
-  <p className="text-sm font-bold text-accent">
-    {r.resultado
-      ? treinoHoje?.tipo_wod === 'FOR_TIME'
-        ? r.resultado.tempo
-        : treinoHoje?.tipo_wod === 'AMRAP'
-        ? `${r.resultado.rounds} R • ${r.resultado.repeticoes} Rep`
-        : `${r.resultado.carga} kg`
-      : '-'}
-  </p>
-</div>
-            </div>
-          ))}
+  {rankings.length === 0 ? (
+    <div className="py-8 text-center text-text-secondary">
+      Ainda não há resultados registrados para o treino de hoje.
+    </div>
+  ) : (
+    rankings.map((r) => (
+      <div
+        key={r.posicao}
+        className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.02]"
+      >
+        <div
+          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
+            r.posicao === 1
+              ? 'bg-warning/15 text-warning'
+              : r.posicao === 2
+              ? 'bg-text-secondary/15 text-text-secondary'
+              : r.posicao === 3
+              ? 'bg-orange-500/15 text-orange-500'
+              : 'bg-white/[0.03] text-text-secondary'
+          }`}
+        >
+          {r.posicao <= 3 ? <Medal size={16} /> : r.posicao}
         </div>
+
+        <div className="flex-1">
+          <p className="text-sm font-medium text-text-primary">
+            {r.nome}
+          </p>
+
+          <p className="text-xs text-text-secondary">
+            {r.categoria}
+          </p>
+        </div>
+
+        <Badge
+          variant={
+            r.categoria === 'RX'
+              ? 'accent'
+              : r.categoria === 'SCALING'
+              ? 'warning'
+              : 'success'
+          }
+        >
+          {r.categoria}
+        </Badge>
+
+        <div className="text-right">
+          <p className="text-sm font-bold text-accent">
+            {r.resultado
+              ? treinoHoje?.tipo_wod === 'FOR_TIME'
+                ? r.resultado.tempo
+                : treinoHoje?.tipo_wod === 'AMRAP'
+                ? `${r.resultado.rounds} R • ${r.resultado.repeticoes} Rep`
+                : `${r.resultado.carga} kg`
+              : '-'}
+          </p>
+        </div>
+      </div>
+    ))
+  )}
+</div>
       </GlassCard>
     </div>
   )
