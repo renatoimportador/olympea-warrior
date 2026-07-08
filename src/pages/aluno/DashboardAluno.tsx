@@ -270,7 +270,12 @@ console.log('Programações:', progs.length)
     Ranking da Semana
   </h2>
 
-  {rankingSemana.slice(0,3).map((r, index) => (
+  {rankingSemana.length === 0 ? (
+  <p className="text-sm text-text-secondary py-4 text-center">
+    Ainda não há resultados registrados para o treino de hoje.
+  </p>
+) : (
+  rankingSemana.slice(0, 3).map((r, index) => (
     <div
       key={r.id}
       className="flex items-center justify-between py-2 border-b border-white/5 last:border-0"
@@ -281,8 +286,8 @@ console.log('Programações:', progs.length)
         </p>
 
         <p className="text-xs text-text-secondary">
-  {r.pontos} pts
-</p>
+          {r.pontos} pts
+        </p>
       </div>
 
       {r.id === aluno?.id && (
@@ -291,7 +296,8 @@ console.log('Programações:', progs.length)
         </Badge>
       )}
     </div>
-  ))}
+  ))
+)}
 </GlassCard>
       {/* Grafico de Frequencia */}
       <GlassCard className="p-5 space-y-3">
