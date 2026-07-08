@@ -113,12 +113,7 @@ console.log('FAZENDO INSERT')
     return
   }
 
-  const { data } = await supabase
-    .from('participacoes_campeonato')
-    .select('*')
-    .eq('aluno_id', user.id)
-
-  setMinhasInscricoes(data || [])
+  
 
   alert('Inscrição salva com sucesso!')
   const { data } = await supabase
