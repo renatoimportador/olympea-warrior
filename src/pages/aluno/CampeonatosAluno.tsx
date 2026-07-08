@@ -144,6 +144,8 @@ const [observacoes, setObservacoes] = useState('')
   <option value="Sexteto">Sexteto</option>
 </select>
         <input
+  value={equipe}
+  onChange={(e) => setEquipe(e.target.value)}
   className="w-full rounded-xl bg-bg-secondary p-3"
   placeholder="Nome da equipe"
 />
@@ -167,7 +169,45 @@ const [observacoes, setObservacoes] = useState('')
     placeholder="Parceiro 2"
   />
 )}
+        {(modalidade === 'Quarteto' ||
+  modalidade === 'Sexteto') && (
+  <input
+    value={parceiro3}
+    onChange={(e) => setParceiro3(e.target.value)}
+    className="w-full rounded-xl bg-bg-secondary p-3"
+    placeholder="Parceiro 3"
+  />
+)}
+        {modalidade === 'Sexteto' && (
+  <>
+    <input
+      value={parceiro4}
+      onChange={(e) => setParceiro4(e.target.value)}
+      className="w-full rounded-xl bg-bg-secondary p-3"
+      placeholder="Parceiro 4"
+    />
+
+    <input
+      value={parceiro5}
+      onChange={(e) => setParceiro5(e.target.value)}
+      className="w-full rounded-xl bg-bg-secondary p-3"
+      placeholder="Parceiro 5"
+    />
+  </>
+)}
+        {(modalidade === 'Trio' ||
+  modalidade === 'Quarteto' ||
+  modalidade === 'Sexteto') && (
+  <input
+    value={parceiro2}
+    onChange={(e) => setParceiro2(e.target.value)}
+    className="w-full rounded-xl bg-bg-secondary p-3"
+    placeholder="Parceiro 2"
+  />
+)}
         <textarea
+  value={observacoes}
+  onChange={(e) => setObservacoes(e.target.value)}
   className="w-full rounded-xl bg-bg-secondary p-3"
   rows={3}
   placeholder="Observações"
