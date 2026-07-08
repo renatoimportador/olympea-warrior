@@ -77,7 +77,26 @@ if (treino) {
   nome: alunoRanking.usuario?.nome || 'Sem nome',
   categoria: '',
   treinos: resultadosAluno.length,
-  pontos: resultadosAluno.length * 100,
+  let pontos = 0
+
+resultadosAluno.forEach((r) => {
+  if (r.carga) {
+    pontos += r.carga
+  } else if (r.rounds) {
+    pontos += r.rounds * 100 + (r.repeticoes || 0)
+  } else if (r.tempo) {
+    const [min, seg] = r.tempo.split(':').map(Number)
+    pontos += Math.max(0, 10000 - (min * 60 + seg))
+  }
+})
+
+return {
+  id: alunoRanking.id,
+  nome: alunoRanking.usuario?.nome || 'Sem nome',
+  categoria: '',
+  treinos: resultadosAluno.length,
+  pontos,
+}
 }
     })
     .filter((a) => a.treinos > 0)
