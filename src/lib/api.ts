@@ -558,7 +558,52 @@ export async function getProgramacoesByAluno(alunoId: string) {
 
   return (data?.map((i: any) => i.programacao) || []) as Programacao[]
 }
+/* ========================= CAMPEONATOS ========================= */
 
+export async function listarCampeonatos() {
+  const { data, error } = await supabase
+    .from('campeonatos')
+    .select('*')
+    .order('data_inicio', { ascending: true })
+
+  if (error) throw error
+
+  return data
+}
+
+export async function criarCampeonato(campeonato: any) {
+  const { data, error } = await supabase
+    .from('campeonatos')
+    .insert(campeonato)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  return data
+}
+
+export async function atualizarCampeonato(id: number, campeonato: any) {
+  const { data, error } = await supabase
+    .from('campeonatos')
+    .update(campeonato)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  return data
+}
+
+export async function excluirCampeonato(id: number) {
+  const { error } = await supabase
+    .from('campeonatos')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
 /* ========================= AUTH ========================= */
 export async function signInWithEmail(email: string, password: string) {
   return await supabase.auth.signInWithPassword({ email, password })
