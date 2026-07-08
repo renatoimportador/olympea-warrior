@@ -49,7 +49,9 @@ if (user) {
     carregar()
   }, [])
 async function confirmarInscricao() {
-
+console.log('====================')
+console.log('inscricaoAtual:', inscricaoAtual)
+console.log('====================')
   const {
     data: { user }
   } = await supabase.auth.getUser()
@@ -62,7 +64,7 @@ async function confirmarInscricao() {
   let error = null
 
   if (inscricaoAtual) {
-
+console.log('FAZENDO UPDATE')
     const resultado = await supabase
       .from('participacoes_campeonato')
       .update({
@@ -81,7 +83,7 @@ async function confirmarInscricao() {
     error = resultado.error
 
   } else {
-
+console.log('FAZENDO INSERT')
     const resultado = await supabase
       .from('participacoes_campeonato')
       .insert({
