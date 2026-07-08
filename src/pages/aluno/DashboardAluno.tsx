@@ -71,12 +71,6 @@ if (treino) {
   (r) => r.aluno_id === alunoRanking.id
 )
       
-
-      return {
-  id: alunoRanking.id,
-  nome: alunoRanking.usuario?.nome || 'Sem nome',
-  categoria: '',
-  treinos: resultadosAluno.length,
   let pontos = 0
 
 resultadosAluno.forEach((r) => {
