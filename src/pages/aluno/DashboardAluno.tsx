@@ -91,8 +91,7 @@ return {
   treinos: resultadosAluno.length,
   pontos,
 }
-}
-    })
+})
     .filter((a) => a.treinos > 0)
     .sort((a, b) => b.pontos - a.pontos)
     .map((a, index) => ({
