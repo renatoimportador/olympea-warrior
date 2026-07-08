@@ -79,6 +79,7 @@ console.log('FAZENDO UPDATE')
         observacoes
       })
       .eq('id', inscricaoAtual.id)
+    console.log('RESULTADO UPDATE:', resultado)
 
     error = resultado.error
 
