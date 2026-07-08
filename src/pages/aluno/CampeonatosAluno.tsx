@@ -117,6 +117,33 @@ const [campeonatoSelecionado, setCampeonatoSelecionado] = useState<any>(null)
     <option>Master 45+</option>
   </select>
 
+        <select className="w-full rounded-xl bg-bg-secondary p-3">
+  <option>Modalidade</option>
+  <option>Individual</option>
+  <option>Dupla</option>
+  <option>Trio</option>
+  <option>Quarteto</option>
+  <option>Sexteto</option>
+</select>
+        <input
+  className="w-full rounded-xl bg-bg-secondary p-3"
+  placeholder="Nome da equipe"
+/>
+      
+
+<input
+  className="w-full rounded-xl bg-bg-secondary p-3"
+  placeholder="Parceiro 1"
+/>
+        <input
+  className="w-full rounded-xl bg-bg-secondary p-3"
+  placeholder="Parceiro 2"
+/>
+        <textarea
+  className="w-full rounded-xl bg-bg-secondary p-3"
+  rows={3}
+  placeholder="Observações"
+/>
 </div>
 
     </GlassCard>
