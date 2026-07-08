@@ -65,22 +65,25 @@ export default function CampeonatosAdmin() {
         ativo: true,
       })
 
-      setAbrirModal(false)
+    }
 
-      setNome('')
-      setDescricao('')
-      setLocal('')
-      setDataInicio('')
-      setDataFim('')
-      setImagem('')
-      setEditingId(null)
+    setAbrirModal(false)
 
-      carregar()
-    } catch (e: any) {
-  console.error(e)
-  alert(JSON.stringify(e))
-}
+    setNome('')
+    setDescricao('')
+    setLocal('')
+    setDataInicio('')
+    setDataFim('')
+    setImagem('')
+    setEditingId(null)
+
+    carregar()
+
+  } catch (e: any) {
+    console.error(e)
+    alert(JSON.stringify(e))
   }
+}
     function handleEdit(camp: any) {
   setEditingId(camp.id)
 
