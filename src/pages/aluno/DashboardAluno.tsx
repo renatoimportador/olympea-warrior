@@ -73,12 +73,12 @@ if (treino) {
       
 
       return {
-        id: alunoRanking.id,
-        nome: alunoRanking.nome,
-        categoria: '',
-        treinos: resultadosAluno.length,
-        pontos: resultadosAluno.length * 100,
-      }
+  id: alunoRanking.id,
+  nome: alunoRanking.usuario?.nome || 'Sem nome',
+  categoria: '',
+  treinos: resultadosAluno.length,
+  pontos: resultadosAluno.length * 100,
+}
     })
     .filter((a) => a.treinos > 0)
     .sort((a, b) => b.pontos - a.pontos)
