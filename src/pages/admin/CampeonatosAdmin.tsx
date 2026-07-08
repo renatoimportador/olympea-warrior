@@ -53,10 +53,10 @@ export default function CampeonatosAdmin() {
       setImagem('')
 
       carregar()
-    } catch (e) {
-      console.error(e)
-      alert('Erro ao salvar campeonato.')
-    }
+    } catch (e: any) {
+  console.error(e)
+  alert(JSON.stringify(e))
+}
   }
 
   return (
