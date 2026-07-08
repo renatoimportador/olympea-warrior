@@ -564,6 +564,7 @@ export async function listarCampeonatos() {
   const { data, error } = await supabase
     .from('campeonatos')
     .select('*')
+    .eq('ativo', true)
     .order('data_inicio', { ascending: true })
 
   if (error) throw error
