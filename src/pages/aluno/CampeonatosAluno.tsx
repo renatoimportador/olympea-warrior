@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Trophy, CalendarDays, MapPin } from 'lucide-react'
 import { listarCampeonatos } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 
 export function CampeonatosAluno() {
   const [campeonatos, setCampeonatos] = useState<any[]>([])
@@ -33,7 +34,9 @@ const [observacoes, setObservacoes] = useState('')
 
     carregar()
   }, [])
-
+async function confirmarInscricao() {
+  console.log('Salvando inscrição...')
+}
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
@@ -213,8 +216,9 @@ const [observacoes, setObservacoes] = useState('')
   </button>
 
   <button
-    className="px-6 py-3 rounded-xl bg-accent text-bg-primary font-semibold"
-  >
+  onClick={confirmarInscricao}
+  className="..."
+>
     Confirmar Inscrição
   </button>
 
