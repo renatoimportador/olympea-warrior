@@ -106,7 +106,9 @@ async function excluirCampeonato(id: number) {
 
   const { error } = await supabase
     .from('campeonatos')
-    .delete()
+    .update({
+      ativo: false
+    })
     .eq('id', id)
   console.log('ID recebido:', id)
 console.log('Erro:', error)
