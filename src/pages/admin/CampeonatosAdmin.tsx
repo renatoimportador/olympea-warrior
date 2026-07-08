@@ -99,8 +99,7 @@ export default function CampeonatosAdmin() {
 }
 
 
-  carregar()
-}
+  
   return (
     <div className="space-y-5 animate-fade-in">
 
@@ -207,8 +206,8 @@ export default function CampeonatosAdmin() {
 
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-text-primary">
-                Novo Campeonato
-              </h2>
+  {editingId ? 'Editar Campeonato' : 'Novo Campeonato'}
+</h2>
 
               <button onClick={() => setAbrirModal(false)}>
                 <X />
