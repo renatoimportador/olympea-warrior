@@ -1,27 +1,69 @@
 import { useEffect, useState } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { Trophy, Plus, Calendar, MapPin } from 'lucide-react'
-import { listarCampeonatos } from '@/lib/api'
+import { Trophy, Plus, Calendar, MapPin, X } from 'lucide-react'
+import {
+  listarCampeonatos,
+  criarCampeonato,
+} from '@/lib/api'
 
 export default function CampeonatosAdmin() {
   const [campeonatos, setCampeonatos] = useState<any[]>([])
+  const [abrirModal, setAbrirModal] = useState(false)
+
+  const [nome, setNome] = useState('')
+  const [descricao, setDescricao] = useState('')
+  const [local, setLocal] = useState('')
+  const [dataInicio, setDataInicio] = useState('')
+  const [dataFim, setDataFim] = useState('')
+  const [imagem, setImagem] = useState('')
+
+  async function carregar() {
+    try {
+      const dados = await listarCampeonatos()
+      setCampeonatos(dados || [])
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   useEffect(() => {
-    async function carregar() {
-      try {
-        const dados = await listarCampeonatos()
-        setCampeonatos(dados)
-      } catch (e) {
-        console.error(e)
-      }
-    }
-
     carregar()
   }, [])
 
+  async function salvar() {
+    try {
+      await criarCampeonato({
+        nome,
+        descricao,
+        local,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+        imagem,
+        status: 'ABERTO',
+        ativo: true,
+      })
+
+      setAbrirModal(false)
+
+      setNome('')
+      setDescricao('')
+      setLocal('')
+      setDataInicio('')
+      setDataFim('')
+      setImagem('')
+
+      carregar()
+    } catch (e) {
+      console.error(e)
+      alert('Erro ao salvar campeonato.')
+    }
+  }
+
   return (
     <div className="space-y-5 animate-fade-in">
+
       <div className="flex items-center justify-between">
+
         <div>
           <h1 className="text-2xl font-bold text-text-primary">
             Campeonatos
@@ -33,13 +75,14 @@ export default function CampeonatosAdmin() {
         </div>
 
         <button
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-bg-primary font-semibold hover:opacity-90 transition"
+          onClick={() => setAbrirModal(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-bg-primary font-semibold"
         >
           <Plus size={18} />
           Novo Campeonato
         </button>
-      </div>
 
+      </div>
       {campeonatos.length === 0 ? (
         <GlassCard className="p-6">
           <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -50,7 +93,7 @@ export default function CampeonatosAdmin() {
             </h2>
 
             <p className="text-sm text-text-secondary mt-2">
-              Clique em <strong>"Novo Campeonato"</strong> para cadastrar o primeiro campeonato da sua box.
+              Clique em <strong>"Novo Campeonato"</strong> para cadastrar o primeiro campeonato.
             </p>
           </div>
         </GlassCard>
@@ -58,7 +101,7 @@ export default function CampeonatosAdmin() {
         <div className="space-y-4">
           {campeonatos.map((camp) => (
             <GlassCard key={camp.id} className="p-5">
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-text-primary">
                     {camp.nome}
@@ -81,12 +124,82 @@ export default function CampeonatosAdmin() {
                   </div>
                 </div>
 
-                <Trophy className="text-warning" size={26} />
+                <Trophy className="text-warning" />
               </div>
             </GlassCard>
           ))}
         </div>
       )}
+
+      {abrirModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+
+          <GlassCard className="w-full max-w-lg p-6 space-y-4">
+
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-text-primary">
+                Novo Campeonato
+              </h2>
+
+              <button onClick={() => setAbrirModal(false)}>
+                <X />
+              </button>
+            </div>
+
+            <input
+              className="w-full p-3 rounded-xl bg-bg-secondary"
+              placeholder="Nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+
+            <textarea
+              className="w-full p-3 rounded-xl bg-bg-secondary"
+              placeholder="Descrição"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+            />
+
+            <input
+              className="w-full p-3 rounded-xl bg-bg-secondary"
+              placeholder="Local"
+              value={local}
+              onChange={(e) => setLocal(e.target.value)}
+            />
+
+            <input
+              type="date"
+              className="w-full p-3 rounded-xl bg-bg-secondary"
+              value={dataInicio}
+              onChange={(e) => setDataInicio(e.target.value)}
+            />
+
+            <input
+              type="date"
+              className="w-full p-3 rounded-xl bg-bg-secondary"
+              value={dataFim}
+              onChange={(e) => setDataFim(e.target.value)}
+            />
+
+            <input
+              className="w-full p-3 rounded-xl bg-bg-secondary"
+              placeholder="URL da imagem"
+              value={imagem}
+              onChange={(e) => setImagem(e.target.value)}
+            />
+
+            <button
+              onClick={salvar}
+              className="w-full py-3 rounded-xl bg-accent text-bg-primary font-semibold"
+            >
+              Salvar Campeonato
+            </button>
+
+          </GlassCard>
+
+        </div>
+      )}
+
     </div>
   )
 }
