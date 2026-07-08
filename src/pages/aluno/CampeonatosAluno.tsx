@@ -49,9 +49,7 @@ if (user) {
     carregar()
   }, [])
 async function confirmarInscricao() {
-console.log('====================')
-console.log('inscricaoAtual:', inscricaoAtual)
-console.log('====================')
+
   const {
     data: { user }
   } = await supabase.auth.getUser()
@@ -64,7 +62,7 @@ console.log('====================')
   let error = null
 
   if (inscricaoAtual) {
-console.log('FAZENDO UPDATE')
+
     const resultado = await supabase
       .from('participacoes_campeonato')
       .update({
@@ -80,14 +78,12 @@ console.log('FAZENDO UPDATE')
       })
       .eq('id', inscricaoAtual.id)
     .select()
-    console.log(resultado.data)
-    console.log(resultado.error)
-    console.log('RESULTADO UPDATE:', resultado)
+    
 
     error = resultado.error
 
   } else {
-console.log('FAZENDO INSERT')
+
     const resultado = await supabase
       .from('participacoes_campeonato')
       .insert({
@@ -355,7 +351,7 @@ if (user) {
   onClick={confirmarInscricao}
   className="px-6 py-3 rounded-xl bg-accent hover:opacity-90 text-bg-primary font-bold transition"
 >
-    Confirmar Inscrição
+    {inscricaoAtual ? 'Salvar Alterações' : 'Confirmar Inscrição'}
   </button>
 
 </div>
