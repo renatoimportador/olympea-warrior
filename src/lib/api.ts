@@ -599,7 +599,9 @@ export async function atualizarCampeonato(id: number, campeonato: any) {
 export async function excluirCampeonato(id: number) {
   const { error } = await supabase
     .from('campeonatos')
-    .delete()
+    .update({
+      ativo: false
+    })
     .eq('id', id)
 
   if (error) throw error
