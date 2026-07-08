@@ -210,7 +210,7 @@ async function confirmarInscricao() {
 
   <button
     onClick={() => setModalAberto(false)}
-    className="px-5 py-3 rounded-xl border border-white/20"
+    className="px-6 py-3 rounded-xl bg-accent hover:opacity-90 text-bg-primary font-bold transition"
   >
     Cancelar
   </button>
