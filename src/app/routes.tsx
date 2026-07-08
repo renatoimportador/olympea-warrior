@@ -28,6 +28,7 @@ import { RelatoriosAdmin } from '@/pages/admin/RelatoriosAdmin'
 import { Configuracoes } from '@/pages/admin/Configuracoes'
 import { ConfigurarBox } from '@/pages/admin/ConfigurarBox'
 import { Auditoria } from '@/pages/admin/Auditoria'
+import CampeonatosAdmin from '@/pages/admin/CampeonatosAdmin'
 
 import { DashboardCoach } from '@/pages/coach/DashboardCoach'
 import { AlunosVinculados } from '@/pages/coach/AlunosVinculados'
@@ -94,6 +95,7 @@ export function AppRoutes() {
         <Route path="/admin/configuracoes" element={<Configuracoes />} />
         <Route path="/admin/box" element={<ConfigurarBox />} />
         <Route path="/admin/auditoria" element={<Auditoria />} />
+        <Route path="/admin/campeonatos" element={<CampeonatosAdmin />} />
       </Route>
 
       <Route
