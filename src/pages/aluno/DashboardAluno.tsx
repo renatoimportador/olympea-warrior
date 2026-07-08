@@ -68,12 +68,12 @@ if (treino) {
     .map((alunoRanking) => {
       
           const resultadosAluno = resultados.filter(
-  (r) => r.aluno_id === alunoRankung.id
+  (r) => r.aluno_id === alunoRanking.id
 )
       
 
       return {
-        id: alunoRankung.id,
+        id: alunoRanking.id,
         nome: usuario.nome,
         categoria: '',
         treinos: resultadosAluno.length,
