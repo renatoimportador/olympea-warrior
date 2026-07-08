@@ -1,7 +1,24 @@
+import { useEffect, useState } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { Trophy, Plus } from 'lucide-react'
+import { Trophy, Plus, Calendar, MapPin } from 'lucide-react'
+import { listarCampeonatos } from '@/lib/api'
 
 export default function CampeonatosAdmin() {
+  const [campeonatos, setCampeonatos] = useState<any[]>([])
+
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const dados = await listarCampeonatos()
+        setCampeonatos(dados)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    carregar()
+  }, [])
+
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -23,19 +40,53 @@ export default function CampeonatosAdmin() {
         </button>
       </div>
 
-      <GlassCard className="p-6">
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <Trophy size={52} className="text-warning mb-4" />
+      {campeonatos.length === 0 ? (
+        <GlassCard className="p-6">
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <Trophy size={52} className="text-warning mb-4" />
 
-          <h2 className="text-lg font-semibold text-text-primary">
-            Nenhum campeonato cadastrado
-          </h2>
+            <h2 className="text-lg font-semibold text-text-primary">
+              Nenhum campeonato cadastrado
+            </h2>
 
-          <p className="text-sm text-text-secondary mt-2">
-            Clique em <strong>"Novo Campeonato"</strong> para cadastrar o primeiro campeonato da sua box.
-          </p>
+            <p className="text-sm text-text-secondary mt-2">
+              Clique em <strong>"Novo Campeonato"</strong> para cadastrar o primeiro campeonato da sua box.
+            </p>
+          </div>
+        </GlassCard>
+      ) : (
+        <div className="space-y-4">
+          {campeonatos.map((camp) => (
+            <GlassCard key={camp.id} className="p-5">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-lg font-semibold text-text-primary">
+                    {camp.nome}
+                  </h2>
+
+                  <p className="text-sm text-text-secondary mt-2">
+                    {camp.descricao}
+                  </p>
+
+                  <div className="flex gap-4 mt-3 text-xs text-text-secondary">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={14} />
+                      {camp.data_inicio}
+                    </span>
+
+                    <span className="flex items-center gap-1">
+                      <MapPin size={14} />
+                      {camp.local}
+                    </span>
+                  </div>
+                </div>
+
+                <Trophy className="text-warning" size={26} />
+              </div>
+            </GlassCard>
+          ))}
         </div>
-      </GlassCard>
+      )}
     </div>
   )
 }
