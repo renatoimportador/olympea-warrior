@@ -30,15 +30,14 @@ const [inscricaoAtual, setInscricaoAtual] = useState<any>(null)
         const {
   data: { user }
 } = await supabase.auth.getUser()
-console.log('inscricaoAtual:', inscricaoAtual)
-console.log('minhasInscricoes:', minhasInscricoes)
+
 if (user) {
-  const { data } = await supabase
+  const { data: inscricoes } = await supabase
     .from('participacoes_campeonato')
     .select('*')
     .eq('aluno_id', user.id)
 
-  setMinhasInscricoes(data || [])
+  setMinhasInscricoes(inscricoes || [])
 }
       } catch (e) {
         console.error(e)
