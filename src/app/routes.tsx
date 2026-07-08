@@ -132,6 +132,7 @@ export function AppRoutes() {
         <Route path="/aluno/evolucao" element={<MinhaEvolucao />} />
         <Route path="/aluno/rankings" element={<RankingsAluno />} />
         <Route path="/aluno/perfil" element={<MeuPerfil />} />
+        <Route path="/aluno/campeonatos" element={<CampeonatosAluno />} />
         <Route path="/aluno/comentarios" element={<ComentariosAluno />} />
         <Route path="/aluno/checkin" element={<CheckIn />} />
       </Route>
