@@ -62,18 +62,18 @@ export function DashboardAluno() {
 
 if (treino) {
   const resultados = await listarResultadosByTreino(treino.id)
-  const usuarios = await listarUsuarios()
+  const alunos = await listarAlunos()
 
-  const ranking = usuarios
-    .map((usuario) => {
+  const ranking = alunos
+    .map((alunoRanking) => {
       
           const resultadosAluno = resultados.filter(
-  (r) => r.aluno_id === usuario.id
+  (r) => r.aluno_id === alunoRankung.id
 )
       
 
       return {
-        id: usuario.id,
+        id: alunoRankung.id,
         nome: usuario.nome,
         categoria: '',
         treinos: resultadosAluno.length,
