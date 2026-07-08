@@ -108,7 +108,8 @@ async function excluirCampeonato(id: number) {
     .from('campeonatos')
     .delete()
     .eq('id', id)
-  console.log(error)
+  console.log('ID recebido:', id)
+console.log('Erro:', error)
 
   if (error) {
   console.error(error)
@@ -203,12 +204,7 @@ async function excluirCampeonato(id: number) {
 
 </div>
 
-  <button
-    onClick={() => excluirCampeonato(camp.id)}
-    className="px-3 py-1 rounded-lg bg-red-600 text-white text-sm"
-  >
-    Excluir
-  </button>
+
 
 </div>
               </div>
