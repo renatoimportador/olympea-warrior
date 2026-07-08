@@ -104,16 +104,20 @@ const [campeonatoSelecionado, setCampeonatoSelecionado] = useState<any>(null)
         {campeonatoSelecionado?.nome}
       </h2>
 
-      <p className="text-sm text-text-secondary">
-        Formulário de participação (versão 1.0)
-      </p>
+      <div className="space-y-4">
 
-      <button
-        onClick={() => setModalAberto(false)}
-        className="w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold"
-      >
-        Fechar
-      </button>
+  <select className="w-full rounded-xl bg-bg-secondary p-3">
+    <option>Categoria</option>
+    <option>Elite</option>
+    <option>RX</option>
+    <option>Scale</option>
+    <option>Iniciante</option>
+    <option>Master 35+</option>
+    <option>Master 40+</option>
+    <option>Master 45+</option>
+  </select>
+
+</div>
 
     </GlassCard>
 
