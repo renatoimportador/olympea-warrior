@@ -5,8 +5,10 @@ import { listarCampeonatos } from '@/lib/api'
 
 export function CampeonatosAluno() {
   const [campeonatos, setCampeonatos] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+const [loading, setLoading] = useState(true)
 
+const [modalAberto, setModalAberto] = useState(false)
+const [campeonatoSelecionado, setCampeonatoSelecionado] = useState<any>(null)
   useEffect(() => {
     async function carregar() {
       try {
@@ -82,13 +84,41 @@ export function CampeonatosAluno() {
             </div>
 
             <button
-              className="mt-5 w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold hover:opacity-90 transition"
-            >
-              Vou Participar
-            </button>
+  onClick={() => {
+    setCampeonatoSelecionado(camp)
+    setModalAberto(true)
+  }}
+  className="mt-5 w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold hover:opacity-90 transition"
+>
+  Vou Participar
+</button>
           </GlassCard>
         ))
       )}
+      {modalAberto && (
+  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+
+    <GlassCard className="w-full max-w-lg p-6 space-y-4">
+
+      <h2 className="text-xl font-bold text-text-primary">
+        {campeonatoSelecionado?.nome}
+      </h2>
+
+      <p className="text-sm text-text-secondary">
+        Formulário de participação (versão 1.0)
+      </p>
+
+      <button
+        onClick={() => setModalAberto(false)}
+        className="w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold"
+      >
+        Fechar
+      </button>
+
+    </GlassCard>
+
+  </div>
+)}
     </div>
   )
 }
