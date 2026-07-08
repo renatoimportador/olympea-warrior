@@ -4,6 +4,7 @@ import { Trophy, Plus, Calendar, MapPin, X, Edit2, Ban } from 'lucide-react'
 import {
   listarCampeonatos,
   criarCampeonato,
+  excluirCampeonato
 } from '@/lib/api'
 
 import { supabase } from '@/lib/supabase'
@@ -96,28 +97,7 @@ export default function CampeonatosAdmin() {
 
   setAbrirModal(true)
 }
-async function excluirCampeonato(id: number) {
 
-  const confirmar = window.confirm(
-    'Deseja realmente excluir este campeonato?'
-  )
-
-  if (!confirmar) return
-
-  const { error } = await supabase
-    .from('campeonatos')
-    .update({
-      ativo: false
-    })
-    .eq('id', id)
-  console.log('ID recebido:', id)
-console.log('Erro:', error)
-
-  if (error) {
-  console.error(error)
-  alert(JSON.stringify(error))
-  return
-}
 
   carregar()
 }
@@ -198,7 +178,12 @@ console.log('Erro:', error)
   </button>
 
   <button
-    onClick={() => excluirCampeonato(camp.id)}
+    onClick={async () => {
+  if (!confirm('Deseja realmente excluir este campeonato?')) return
+
+  await excluirCampeonato(camp.id)
+  carregar()
+}}
     className="p-1.5 rounded-lg hover:bg-error/5 text-error"
   >
     <Ban size={14} />
