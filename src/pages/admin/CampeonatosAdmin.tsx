@@ -72,6 +72,7 @@ async function excluirCampeonato(id: number) {
     .from('campeonatos')
     .delete()
     .eq('id', id)
+  console.log(error)
 
   if (error) {
     console.error(error)
