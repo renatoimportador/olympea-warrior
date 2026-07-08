@@ -30,7 +30,8 @@ const [inscricaoAtual, setInscricaoAtual] = useState<any>(null)
         const {
   data: { user }
 } = await supabase.auth.getUser()
-
+console.log('inscricaoAtual:', inscricaoAtual)
+console.log('minhasInscricoes:', minhasInscricoes)
 if (user) {
   const { data } = await supabase
     .from('participacoes_campeonato')
