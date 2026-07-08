@@ -14,6 +14,7 @@ const adminItems = [
   { label: 'WODs', path: '/admin/wods', icon: 'Flame' },
   { label: 'Niveis', path: '/admin/niveis', icon: 'BarChart3' },
   { label: 'Biblioteca', path: '/admin/biblioteca', icon: 'BookOpen' },
+  { label: 'campeonatos', path: '/admin/campeonatos', icon: 'Trophy' },
   { label: 'Rankings', path: '/admin/rankings', icon: 'Trophy' },
   { label: 'Configuracoes', path: '/admin/configuracoes', icon: 'Settings' },
   { label: 'Box', path: '/admin/box', icon: 'Building2' },
