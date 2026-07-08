@@ -74,7 +74,7 @@ if (treino) {
 
       return {
         id: alunoRanking.id,
-        nome: usuario.nome,
+        nome: alunoRanking.nome,
         categoria: '',
         treinos: resultadosAluno.length,
         pontos: resultadosAluno.length * 100,
