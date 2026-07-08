@@ -203,6 +203,22 @@ const [observacoes, setObservacoes] = useState('')
   rows={3}
   placeholder="Observações"
 />
+        <div className="flex justify-end gap-3 mt-4">
+
+  <button
+    onClick={() => setModalAberto(false)}
+    className="px-5 py-3 rounded-xl border border-white/20"
+  >
+    Cancelar
+  </button>
+
+  <button
+    className="px-6 py-3 rounded-xl bg-accent text-bg-primary font-semibold"
+  >
+    Confirmar Inscrição
+  </button>
+
+</div>
 </div>
 
     </GlassCard>
