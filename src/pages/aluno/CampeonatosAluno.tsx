@@ -192,9 +192,22 @@ setMinhasInscricoes(data || [])
             <button
 onClick={async() => {
 
-  const inscricao = minhasInscricoes.find(
-    (i) => i.campeonato_id === camp.id
-  )
+  const {
+  data: { user }
+} = await supabase.auth.getUser()
+
+let inscricao = null
+
+if (user) {
+  const { data } = await supabase
+    .from('participacoes_campeonato')
+    .select('*')
+    .eq('campeonato_id', camp.id)
+    .eq('aluno_id', user.id)
+    .maybeSingle()
+
+  inscricao = data
+}
 
   setInscricaoAtual(inscricao || null)
 
