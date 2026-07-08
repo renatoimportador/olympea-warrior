@@ -44,7 +44,7 @@ rankingData.push({
   resultado,
 })
         }
-
+        }
         const rankingOrdenado = rankingData
           .sort((a: any, b: any) => {
   if (treinoHoje.tipo_wod === 'FOR_TIME') {
