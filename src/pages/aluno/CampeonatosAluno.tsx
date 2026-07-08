@@ -1,32 +1,94 @@
+import { useEffect, useState } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { Trophy } from 'lucide-react'
+import { Trophy, CalendarDays, MapPin } from 'lucide-react'
+import { listarCampeonatos } from '@/lib/api'
 
 export function CampeonatosAluno() {
+  const [campeonatos, setCampeonatos] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const dados = await listarCampeonatos()
+        setCampeonatos(dados)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    carregar()
+  }, [])
+
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-text-primary">
-          Meus Campeonatos
+          Campeonatos
         </h1>
 
         <p className="text-sm text-text-secondary">
-          Acompanhe suas inscrições e competições.
+          Escolha os campeonatos que deseja participar.
         </p>
       </div>
 
-      <GlassCard className="p-6">
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <Trophy size={48} className="text-warning mb-4" />
+      {loading ? (
+        <GlassCard className="p-6">
+          Carregando...
+        </GlassCard>
+      ) : campeonatos.length === 0 ? (
+        <GlassCard className="p-6">
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <Trophy size={48} className="text-warning mb-4" />
 
-          <h2 className="text-lg font-semibold text-text-primary">
-            Nenhum campeonato disponível
-          </h2>
+            <h2 className="text-lg font-semibold text-text-primary">
+              Nenhum campeonato disponível
+            </h2>
 
-          <p className="text-sm text-text-secondary mt-2">
-            Você ainda não está inscrito em nenhum campeonato.
-          </p>
-        </div>
-      </GlassCard>
+            <p className="text-sm text-text-secondary mt-2">
+              Aguarde novos campeonatos serem cadastrados.
+            </p>
+          </div>
+        </GlassCard>
+      ) : (
+        campeonatos.map((camp) => (
+          <GlassCard key={camp.id} className="p-5">
+            <div className="flex justify-between items-start">
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold text-text-primary">
+                  {camp.nome}
+                </h2>
+
+                <p className="text-text-secondary">
+                  {camp.descricao}
+                </p>
+
+                <div className="flex gap-5 text-sm text-text-secondary">
+                  <div className="flex items-center gap-1">
+                    <CalendarDays size={15} />
+                    {camp.data_inicio}
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <MapPin size={15} />
+                    {camp.local}
+                  </div>
+                </div>
+              </div>
+
+              <Trophy className="text-warning" size={32} />
+            </div>
+
+            <button
+              className="mt-5 w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold hover:opacity-90 transition"
+            >
+              Vou Participar
+            </button>
+          </GlassCard>
+        ))
+      )}
     </div>
   )
 }
