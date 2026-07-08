@@ -35,7 +35,40 @@ const [observacoes, setObservacoes] = useState('')
     carregar()
   }, [])
 async function confirmarInscricao() {
-  console.log('Salvando inscrição...')
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    alert('Usuário não encontrado.')
+    return
+  }
+
+  const { error } = await supabase
+    .from('participacoes_campeonato')
+    .insert({
+      campeonato_id: campeonatoSelecionado.id,
+      aluno_id: user.id,
+      categoria,
+      modalidade,
+      equipe,
+      parceiro1,
+      parceiro2,
+      parceiro3,
+      parceiro4,
+      parceiro5,
+      observacoes
+    })
+
+  if (error) {
+    console.error(error)
+    alert('Erro ao salvar inscrição.')
+    return
+  }
+
+  alert('Inscrição realizada com sucesso!')
+  setModalAberto(false)
 }
   return (
     <div className="space-y-5 animate-fade-in">
