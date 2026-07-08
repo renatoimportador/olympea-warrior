@@ -36,7 +36,7 @@ export function RankingsCoach() {
 )
 
           const resultado = resultados[0]
-if (resultado( {
+if (resultado) {
 rankingData.push({
   id: aluno.id,
   nome: aluno.usuario?.nome || aluno.nome,
