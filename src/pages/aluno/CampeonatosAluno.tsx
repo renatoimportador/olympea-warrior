@@ -9,6 +9,16 @@ const [loading, setLoading] = useState(true)
 
 const [modalAberto, setModalAberto] = useState(false)
 const [campeonatoSelecionado, setCampeonatoSelecionado] = useState<any>(null)
+  const [categoria, setCategoria] = useState('')
+const [modalidade, setModalidade] = useState('')
+
+const [equipe, setEquipe] = useState('')
+const [parceiro1, setParceiro1] = useState('')
+const [parceiro2, setParceiro2] = useState('')
+const [parceiro3, setParceiro3] = useState('')
+const [parceiro4, setParceiro4] = useState('')
+const [parceiro5, setParceiro5] = useState('')
+const [observacoes, setObservacoes] = useState('')
   useEffect(() => {
     async function carregar() {
       try {
@@ -106,24 +116,32 @@ const [campeonatoSelecionado, setCampeonatoSelecionado] = useState<any>(null)
 
       <div className="space-y-4">
 
-  <select className="w-full rounded-xl bg-bg-secondary p-3">
-    <option>Categoria</option>
-    <option>Elite</option>
-    <option>RX</option>
-    <option>Scale</option>
-    <option>Iniciante</option>
-    <option>Master 35+</option>
-    <option>Master 40+</option>
-    <option>Master 45+</option>
-  </select>
+  <select
+  value={categoria}
+  onChange={(e) => setCategoria(e.target.value)}
+  className="w-full rounded-xl bg-bg-secondary p-3"
+>
+  <option value="">Categoria</option>
+  <option value="Elite">Elite</option>
+  <option value="RX">RX</option>
+  <option value="Scale">Scale</option>
+  <option value="Iniciante">Iniciante</option>
+  <option value="Master 35+">Master 35+</option>
+  <option value="Master 40+">Master 40+</option>
+  <option value="Master 45+">Master 45+</option>
+</select>
 
-        <select className="w-full rounded-xl bg-bg-secondary p-3">
-  <option>Modalidade</option>
-  <option>Individual</option>
-  <option>Dupla</option>
-  <option>Trio</option>
-  <option>Quarteto</option>
-  <option>Sexteto</option>
+        <select
+  value={modalidade}
+  onChange={(e) => setModalidade(e.target.value)}
+  className="w-full rounded-xl bg-bg-secondary p-3"
+>
+  <option value="">Modalidade</option>
+  <option value="Individual">Individual</option>
+  <option value="Dupla">Dupla</option>
+  <option value="Trio">Trio</option>
+  <option value="Quarteto">Quarteto</option>
+  <option value="Sexteto">Sexteto</option>
 </select>
         <input
   className="w-full rounded-xl bg-bg-secondary p-3"
@@ -131,14 +149,24 @@ const [campeonatoSelecionado, setCampeonatoSelecionado] = useState<any>(null)
 />
       
 
-<input
-  className="w-full rounded-xl bg-bg-secondary p-3"
-  placeholder="Parceiro 1"
-/>
-        <input
-  className="w-full rounded-xl bg-bg-secondary p-3"
-  placeholder="Parceiro 2"
-/>
+{modalidade !== 'Individual' && (
+  <input
+    value={parceiro1}
+    onChange={(e) => setParceiro1(e.target.value)}
+    className="w-full rounded-xl bg-bg-secondary p-3"
+    placeholder="Parceiro 1"
+  />
+)}
+        {(modalidade === 'Trio' ||
+  modalidade === 'Quarteto' ||
+  modalidade === 'Sexteto') && (
+  <input
+    value={parceiro2}
+    onChange={(e) => setParceiro2(e.target.value)}
+    className="w-full rounded-xl bg-bg-secondary p-3"
+    placeholder="Parceiro 2"
+  />
+)}
         <textarea
   className="w-full rounded-xl bg-bg-secondary p-3"
   rows={3}
