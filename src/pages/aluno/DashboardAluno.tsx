@@ -269,12 +269,8 @@ console.log('Programações:', progs.length)
         </p>
 
         <p className="text-xs text-text-secondary">
-          {r.tipo === 'AMRAP'
-            ? `${r.resultado.rounds}R • ${r.resultado.repeticoes} Rep`
-            : r.tipo === 'FOR_TIME'
-            ? r.resultado.tempo
-            : `${r.resultado.carga} kg`}
-        </p>
+  {r.pontos} pts
+</p>
       </div>
 
       {r.id === aluno?.id && (
