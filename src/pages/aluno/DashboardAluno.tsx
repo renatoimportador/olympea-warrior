@@ -12,7 +12,7 @@ import {
   listarDiasBySemana,
   getTreinoByDia,
   listarResultadosByTreino,
-  listarUsuarios,
+  listarAlunos,
   getTreinoDoDia,
 } from '@/lib/api'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
@@ -75,7 +75,7 @@ if (treino) {
       return {
         id: usuario.id,
         nome: usuario.nome,
-        categoria: aluno?.categoria || '',
+        categoria: '',
         treinos: resultadosAluno.length,
         pontos: resultadosAluno.length * 100,
       }
