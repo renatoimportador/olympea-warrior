@@ -195,16 +195,7 @@ const [observacoes, setObservacoes] = useState('')
     />
   </>
 )}
-        {(modalidade === 'Trio' ||
-  modalidade === 'Quarteto' ||
-  modalidade === 'Sexteto') && (
-  <input
-    value={parceiro2}
-    onChange={(e) => setParceiro2(e.target.value)}
-    className="w-full rounded-xl bg-bg-secondary p-3"
-    placeholder="Parceiro 2"
-  />
-)}
+        
         <textarea
   value={observacoes}
   onChange={(e) => setObservacoes(e.target.value)}
