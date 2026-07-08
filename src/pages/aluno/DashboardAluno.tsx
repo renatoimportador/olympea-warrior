@@ -362,21 +362,25 @@ console.log('Programações:', progs.length)
       {/* Multi-Programacao */}
       <GlassCard className="p-5 space-y-3">
         <h2 className="font-semibold text-text-primary flex items-center gap-2">
-          <CalendarCheck size={16} className="text-success" />
-          Minhas Programacoes
+          <Trophy size={16} className="text-warning" />
+          Meus Campeonatos
         </h2>
         <div className="space-y-2">
-          {programacoes.map((prog) => (
-            <div key={prog.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-              <div>
-                <p className="text-sm font-medium text-text-primary">{prog.nome}</p>
-                <p className="text-xs text-text-secondary">{prog.tipo}</p>
-              </div>
-              <Badge variant={prog.ativa ? 'success' : 'default'}>
-                {prog.ativa ? 'Ativa' : 'Inativa'}
-              </Badge>
-            </div>
-          ))}
+          <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4">
+  <div className="flex items-center justify-between">
+    <div>
+      <p className="text-sm font-semibold text-text-primary">
+        Nenhum campeonato disponível
+      </p>
+
+      <p className="text-xs text-text-secondary mt-1">
+        Você ainda não está inscrito em nenhum campeonato.
+      </p>
+    </div>
+
+    <Trophy size={28} className="text-warning opacity-60" />
+  </div>
+</div>
         </div>
       </GlassCard>
     </div>
