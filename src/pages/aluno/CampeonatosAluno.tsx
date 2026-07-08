@@ -149,7 +149,7 @@ async function confirmarInscricao() {
             </div>
 
             <button
-onClick={() => {
+onClick={async() => {
 
   const inscricao = minhasInscricoes.find(
     (i) => i.campeonato_id === camp.id
@@ -183,7 +183,6 @@ onClick={() => {
 
   setModalAberto(true)
 }}
-  }}
   className="mt-5 w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold hover:opacity-90 transition"
 >
   {jaInscrito(camp.id) ? 'Editar Inscrição' : 'Vou Participar'}
