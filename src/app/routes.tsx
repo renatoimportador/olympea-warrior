@@ -52,6 +52,7 @@ import { RankingsAluno } from '@/pages/aluno/RankingsAluno'
 import { MeuPerfil } from '@/pages/aluno/MeuPerfil'
 import { ComentariosAluno } from '@/pages/aluno/ComentariosAluno'
 import { CheckIn } from '@/pages/aluno/CheckIn'
+import { CampeonatosAluno } from '@/pages/aluno/CampeonatosAluno'
 
 import { BibliotecaMovimentos } from '@/pages/shared/BibliotecaMovimentos'
 import { DetalheMovimento } from '@/pages/shared/DetalheMovimento'
