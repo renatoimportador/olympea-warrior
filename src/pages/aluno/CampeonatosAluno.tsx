@@ -21,6 +21,7 @@ const [parceiro4, setParceiro4] = useState('')
 const [parceiro5, setParceiro5] = useState('')
 const [observacoes, setObservacoes] = useState('')
 const [minhasInscricoes, setMinhasInscricoes] = useState<any[]>([])
+const [inscricaoAtual, setInscricaoAtual] = useState<any>(null)
   useEffect(() => {
     async function carregar() {
       try {
@@ -148,9 +149,40 @@ async function confirmarInscricao() {
             </div>
 
             <button
-  onClick={() => {
-    setCampeonatoSelecionado(camp)
-    setModalAberto(true)
+onClick={() => {
+
+  const inscricao = minhasInscricoes.find(
+    (i) => i.campeonato_id === camp.id
+  )
+
+  setInscricaoAtual(inscricao || null)
+
+  setCampeonatoSelecionado(camp)
+
+  if (inscricao) {
+    setCategoria(inscricao.categoria || '')
+    setModalidade(inscricao.modalidade || '')
+    setEquipe(inscricao.equipe || '')
+    setParceiro1(inscricao.parceiro1 || '')
+    setParceiro2(inscricao.parceiro2 || '')
+    setParceiro3(inscricao.parceiro3 || '')
+    setParceiro4(inscricao.parceiro4 || '')
+    setParceiro5(inscricao.parceiro5 || '')
+    setObservacoes(inscricao.observacoes || '')
+  } else {
+    setCategoria('')
+    setModalidade('')
+    setEquipe('')
+    setParceiro1('')
+    setParceiro2('')
+    setParceiro3('')
+    setParceiro4('')
+    setParceiro5('')
+    setObservacoes('')
+  }
+
+  setModalAberto(true)
+}}
   }}
   className="mt-5 w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold hover:opacity-90 transition"
 >
