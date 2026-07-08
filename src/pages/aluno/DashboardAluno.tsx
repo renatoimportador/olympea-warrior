@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useProgramacao } from '@/context/ProgramacaoContext'
 import { GlassCard } from '@/components/ui/GlassCard'
@@ -361,28 +362,32 @@ console.log('Programações:', progs.length)
 
       {/* Multi-Programacao */}
       <GlassCard className="p-5 space-y-3">
-        <h2 className="font-semibold text-text-primary flex items-center gap-2">
-          <Trophy size={16} className="text-warning" />
-          Meus Campeonatos
-        </h2>
-        <div className="space-y-2">
-          <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-4">
-  <div className="flex items-center justify-between">
-    <div>
-      <p className="text-sm font-semibold text-text-primary">
-        Nenhum campeonato disponível
-      </p>
+  <h2 className="font-semibold text-text-primary flex items-center gap-2">
+    <Trophy size={16} className="text-warning" />
+    Meus Campeonatos
+  </h2>
 
-      <p className="text-xs text-text-secondary mt-1">
-        Você ainda não está inscrito em nenhum campeonato.
-      </p>
-    </div>
+  <div className="space-y-2">
+    <Link
+      to="/aluno/campeonatos"
+      className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold text-text-primary">
+            Nenhum campeonato disponível
+          </p>
 
-    <Trophy size={28} className="text-warning opacity-60" />
-  </div>
-</div>
+          <p className="text-xs text-text-secondary mt-1">
+            Você ainda não está inscrito em nenhum campeonato.
+          </p>
         </div>
-      </GlassCard>
+
+        <Trophy size={28} className="text-warning opacity-60" />
+      </div>
+    </Link>
+  </div>
+</GlassCard>
     </div>
   )
 }
