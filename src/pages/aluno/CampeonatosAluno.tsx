@@ -59,21 +59,47 @@ async function confirmarInscricao() {
     return
   }
 
-  const { error } = await supabase
-    .from('participacoes_campeonato')
-    .insert({
-      campeonato_id: campeonatoSelecionado.id,
-      aluno_id: user.id,
-      categoria,
-      modalidade,
-      equipe,
-      parceiro1,
-      parceiro2,
-      parceiro3,
-      parceiro4,
-      parceiro5,
-      observacoes
-    })
+  let error = null
+
+  if (inscricaoAtual) {
+
+    const resultado = await supabase
+      .from('participacoes_campeonato')
+      .update({
+        categoria,
+        modalidade,
+        equipe,
+        parceiro1,
+        parceiro2,
+        parceiro3,
+        parceiro4,
+        parceiro5,
+        observacoes
+      })
+      .eq('id', inscricaoAtual.id)
+
+    error = resultado.error
+
+  } else {
+
+    const resultado = await supabase
+      .from('participacoes_campeonato')
+      .insert({
+        campeonato_id: campeonatoSelecionado.id,
+        aluno_id: user.id,
+        categoria,
+        modalidade,
+        equipe,
+        parceiro1,
+        parceiro2,
+        parceiro3,
+        parceiro4,
+        parceiro5,
+        observacoes
+      })
+
+    error = resultado.error
+  }
 
   if (error) {
     console.error(error)
@@ -81,7 +107,15 @@ async function confirmarInscricao() {
     return
   }
 
-  alert('Inscrição realizada com sucesso!')
+  const { data } = await supabase
+    .from('participacoes_campeonato')
+    .select('*')
+    .eq('aluno_id', user.id)
+
+  setMinhasInscricoes(data || [])
+
+  alert('Inscrição salva com sucesso!')
+
   setModalAberto(false)
 }
   function jaInscrito(campeonatoId: number) {
