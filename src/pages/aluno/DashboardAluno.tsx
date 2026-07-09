@@ -16,6 +16,7 @@ import {
   listarAlunos,
   getTreinoDoDia,
 } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
   Zap, TrendingUp, CalendarCheck, Dumbbell, Flame, Trophy,
