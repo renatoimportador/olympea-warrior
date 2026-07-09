@@ -4,7 +4,8 @@ import { Trophy, Plus, Calendar, MapPin, X, Edit2, Ban } from 'lucide-react'
 import {
   listarCampeonatos,
   criarCampeonato,
-  excluirCampeonato
+  excluirCampeonato,
+  listarParticipacoesByCampeonato
 } from '@/lib/api'
 
 import { supabase } from '@/lib/supabase'
@@ -20,15 +21,26 @@ export default function CampeonatosAdmin() {
   const [dataFim, setDataFim] = useState('')
   const [imagem, setImagem] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [participacoes, setParticipacoes] = useState<any[]>([])
 
   async function carregar() {
-    try {
-      const dados = await listarCampeonatos()
-      setCampeonatos(dados || [])
-    } catch (e) {
-      console.error(e)
-    }
+  try {
+    const dados = await listarCampeonatos()
+
+    const listaParticipacoes = await Promise.all(
+      (dados || []).map(async (camp) => ({
+        campeonatoId: camp.id,
+        inscritos: await listarParticipacoesByCampeonato(camp.id)
+      }))
+    )
+
+    setCampeonatos(dados || [])
+    setParticipacoes(listaParticipacoes)
+
+  } catch (e) {
+    console.error(e)
   }
+}
 
   useEffect(() => {
     carregar()
