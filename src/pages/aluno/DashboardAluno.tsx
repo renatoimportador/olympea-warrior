@@ -41,6 +41,7 @@ export function DashboardAluno() {
   const [rankingSemana, setRankingSemana] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [meusCampeonatos, setMeusCampeonatos] = useState<any[]>([])
+  const [campeonatos, setCampeonatos] = useState<any[]>([])
 
   useEffect(() => {
     async function load() {
@@ -73,6 +74,12 @@ console.log('INSCRIÇÕES:', inscricoes)
 console.log('ERRO INSCRIÇÕES:', error)
 
 setMeusCampeonatos(inscricoes || [])
+        const { data: listaCampeonatos } = await supabase
+  .from('campeonatos')
+  .select('*')
+  .order('data_inicio')
+
+setCampeonatos(listaCampeonatos || [])
         console.log('INSCRIÇÕES:', inscricoes)
         const treino = await getTreinoDoDia()
 
@@ -383,7 +390,7 @@ console.log('Programações:', progs.length)
   </h2>
 
   <div className="space-y-2">
-  {meusCampeonatos.length === 0 ? (
+  {Campeonatos.length === 0 ? (
     <Link
       to="/aluno/campeonatos"
       className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
@@ -403,7 +410,12 @@ console.log('Programações:', progs.length)
       </div>
     </Link>
   ) : (
-    meusCampeonatos.map((inscricao) => (
+    campeonatos.map((camp) => {
+  const inscrito = meusCampeonatos.some(
+    (i) => i.campeonato_id === camp.id
+  )
+
+  return (
       <Link
         key={inscricao.id}
         to="/aluno/campeonatos"
@@ -412,18 +424,25 @@ console.log('Programações:', progs.length)
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-text-primary">
-              {inscricao.campeonatos?.nome}
-            </p>
+  {camp.nome}
+</p>
 
-            <p className="text-xs text-text-secondary mt-1">
-              {inscricao.categoria} • {inscricao.modalidade}
-            </p>
+<p className="text-xs text-text-secondary mt-1">
+  {camp.data_inicio} • {camp.local}
+</p>
+
+<p className={`text-xs mt-2 ${
+  inscrito ? 'text-success' : 'text-warning'
+}`}>
+  {inscrito ? '✅ Inscrito' : '🟡 Disponível'}
+</p>
           </div>
 
           <Trophy size={28} className="text-warning" />
         </div>
       </Link>
-    ))
+    )
+    })
   )}
 </div>
 </GlassCard>
