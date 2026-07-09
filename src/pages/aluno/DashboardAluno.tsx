@@ -61,13 +61,16 @@ export function DashboardAluno() {
         setFrequencias(f)
         setResultados(r)
         setProgramacoes(progs)
-        const { data: inscricoes } = await supabase
+        const { data: inscricoes, error } = await supabase
   .from('participacoes_campeonato')
   .select(`
     *,
-    campeonatos (*)
+    campeonatos(*)
   `)
-  .eq('aluno_id', user.id)
+  .eq('aluno_id', a.id)
+
+console.log('INSCRIÇÕES:', inscricoes)
+console.log('ERRO INSCRIÇÕES:', error)
 
 setMeusCampeonatos(inscricoes || [])
         console.log('INSCRIÇÕES:', inscricoes)
