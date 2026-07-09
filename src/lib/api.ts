@@ -607,6 +607,22 @@ export async function excluirCampeonato(id: number) {
 
   if (error) throw error
 }
+export async function listarParticipacoesByCampeonato(campeonatoId: number) {
+  const { data, error } = await supabase
+    .from('participacoes_campeonato')
+    .select(`
+      *,
+      aluno:alunos(
+        *,
+        usuario:usuarios(nome)
+      )
+    `)
+    .eq('campeonato_id', campeonatoId)
+
+  if (error) throw error
+
+  return data
+}
 /* ========================= AUTH ========================= */
 export async function signInWithEmail(email: string, password: string) {
   return await supabase.auth.signInWithPassword({ email, password })
