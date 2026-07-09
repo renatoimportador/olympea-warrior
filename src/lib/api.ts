@@ -610,13 +610,7 @@ export async function excluirCampeonato(id: number) {
 export async function listarParticipacoesByCampeonato(campeonatoId: number) {
   const { data, error } = await supabase
     .from('participacoes_campeonato')
-    .select(`
-      *,
-      aluno:alunos(
-        *,
-        usuario:usuarios(nome)
-      )
-    `)
+    .select('*')
     .eq('campeonato_id', campeonatoId)
 
   if (error) throw error
