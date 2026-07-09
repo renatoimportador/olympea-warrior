@@ -77,6 +77,7 @@ setMeusCampeonatos(inscricoes || [])
         const { data: listaCampeonatos } = await supabase
   .from('campeonatos')
   .select('*')
+  .eq('ativo', true)
   .order('data_inicio')
 
 setCampeonatos(listaCampeonatos || [])
