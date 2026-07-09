@@ -617,6 +617,20 @@ export async function listarParticipacoesByCampeonato(campeonatoId: number) {
 
   return data
 }
+export async function getAlunoCompleto(alunoId: string) {
+  const { data, error } = await supabase
+    .from('alunos')
+    .select(`
+      *,
+      usuario:usuarios(*)
+    `)
+    .eq('id', alunoId)
+    .single()
+
+  if (error) throw error
+
+  return data
+}
 /* ========================= AUTH ========================= */
 export async function signInWithEmail(email: string, password: string) {
   return await supabase.auth.signInWithPassword({ email, password })
