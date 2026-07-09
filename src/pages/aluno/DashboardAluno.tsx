@@ -67,7 +67,7 @@ export function DashboardAluno() {
     *,
     campeonatos(*)
   `)
-  .eq('aluno_id', a.id)
+  .eq('aluno_id', user.id)
 
 console.log('INSCRIÇÕES:', inscricoes)
 console.log('ERRO INSCRIÇÕES:', error)
