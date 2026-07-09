@@ -206,6 +206,36 @@ export default function CampeonatosAdmin() {
 
 </div>
               </div>
+              <div className="mt-5 border-t border-white/10 pt-4">
+  <h3 className="text-sm font-semibold text-text-primary mb-3">
+    Inscritos
+  </h3>
+
+  {participacoes
+    .find((p) => p.campeonatoId === camp.id)
+    ?.inscritos?.length > 0 ? (
+
+    participacoes
+      .find((p) => p.campeonatoId === camp.id)
+      ?.inscritos.map((i: any) => (
+        <div
+          key={i.id}
+          className="flex justify-between py-2 text-sm border-b border-white/5 last:border-0"
+        >
+          <span>{i.aluno?.usuario?.nome}</span>
+
+          <span className="text-text-secondary">
+            {i.categoria} • {i.modalidade}
+          </span>
+        </div>
+      ))
+
+  ) : (
+    <p className="text-sm text-text-secondary">
+      Nenhum aluno inscrito.
+    </p>
+  )}
+</div>
             </GlassCard>
           ))}
         </div>
