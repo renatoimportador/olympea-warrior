@@ -39,6 +39,7 @@ export function DashboardAluno() {
   const [rankingPosicao, setRankingPosicao] = useState<any>(null)
   const [rankingSemana, setRankingSemana] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [meusCampeonatos, setMeusCampeonatos] = useState<any[]>([])
 
   useEffect(() => {
     async function load() {
@@ -59,6 +60,15 @@ export function DashboardAluno() {
         setFrequencias(f)
         setResultados(r)
         setProgramacoes(progs)
+        const { data: inscricoes } = await supabase
+  .from('participacoes_campeonato')
+  .select(`
+    *,
+    campeonatos (*)
+  `)
+  .eq('aluno_id', user.id)
+
+setMeusCampeonatos(inscricoes || [])
         const treino = await getTreinoDoDia()
 
 if (treino) {
@@ -368,6 +378,7 @@ console.log('Programações:', progs.length)
   </h2>
 
   <div className="space-y-2">
+  {meusCampeonatos.length === 0 ? (
     <Link
       to="/aluno/campeonatos"
       className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
@@ -386,7 +397,30 @@ console.log('Programações:', progs.length)
         <Trophy size={28} className="text-warning opacity-60" />
       </div>
     </Link>
-  </div>
+  ) : (
+    meusCampeonatos.map((inscricao) => (
+      <Link
+        key={inscricao.id}
+        to="/aluno/campeonatos"
+        className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-text-primary">
+              {inscricao.campeonatos?.nome}
+            </p>
+
+            <p className="text-xs text-text-secondary mt-1">
+              {inscricao.categoria} • {inscricao.modalidade}
+            </p>
+          </div>
+
+          <Trophy size={28} className="text-warning" />
+        </div>
+      </Link>
+    ))
+  )}
+</div>
 </GlassCard>
     </div>
   )
