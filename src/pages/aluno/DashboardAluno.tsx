@@ -390,7 +390,7 @@ console.log('Programações:', progs.length)
   </h2>
 
   <div className="space-y-2">
-  {Campeonatos.length === 0 ? (
+  {campeonatos.length === 0 ? (
     <Link
       to="/aluno/campeonatos"
       className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
