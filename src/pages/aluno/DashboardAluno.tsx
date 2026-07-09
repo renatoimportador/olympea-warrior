@@ -417,7 +417,7 @@ console.log('Programações:', progs.length)
 
   return (
       <Link
-        key={inscricao.id}
+        key={camp.id}
         to="/aluno/campeonatos"
         className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
       >
