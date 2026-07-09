@@ -235,7 +235,7 @@ if (user) {
 }}
   className={`mt-5 w-full rounded-xl py-3 font-semibold transition ${
   jaInscrito(camp.id)
-    ? 'bg-green-600 hover:bg-green-700 text-white'
+    ? 'bg-accent text-bg-primary ring-2 ring-accent'
     : 'bg-accent hover:opacity-90 text-bg-primary'
 }`}
 >
