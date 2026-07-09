@@ -51,8 +51,24 @@ if (user) {
 async function confirmarInscricao() {
 
   const {
-    data: { user }
-  } = await supabase.auth.getUser()
+  data: { user }
+} = await supabase.auth.getUser()
+
+if (!user) {
+  alert('Usuário não encontrado.')
+  return
+}
+
+const { data: aluno } = await supabase
+  .from('alunos')
+  .select('id')
+  .eq('usuario_id', user.id)
+  .single()
+
+if (!aluno) {
+  alert('Aluno não encontrado.')
+  return
+}
 
   if (!user) {
     alert('Usuário não encontrado.')
