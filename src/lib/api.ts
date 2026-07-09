@@ -625,7 +625,7 @@ export async function getAlunoCompleto(alunoId: string) {
       usuario:usuarios(*)
     `)
     .eq('id', alunoId)
-    .single()
+    .maybeSingle()
 
   if (error) throw error
 
