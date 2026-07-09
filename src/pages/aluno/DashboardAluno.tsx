@@ -70,6 +70,7 @@ export function DashboardAluno() {
   .eq('aluno_id', user.id)
 
 setMeusCampeonatos(inscricoes || [])
+        console.log('INSCRIÇÕES:' inscricoes)
         const treino = await getTreinoDoDia()
 
 if (treino) {
