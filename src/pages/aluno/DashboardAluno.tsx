@@ -68,7 +68,7 @@ export function DashboardAluno() {
     *,
     campeonatos(*)
   `)
-  .eq('aluno_id', user.id)
+  .eq('aluno_id', a.id)
 
 console.log('INSCRIÇÕES:', inscricoes)
 console.log('ERRO INSCRIÇÕES:', error)
@@ -124,7 +124,7 @@ return {
     }))
 
   setRankingPosicao(
-    ranking.find((r) => r.id === user.id) || null
+    ranking.find((r) => r.id === a.id) || null
   )
   setRankingSemana(ranking)
 }
