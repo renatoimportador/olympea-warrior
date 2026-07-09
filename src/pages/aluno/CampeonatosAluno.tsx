@@ -233,7 +233,11 @@ if (user) {
 
   setModalAberto(true)
 }}
-  className="mt-5 w-full rounded-xl bg-accent text-bg-primary py-3 font-semibold hover:opacity-90 transition"
+  className={`mt-5 w-full rounded-xl py-3 font-semibold transition ${
+  jaInscrito(camp.id)
+    ? 'bg-green-600 hover:bg-green-700 text-white'
+    : 'bg-accent hover:opacity-90 text-bg-primary'
+}`}
 >
   {jaInscrito(camp.id) ? 'Editar Inscrição' : 'Vou Participar'}
 </button>
@@ -246,8 +250,12 @@ if (user) {
     <GlassCard className="w-full max-w-lg p-6 space-y-4">
 
       <h2 className="text-xl font-bold text-text-primary">
-        {campeonatoSelecionado?.nome}
-      </h2>
+  {inscricaoAtual ? 'Editar Inscrição' : 'Nova Inscrição'}
+</h2>
+
+<p className="text-text-secondary">
+  {campeonatoSelecionado?.nome}
+</p>
 
       <div className="space-y-4">
 
@@ -341,11 +349,11 @@ if (user) {
         <div className="flex justify-end gap-3 mt-4">
 
   <button
-    onClick={() => setModalAberto(false)}
-    className="..."
-  >
-    Cancelar
-  </button>
+  onClick={() => setModalAberto(false)}
+  className="px-6 py-3 rounded-xl border border-white/10 text-text-secondary hover:bg-white/5 transition"
+>
+  Cancelar
+</button>
 
   <button
   onClick={confirmarInscricao}
