@@ -32,12 +32,20 @@ const [inscricaoAtual, setInscricaoAtual] = useState<any>(null)
 } = await supabase.auth.getUser()
 
 if (user) {
-  const { data: inscricoes } = await supabase
-    .from('participacoes_campeonato')
-    .select('*')
-    .eq('aluno_id', user.id)
+  const { data: aluno } = await supabase
+    .from('alunos')
+    .select('id')
+    .eq('usuario_id', user.id)
+    .single()
 
-  setMinhasInscricoes(inscricoes || [])
+  if (aluno) {
+    const { data: inscricoes } = await supabase
+      .from('participacoes_campeonato')
+      .select('*')
+      .eq('aluno_id', aluno.id)
+
+    setMinhasInscricoes(inscricoes || [])
+  }
 }
       } catch (e) {
         console.error(e)
@@ -104,7 +112,7 @@ if (!aluno) {
       .from('participacoes_campeonato')
       .insert({
         campeonato_id: campeonatoSelecionado.id,
-        aluno_id: user.id,
+        aluno_id: aluno.id,
         categoria,
         modalidade,
         equipe,
@@ -131,7 +139,7 @@ if (!aluno) {
   const { data } = await supabase
   .from('participacoes_campeonato')
   .select('*')
-  .eq('aluno_id', user.id)
+  .eq('aluno_id', aluno.id)
 
 setMinhasInscricoes(data || [])
 
@@ -211,11 +219,21 @@ onClick={async() => {
 let inscricao = null
 
 if (user) {
+  const { data: aluno } = await supabase
+  .from('alunos')
+  .select('id')
+  .eq('usuario_id', user.id)
+  .single()
+
+if (!aluno) {
+  alert('Aluno não encontrado.')
+  return
+}
   const { data } = await supabase
     .from('participacoes_campeonato')
     .select('*')
     .eq('campeonato_id', camp.id)
-    .eq('aluno_id', user.id)
+    .eq('aluno_id', aluno.id)
     .maybeSingle()
 
   inscricao = data
