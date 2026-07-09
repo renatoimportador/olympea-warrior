@@ -5,7 +5,8 @@ import {
   listarCampeonatos,
   criarCampeonato,
   excluirCampeonato,
-  listarParticipacoesByCampeonato
+  listarParticipacoesByCampeonato,
+  getAlunoCompleto
 } from '@/lib/api'
 
 import { supabase } from '@/lib/supabase'
@@ -28,11 +29,23 @@ export default function CampeonatosAdmin() {
     const dados = await listarCampeonatos()
 
     const listaParticipacoes = await Promise.all(
-      (dados || []).map(async (camp) => ({
-        campeonatoId: camp.id,
-        inscritos: await listarParticipacoesByCampeonato(camp.id)
+  (dados || []).map(async (camp) => {
+
+    const inscritos = await listarParticipacoesByCampeonato(camp.id)
+
+    const inscritosComNome = await Promise.all(
+      inscritos.map(async (i: any) => ({
+        ...i,
+        aluno: await getAlunoCompleto(i.aluno_id)
       }))
     )
+
+    return {
+      campeonatoId: camp.id,
+      inscritos: inscritosComNome
+    }
+  })
+)
 
     setCampeonatos(dados || [])
     setParticipacoes(listaParticipacoes)
