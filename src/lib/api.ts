@@ -561,7 +561,7 @@ export async function getProgramacoesByAluno(alunoId: string) {
 /* ========================= CAMPEONATOS ========================= */
 
 export async function listarCampeonatos() {
-  cconst { data, error } = await supabase
+  const { data, error } = await supabase
   .from('campeonatos')
   .select('*')
   .eq('ativo', true)
