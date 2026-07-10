@@ -273,23 +273,19 @@ export const excluirSemana = async (id: string) =>
 
 /* ========================= DIAS ========================= */
 export async function listarDiasBySemana(semanaId: string) {
-  console.log('BUSCANDO DIAS DA SEMANA:', semanaId)
-
   const { data, error } = await supabase
     .from('dias_treino')
     .select('*')
     .eq('semana_id', semanaId)
     .eq('ativo', true)
-    
 
-  console.log('DIAS ENCONTRADOS:', data)
-const ordemDias = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM']
+  const ordemDias = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM']
+  data?.sort(
+    (a, b) =>
+      ordemDias.indexOf(a.dia_semana) -
+      ordemDias.indexOf(b.dia_semana)
+  )
 
-data?.sort(
-  (a, b) =>
-    ordemDias.indexOf(a.dia_semana) -
-    ordemDias.indexOf(b.dia_semana)
-)
   if (error) throw error
   return data as DiaTreino[]
 }
@@ -299,8 +295,6 @@ export const getDiaById = async (id: string) =>
     .data as DiaTreino
 
 export async function criarDia(dia: Partial<DiaTreino>) {
-  console.log('CRIANDO DIA:', dia)
-
   const { data, error } = await supabase
     .from('dias_treino')
     .insert([
@@ -312,12 +306,7 @@ export async function criarDia(dia: Partial<DiaTreino>) {
       },
     ])
     .select()
-if (error) {
-  console.error('ERRO AO CRIAR DIA:', error)
-  alert(JSON.stringify(error))
-  throw error
-}
-  
+  if (error) throw error
   return data?.[0] as DiaTreino
 }
 
@@ -341,8 +330,6 @@ export const getTreinoByDia = async (diaTreinoId: string) => {
     .select('*')
     .eq('dia_treino_id', diaTreinoId)
     .eq('ativo', true)
-
-  console.log('TREINOS ENCONTRADOS:', data)
 
   if (error) throw error
 
@@ -374,14 +361,16 @@ export async function getTreinoDoDia() {
 
   if (!dia) return null
 
-const treino = await getTreinoByDia(dia.id)
+  const treino = await getTreinoByDia(dia.id)
 
-console.log('========================')
-console.log('DIA ID:', dia.id)
-console.log('TREINO DO DIA:', treino)
-console.log('========================')
+  if (!treino) return null
 
-return treino
+  const blocos = await listarBlocosByTreino(treino.id)
+
+  return {
+    ...treino,
+    blocos,
+  }
 }
 
 export const criarTreino = async (treino: Partial<Treino>) =>
@@ -391,16 +380,11 @@ export const atualizarTreino = async (
   id: string,
   treino: Partial<Treino>
 ) => {
-  console.log('ATUALIZANDO TREINO:', treino)
-
   const { data, error } = await supabase
     .from('treinos')
     .update(treino)
     .eq('id', id)
     .select()
-
-  console.log('DATA:', data)
-  console.log('ERROR:', error)
 
   if (error) throw error
 
@@ -474,16 +458,15 @@ export async function criarResultado(resultado: Partial<Resultado>) {
 
   return data as Resultado
 }
-export async function buscarResultadoDoDia(usuarioId: string, treinoId: string) {
+export async function buscarResultadoDoDia(alunoId: string, treinoId: string) {
   const { data, error } = await supabase
     .from('resultados')
     .select('*')
-    .eq('aluno_id', usuarioId)
+    .eq('aluno_id', alunoId)
     .eq('treino_id', treinoId)
     .limit(1)
 
   if (error) {
-    console.error('Erro buscando resultado:', error)
     return null
   }
 
@@ -584,7 +567,7 @@ export async function criarCampeonato(campeonato: any) {
   return data
 }
 
-export async function atualizarCampeonato(id: number, campeonato: any) {
+export async function atualizarCampeonato(id: string, campeonato: any) {
   const { data, error } = await supabase
     .from('campeonatos')
     .update(campeonato)
@@ -597,17 +580,15 @@ export async function atualizarCampeonato(id: number, campeonato: any) {
   return data
 }
 
-export async function excluirCampeonato(id: number) {
+export async function excluirCampeonato(id: string) {
   const { error } = await supabase
     .from('campeonatos')
-    .update({
-      ativo: false
-    })
+    .update({ ativo: false })
     .eq('id', id)
 
   if (error) throw error
 }
-export async function listarParticipacoesByCampeonato(campeonatoId: number) {
+export async function listarParticipacoesByCampeonato(campeonatoId: string) {
   const { data, error } = await supabase
     .from('participacoes_campeonato')
     .select('*')
