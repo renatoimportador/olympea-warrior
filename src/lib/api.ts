@@ -130,12 +130,47 @@ export async function atualizarAluno(id: string, aluno: Partial<Aluno>) {
 }
 
 export async function excluirAluno(id: string) {
+  // Buscar o aluno para obter o usuario_id
+  const { data: aluno } = await supabase
+    .from('alunos')
+    .select('usuario_id')
+    .eq('id', id)
+    .single()
+
+  // Inativar o aluno
   const { error } = await supabase
     .from('alunos')
     .update({ ativo: false })
     .eq('id', id)
 
   if (error) throw error
+
+  // Verificar se o usuario tem outros vinculos ativos
+  if (aluno?.usuario_id) {
+    const { data: usuario } = await supabase
+      .from('usuarios')
+      .select('role')
+      .eq('id', aluno.usuario_id)
+      .single()
+
+    const role = usuario?.role || ''
+    if (role !== 'admin') {
+      // Verificar se eh coach ativo
+      const { data: coaches } = await supabase
+        .from('coaches')
+        .select('id')
+        .eq('usuario_id', aluno.usuario_id)
+        .eq('ativo', true)
+
+      if (!coaches || coaches.length === 0) {
+        // Sem outro vinculo, inativar usuario
+        await supabase
+          .from('usuarios')
+          .update({ ativo: false })
+          .eq('id', aluno.usuario_id)
+      }
+    }
+  }
 }
 
 export async function getAlunoByUsuarioId(uid: string) {
@@ -193,12 +228,47 @@ export async function atualizarCoach(id: string, coach: Partial<Coach>) {
 }
 
 export async function excluirCoach(id: string) {
+  // Buscar o coach para obter o usuario_id
+  const { data: coach } = await supabase
+    .from('coaches')
+    .select('usuario_id')
+    .eq('id', id)
+    .single()
+
+  // Inativar o coach
   const { error } = await supabase
     .from('coaches')
     .update({ ativo: false })
     .eq('id', id)
 
   if (error) throw error
+
+  // Verificar se o usuario tem outros vinculos ativos
+  if (coach?.usuario_id) {
+    const { data: usuario } = await supabase
+      .from('usuarios')
+      .select('role')
+      .eq('id', coach.usuario_id)
+      .single()
+
+    const role = usuario?.role || ''
+    if (role !== 'admin') {
+      // Verificar se eh aluno ativo
+      const { data: alunos } = await supabase
+        .from('alunos')
+        .select('id')
+        .eq('usuario_id', coach.usuario_id)
+        .eq('ativo', true)
+
+      if (!alunos || alunos.length === 0) {
+        // Sem outro vinculo, inativar usuario
+        await supabase
+          .from('usuarios')
+          .update({ ativo: false })
+          .eq('id', coach.usuario_id)
+      }
+    }
+  }
 }
 
 /* ========================= PROGRAMACOES ========================= */
@@ -713,13 +783,14 @@ export async function listarNiveis() {
   const { data, error } = await supabase
     .from('niveis')
     .select('*')
-    .order('ordem', { ascending: true, nullsFirst: false })
+    .eq('ativo', true)
+    .order('ordem', { ascending: true })
 
   if (error) {
     console.error('listarNiveis error:', error)
     throw error
   }
-  return (data || []).filter((n: any) => n.ativo !== false)
+  return data || []
 }
 
 /* ========================= WODs ========================= */
