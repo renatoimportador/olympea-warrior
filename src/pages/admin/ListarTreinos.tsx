@@ -78,17 +78,23 @@ export function ListarTreinos() {
         setProgramacao(prog)
 
         const fasesData = await listarFasesByProg(prog.id)
-        const fasesAtivas = fasesData.filter((f) => f.ativa)
 
-        setFases(fasesAtivas)
+        if (!mounted.current) return
 
-        if (fasesAtivas.length > 0) {
-          setFaseAtiva(fasesAtivas[0].id)
+        setFases(fasesData)
+
+        if (fasesData.length > 0) {
+          setFaseAtiva(fasesData[0].id)
+        } else {
+          setSemanas([])
+          setDias([])
+          setTreinos([])
+          setLoading(false)
         }
       } catch (error) {
         console.error(error)
         toast.error('Erro ao carregar treinos')
-        setLoading(false)
+        if (mounted.current) setLoading(false)
       }
     }
 
@@ -97,26 +103,35 @@ export function ListarTreinos() {
 
   useEffect(() => {
     async function carregarSemanas() {
-      if (!faseAtiva) return
+      if (!faseAtiva) {
+        setSemanas([])
+        setDias([])
+        setTreinos([])
+        setLoading(false)
+        return
+      }
 
       setLoading(true)
 
       try {
         const semanasData = await listarSemanasByFase(faseAtiva)
-        const semanasAtivas = semanasData.filter((s) => s.ativa)
 
-        setSemanas(semanasAtivas)
+        if (!mounted.current) return
 
-        if (semanasAtivas.length > 0) {
-          setSemanaAtiva(semanasAtivas[0].id)
+        setSemanas(semanasData)
+
+        if (semanasData.length > 0) {
+          setSemanaAtiva(semanasData[0].id)
         } else {
+          setSemanaAtiva('')
+          setDias([])
           setTreinos([])
           setLoading(false)
         }
       } catch (error) {
         console.error(error)
         toast.error('Erro ao carregar semanas')
-        setLoading(false)
+        if (mounted.current) setLoading(false)
       }
     }
 
@@ -125,7 +140,11 @@ export function ListarTreinos() {
 
   useEffect(() => {
     async function carregarTreinos() {
-      if (!semanaAtiva) return
+      if (!semanaAtiva) {
+        setTreinos([])
+        setLoading(false)
+        return
+      }
 
       setLoading(true)
 
@@ -134,7 +153,7 @@ export function ListarTreinos() {
         setDias(diasData)
 
         const semanaAtual = await getSemanaById(semanaAtiva)
-        const faseAtual = semanaAtual
+        const faseAtual = semanaAtual?.fase_id
           ? await getFaseById(semanaAtual.fase_id)
           : null
 
@@ -144,14 +163,12 @@ export function ListarTreinos() {
           const ts = await listarTreinosByDia(dia.id)
 
           for (const treino of ts) {
-            if (semanaAtual && faseAtual) {
-              views.push({
-                treino,
-                dia,
-                semana: semanaAtual,
-                fase: faseAtual,
-              })
-            }
+            views.push({
+              treino,
+              dia,
+              semana: semanaAtual || { id: semanaAtiva, nome: 'Semana' } as Semana,
+              fase: faseAtual || { id: '', nome: 'Fase' } as Fase,
+            })
           }
         }
 
@@ -160,7 +177,7 @@ export function ListarTreinos() {
         console.error(error)
         toast.error('Erro ao carregar treinos')
       } finally {
-        setLoading(false)
+        if (mounted.current) setLoading(false)
       }
     }
 

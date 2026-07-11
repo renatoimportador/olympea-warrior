@@ -81,13 +81,18 @@ export async function excluirUsuario(id: string) {
 }
 
 export async function getUsuarioByEmail(email: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('usuarios')
     .select('*')
-    .eq('email', email)
-    .single()
+    .eq('email', email.trim().toLowerCase())
+    .maybeSingle()
 
-  return data as Usuario
+  if (error) {
+    console.error('getUsuarioByEmail error:', error)
+    return null
+  }
+
+  return data as Usuario | null
 }
 
 /* ========================= ALUNOS ========================= */
@@ -708,10 +713,13 @@ export async function listarNiveis() {
   const { data, error } = await supabase
     .from('niveis')
     .select('*')
-    .eq('ativo', true)
-    .order('ordem', { ascending: true })
+    .not('ativo', 'eq', false)
+    .order('ordem', { ascending: true, nullsFirst: false })
 
-  if (error) throw error
+  if (error) {
+    console.error('listarNiveis error:', error)
+    throw error
+  }
   return data || []
 }
 

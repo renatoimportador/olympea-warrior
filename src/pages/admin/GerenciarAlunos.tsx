@@ -105,16 +105,23 @@ export function GerenciarAlunos() {
         if (usuarioExistente) {
           usuario = usuarioExistente
         } else {
-          const boxId = await getBoxId()
-          usuario = await criarUsuario({
-            box_id: boxId || undefined,
-            nome: form.nome,
-            email: form.email,
-            telefone: form.telefone || undefined,
-            role: 'aluno',
-            ativo: true,
-            auth_provider: 'email',
-          })
+          try {
+            const boxId = await getBoxId()
+            usuario = await criarUsuario({
+              box_id: boxId || undefined,
+              nome: form.nome,
+              email: form.email.trim().toLowerCase(),
+              telefone: form.telefone || undefined,
+              role: 'aluno',
+              ativo: true,
+              auth_provider: 'email',
+            })
+          } catch (insertErr: any) {
+            if (insertErr?.message?.includes('duplicate key') || insertErr?.code === '23505') {
+              usuario = await getUsuarioByEmail(form.email)
+            }
+            if (!usuario) throw insertErr
+          }
         }
 
         if (!usuario) {
