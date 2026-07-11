@@ -11,8 +11,8 @@ import {
   atualizarUsuario,
   getUsuarioByEmail,
   getBoxId,
-  listarNiveis,
 } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import type { Aluno } from '@/data/types'
 import { Search, Plus, Edit2, Ban, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -44,12 +44,19 @@ export function GerenciarAlunos() {
   }
 
   async function carregarNiveis() {
-    try {
-      const data = await listarNiveis()
-      setNiveis(data || [])
-    } catch {
-      console.error('Erro ao carregar niveis')
+    const { data, error } = await supabase
+      .from('niveis')
+      .select('*')
+
+    if (error) {
+      console.error('Erro ao carregar niveis:', error)
+      toast.error('Erro ao carregar niveis')
+      return
     }
+
+    const ativos = (data || []).filter((n: any) => n.ativo !== false)
+    ativos.sort((a: any, b: any) => (a.ordem ?? 999) - (b.ordem ?? 999))
+    setNiveis(ativos)
   }
 
   useEffect(() => {
