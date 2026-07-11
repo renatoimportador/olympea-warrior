@@ -48,6 +48,10 @@ export function GerenciarAlunos() {
       .from('niveis')
       .select('*')
 
+    console.log('NÍVEIS RECEBIDOS:', data)
+    console.log('QUANTIDADE:', data?.length)
+    console.log('ERRO:', error)
+
     if (error) {
       console.error('Erro ao carregar niveis:', error)
       toast.error('Erro ao carregar niveis')
@@ -56,9 +60,11 @@ export function GerenciarAlunos() {
 
     const ativos = (data || []).filter((n: any) => n.ativo !== false)
     ativos.sort((a: any, b: any) => (a.ordem ?? 999) - (b.ordem ?? 999))
+
+    console.log('NÍVEIS APÓS FILTRO:', ativos)
+    console.log('QUANTIDADE APÓS FILTRO:', ativos.length)
+
     setNiveis(ativos)
-    console.log("NÍVEIS:", data)
-    console.log("ATIVOS:", ativos)
   }
 
   useEffect(() => {
