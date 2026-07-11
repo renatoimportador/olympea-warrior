@@ -57,6 +57,8 @@ export function GerenciarAlunos() {
     const ativos = (data || []).filter((n: any) => n.ativo !== false)
     ativos.sort((a: any, b: any) => (a.ordem ?? 999) - (b.ordem ?? 999))
     setNiveis(ativos)
+    console.log("NÍVEIS:", data)
+    console.log("ATIVOS:", ativos)
   }
 
   useEffect(() => {
