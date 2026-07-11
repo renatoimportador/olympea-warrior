@@ -395,8 +395,16 @@ export async function getTreinoDoDia() {
   }
 }
 
-export const criarTreino = async (treino: Partial<Treino>) =>
-  (await supabase.from('treinos').insert(treino).select().single()).data
+export const criarTreino = async (treino: Partial<Treino>) => {
+  const { data, error } = await supabase
+    .from('treinos')
+    .insert(treino)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Treino
+}
 
 export const atualizarTreino = async (
   id: string,
@@ -429,8 +437,16 @@ export const listarBlocosByTreino = async (treinoId: string) =>
       .order('ordem', { ascending: true })
   ).data as BlocoTreino[]
 
-export const adicionarBloco = async (bloco: Partial<BlocoTreino>) =>
-  (await supabase.from('blocos_treino').insert(bloco).select().single()).data
+export const adicionarBloco = async (bloco: Partial<BlocoTreino>) => {
+  const { data, error } = await supabase
+    .from('blocos_treino')
+    .insert(bloco)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
 
 export const atualizarBloco = async (id: string, bloco: Partial<BlocoTreino>) => {
   const { error } = await supabase.from('blocos_treino').update(bloco).eq('id', id)
@@ -685,4 +701,60 @@ export async function signInWithEmail(email: string, password: string) {
 
 export async function signOut() {
   return await supabase.auth.signOut()
+}
+
+/* ========================= NIVEIS ========================= */
+export async function listarNiveis() {
+  const { data, error } = await supabase
+    .from('niveis')
+    .select('*')
+    .eq('ativo', true)
+    .order('ordem', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+/* ========================= WODs ========================= */
+export async function listarWods() {
+  const { data, error } = await supabase
+    .from('wods')
+    .select('*')
+    .eq('ativo', true)
+    .order('nome', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function criarWod(wod: any) {
+  const { data, error } = await supabase
+    .from('wods')
+    .insert(wod)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function atualizarWod(id: string, wod: any) {
+  const { data, error } = await supabase
+    .from('wods')
+    .update(wod)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function excluirWod(id: string) {
+  const { error } = await supabase
+    .from('wods')
+    .update({ ativo: false })
+    .eq('id', id)
+
+  if (error) throw error
 }

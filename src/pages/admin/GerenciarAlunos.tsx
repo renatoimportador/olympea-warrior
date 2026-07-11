@@ -11,6 +11,7 @@ import {
   atualizarUsuario,
   getUsuarioByEmail,
   getBoxId,
+  listarNiveis,
 } from '@/lib/api'
 import type { Aluno } from '@/data/types'
 import { Search, Plus, Edit2, Ban, Save } from 'lucide-react'
@@ -22,11 +23,12 @@ export function GerenciarAlunos() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [alunos, setAlunos] = useState<Aluno[]>([])
+  const [niveis, setNiveis] = useState<any[]>([])
 
   const [form, setForm] = useState({
     nome: '',
     email: '',
-    categoria: 'RX',
+    categoria: '',
     peso: '',
     altura: '',
     telefone: '',
@@ -41,15 +43,25 @@ export function GerenciarAlunos() {
     }
   }
 
+  async function carregarNiveis() {
+    try {
+      const data = await listarNiveis()
+      setNiveis(data || [])
+    } catch {
+      console.error('Erro ao carregar niveis')
+    }
+  }
+
   useEffect(() => {
     carregarAlunos()
+    carregarNiveis()
   }, [])
 
   function resetForm() {
     setForm({
       nome: '',
       email: '',
-      categoria: 'RX',
+      categoria: niveis.length > 0 ? niveis[0].slug : '',
       peso: '',
       altura: '',
       telefone: '',
@@ -60,6 +72,11 @@ export function GerenciarAlunos() {
   async function handleSave() {
     if (!form.nome.trim() || !form.email.trim()) {
       toast.error('Preencha nome e email')
+      return
+    }
+
+    if (!form.categoria) {
+      toast.error('Selecione o nivel/categoria')
       return
     }
 
@@ -75,7 +92,7 @@ export function GerenciarAlunos() {
         })
 
         await atualizarAluno(editingId, {
-          categoria: form.categoria as 'RX' | 'SCALING' | 'BEGINNER',
+          categoria: form.categoria as any,
           peso_atual: form.peso ? parseFloat(form.peso) : undefined,
           altura: form.altura ? parseFloat(form.altura.replace(',', '.')) : undefined,
         })
@@ -105,22 +122,28 @@ export function GerenciarAlunos() {
           return
         }
 
-        await criarAluno({
+        const novoAluno = await criarAluno({
           usuario_id: usuario.id,
-          box_id: usuario.box_id,
-          categoria: form.categoria as 'RX' | 'SCALING' | 'BEGINNER',
+          box_id: usuario.box_id || undefined,
+          categoria: form.categoria as any,
           peso_atual: form.peso ? parseFloat(form.peso) : undefined,
           altura: form.altura ? parseFloat(form.altura.replace(',', '.')) : undefined,
           ativo: true,
         })
+
+        if (!novoAluno) {
+          toast.error('Erro ao salvar aluno no banco')
+          return
+        }
 
         toast.success('Aluno criado!')
       }
 
       resetForm()
       setShowForm(false)
-      carregarAlunos()
+      await carregarAlunos()
     } catch (e: any) {
+      console.error('Erro ao salvar aluno:', e)
       toast.error(e?.message || 'Erro ao salvar aluno')
     }
   }
@@ -129,7 +152,7 @@ export function GerenciarAlunos() {
     setForm({
       nome: a.usuario?.nome || '',
       email: a.usuario?.email || '',
-      categoria: a.categoria || 'RX',
+      categoria: a.categoria || '',
       peso: a.peso_atual ? String(a.peso_atual) : '',
       altura: a.altura ? String(a.altura) : '',
       telefone: a.usuario?.telefone || '',
@@ -186,12 +209,15 @@ export function GerenciarAlunos() {
               onChange={(e) => setForm({ ...form, categoria: e.target.value })}
               className="glass-input w-full"
             >
-              <option value="RX">RX</option>
-              <option value="SCALING">Scaling</option>
-              <option value="BEGINNER">Beginner</option>
+              <option value="">Selecione o nivel</option>
+              {niveis.map((n: any) => (
+                <option key={n.id} value={n.slug}>
+                  {n.nome}
+                </option>
+              ))}
             </select>
-            <Input placeholder="Peso" value={form.peso} onChange={(e) => setForm({ ...form, peso: e.target.value })} />
-            <Input placeholder="Altura" value={form.altura} onChange={(e) => setForm({ ...form, altura: e.target.value })} />
+            <Input placeholder="Peso (kg)" value={form.peso} onChange={(e) => setForm({ ...form, peso: e.target.value })} />
+            <Input placeholder="Altura (m)" value={form.altura} onChange={(e) => setForm({ ...form, altura: e.target.value })} />
             <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
           </div>
           <div className="flex gap-2">

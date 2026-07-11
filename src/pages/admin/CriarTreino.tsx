@@ -36,7 +36,7 @@ export function CriarTreino() {
   const editTreinoId = (location.state as any)?.treinoId || ''
 
   const [titulo, setTitulo] = useState('')
-  const [tipoWod, setTipoWod] = useState('tempo')
+  const [tipoWod, setTipoWod] = useState('FOR_TIME')
   const [blocos, setBlocos] = useState<BlocoTreino[]>([])
   const [salvando, setSalvando] = useState(false)
 
@@ -139,7 +139,7 @@ export function CriarTreino() {
 
         setTitulo(treino.titulo || '')
         setDiaTreinoId(treino.dia_treino_id || '')
-        setTipoWod(treino.tipo_wod || 'tempo')
+        setTipoWod(treino.tipo_wod || 'FOR_TIME')
 
         const dia = await getDiaById(treino.dia_treino_id)
 

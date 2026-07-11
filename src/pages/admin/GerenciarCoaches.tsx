@@ -9,6 +9,7 @@ import {
   excluirCoach,
   criarUsuario,
   atualizarUsuario,
+  getUsuarioByEmail,
   getBoxId,
 } from '@/lib/api'
 import type { Coach } from '@/data/types'
@@ -67,15 +68,22 @@ export function GerenciarCoaches() {
         toast.success('Coach atualizado!')
       } else {
         const boxId = await getBoxId()
-        const usuario = await criarUsuario({
-          box_id: boxId || undefined,
-          nome: form.nome,
-          email: form.email,
-          telefone: form.telefone || undefined,
-          role: 'coach',
-          ativo: true,
-          auth_provider: 'email',
-        })
+        let usuario = null
+
+        const usuarioExistente = await getUsuarioByEmail(form.email)
+        if (usuarioExistente) {
+          usuario = usuarioExistente
+        } else {
+          usuario = await criarUsuario({
+            box_id: boxId || undefined,
+            nome: form.nome,
+            email: form.email,
+            telefone: form.telefone || undefined,
+            role: 'coach',
+            ativo: true,
+            auth_provider: 'email',
+          })
+        }
 
         if (!usuario) {
           toast.error('Erro ao criar usuario')
@@ -84,7 +92,7 @@ export function GerenciarCoaches() {
 
         await criarCoach({
           usuario_id: usuario.id,
-          box_id: boxId || undefined,
+          box_id: boxId || usuario.box_id || undefined,
           bio: form.bio,
           especialidades: form.especialidade ? [form.especialidade] : undefined,
           ativo: true,
