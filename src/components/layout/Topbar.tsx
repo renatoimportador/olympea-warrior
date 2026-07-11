@@ -68,7 +68,10 @@ export function Topbar() {
             <div className="absolute right-0 top-full mt-2 w-48 glass-card overflow-hidden">
               <button
                 onClick={() => {
-                  navigate('/perfil')
+                  const role = user?.role
+                  if (role === 'admin') navigate('/admin/configuracoes')
+                  else if (role === 'coach') navigate('/coach/dashboard')
+                  else navigate('/aluno/perfil')
                   setMenuOpen(false)
                 }}
                 className="flex items-center gap-2 px-4 py-3 text-sm text-text-secondary hover:text-text-primary hover:bg-white/[0.03] w-full text-left"

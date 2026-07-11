@@ -58,7 +58,6 @@ import { CampeonatosAluno } from '@/pages/aluno/CampeonatosAluno'
 import { BibliotecaMovimentos } from '@/pages/shared/BibliotecaMovimentos'
 import { DetalheMovimento } from '@/pages/shared/DetalheMovimento'
 import { Notificacoes } from '@/pages/shared/Notificacoes'
-import { Perfil } from '@/pages/shared/Perfil'
 
 export function AppRoutes() {
   return (
@@ -143,7 +142,6 @@ export function AppRoutes() {
         <Route path="/biblioteca" element={<BibliotecaMovimentos />} />
         <Route path="/movimento/:slug" element={<DetalheMovimento />} />
         <Route path="/notificacoes" element={<Notificacoes />} />
-        <Route path="/perfil" element={<Perfil />} />
       </Route>
     </Routes>
   )

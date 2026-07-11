@@ -86,8 +86,9 @@ export function DashboardCoach() {
 
   const totalAlunos = alunos.length
   const freqTotal = frequencias.filter((f) => f.presente).length
+  const totalFreqs = frequencias.length
   const freqMedia =
-    totalAlunos > 0 ? (freqTotal / totalAlunos).toFixed(1) : '0'
+    totalFreqs > 0 ? Math.round((freqTotal / totalFreqs) * 100) : 0
 
   const seteDiasAtras = new Date()
   seteDiasAtras.setDate(seteDiasAtras.getDate() - 7)
@@ -122,22 +123,22 @@ export function DashboardCoach() {
       change: 'ativos',
     },
     {
-      label: 'Frequência Média',
-      value: String(freqMedia),
+      label: 'Frequencia Media',
+      value: `${freqMedia}%`,
       icon: CalendarCheck,
-      change: 'por atleta',
+      change: 'presencas',
     },
     {
-      label: 'Resultados',
-      value: String(resultados.length),
+      label: 'Resultados 7d',
+      value: String(resultados7d.length),
       icon: TrendingUp,
-      change: 'registrados',
+      change: 'ultimos 7 dias',
     },
     {
-      label: 'PRs',
-      value: String(personalRecords.length),
+      label: 'PRs 7d',
+      value: String(prs7d.length),
       icon: Flame,
-      change: 'conquistados',
+      change: 'ultimos 7 dias',
     },
   ]
 

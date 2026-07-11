@@ -912,6 +912,7 @@ export async function listarAuditorias() {
 }
 
 /* ========================= ALUNO UPDATE (perfil) ========================= */
+// TESTE RENATO
 export async function atualizarPerfilAluno(id: string, dados: Partial<Aluno>) {
   const { data, error } = await supabase
     .from('alunos')
