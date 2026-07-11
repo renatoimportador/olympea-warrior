@@ -62,7 +62,7 @@ export function GerenciarCoaches() {
 
         await atualizarCoach(editingId, {
           bio: form.bio,
-          especialidades: form.especialidade ? [form.especialidade] : undefined,
+          especialidade: form.especialidade || null,
         })
 
         toast.success('Coach atualizado!')
@@ -101,7 +101,7 @@ export function GerenciarCoaches() {
           usuario_id: usuario.id,
           box_id: boxId || usuario.box_id || undefined,
           bio: form.bio,
-          especialidades: form.especialidade ? [form.especialidade] : undefined,
+          especialidade: form.especialidade || null,
           ativo: true,
         })
 

@@ -33,7 +33,7 @@ export let alunos: Aluno[] = [
 ]
 
 export let coaches: Coach[] = [
-  { id: 'c-1', usuario_id: 'u-coach1', box_id: 'box-1', especialidades: ['CrossFit', 'LPO', 'Competicao'], bio: 'Coach desde 2015.', ativo: true, created_at: '' }
+  { id: 'c-1', usuario_id: 'u-coach1', box_id: 'box-1', especialidade: 'CrossFit, LPO, Competicao', bio: 'Coach desde 2015.', ativo: true, created_at: '' }
 ]
 
 export let programacoes: Programacao[] = [

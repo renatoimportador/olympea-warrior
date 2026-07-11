@@ -713,14 +713,13 @@ export async function listarNiveis() {
   const { data, error } = await supabase
     .from('niveis')
     .select('*')
-    .not('ativo', 'eq', false)
     .order('ordem', { ascending: true, nullsFirst: false })
 
   if (error) {
     console.error('listarNiveis error:', error)
     throw error
   }
-  return data || []
+  return (data || []).filter((n: any) => n.ativo !== false)
 }
 
 /* ========================= WODs ========================= */

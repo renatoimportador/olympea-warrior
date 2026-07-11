@@ -132,7 +132,7 @@ export interface Coach {
   id: UUID;
   usuario_id: UUID;
   box_id: UUID;
-  especialidades?: string[];
+  especialidade?: string;
   bio?: string;
   ativo: boolean;
   created_at: string;
