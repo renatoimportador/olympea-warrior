@@ -14,6 +14,8 @@ import type {
   PersonalRecord,
   Frequencia,
   Exercicio,
+  Notificacao,
+  Auditoria,
 } from '@/data/types'
 
 /* ========================= BOX ========================= */
@@ -835,4 +837,105 @@ export async function excluirWod(id: string) {
     .eq('id', id)
 
   if (error) throw error
+}
+
+/* ========================= NOTIFICACOES ========================= */
+export async function listarNotificacoesByUsuario(usuarioId: string) {
+  const { data, error } = await supabase
+    .from('notificacoes')
+    .select('*')
+    .eq('usuario_id', usuarioId)
+    .order('data', { ascending: false })
+
+  if (error) {
+    console.error('listarNotificacoes error:', error)
+    return []
+  }
+  return (data || []) as Notificacao[]
+}
+
+export async function criarNotificacaoSupabase(notificacao: Partial<Notificacao>) {
+  const { data, error } = await supabase
+    .from('notificacoes')
+    .insert(notificacao)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('criarNotificacao error:', error)
+    return null
+  }
+  return data as Notificacao
+}
+
+export async function marcarNotificacaoLida(id: string) {
+  const { error } = await supabase
+    .from('notificacoes')
+    .update({ lida: true })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+/* ========================= FREQUENCIAS (CRUD) ========================= */
+export async function criarFrequenciaSupabase(frequencia: Partial<Frequencia>) {
+  const { data, error } = await supabase
+    .from('frequencias')
+    .insert(frequencia)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Frequencia
+}
+
+export async function listarTodasFrequencias() {
+  const { data, error } = await supabase
+    .from('frequencias')
+    .select('*')
+    .order('data', { ascending: false })
+
+  if (error) throw error
+  return (data || []) as Frequencia[]
+}
+
+/* ========================= AUDITORIA ========================= */
+export async function listarAuditorias() {
+  const { data, error } = await supabase
+    .from('auditorias')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (error) throw error
+  return (data || []) as Auditoria[]
+}
+
+/* ========================= ALUNO UPDATE (perfil) ========================= */
+export async function atualizarPerfilAluno(id: string, dados: Partial<Aluno>) {
+  const { data, error } = await supabase
+    .from('alunos')
+    .update(dados)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Aluno
+}
+
+/* ========================= HELPER: getTipoBlocoLabel ========================= */
+export function getTipoBlocoLabel(tipo: string): string {
+  const labels: Record<string, string> = {
+    MOBILIDADE: 'Mobilidade',
+    WARM_UP: 'Aquecimento',
+    SKILL: 'Skill',
+    FORCA: 'Forca',
+    WORKOUT: 'Workout',
+    GAME_PLAN: 'Game Plan',
+    OBSERVACOES_COACH: 'Obs. Coach',
+    ACCESSORIES: 'Acessorios',
+    CONDITIONING: 'Condicionamento',
+  }
+  return labels[tipo] || tipo
 }

@@ -1,16 +1,49 @@
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
-import { alunos, usuarios, frequencias } from '@/data/seed'
+import { listarAlunos, getFrequenciasByAluno } from '@/lib/api'
+import type { Frequencia } from '@/data/types'
 import { CalendarCheck, Clock, UserCheck, UserX } from 'lucide-react'
 
 export function FrequenciaAlunos() {
-  const frequenciasPorAluno = alunos.filter((a) => a.ativo).map((a) => {
-    const u = usuarios.find((u) => u.id === a.usuario_id)
-    const freq = frequencias.filter((f) => f.aluno_id === a.id)
-    const presencas = freq.filter((f) => f.presente).length
-    const ultima = freq.filter((f) => f.presente).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())[0]
-    return { ...a, usuario: u, freq, presencas, ultima }
-  })
+  const [frequenciasPorAluno, setFrequenciasPorAluno] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const alunosData = await listarAlunos()
+        const alunosAtivos = (alunosData || []).filter((a: any) => a.ativo)
+
+        const resultado = await Promise.all(
+          alunosAtivos.map(async (a: any) => {
+            const freq = await getFrequenciasByAluno(a.id)
+            const presencas = (freq || []).filter((f: Frequencia) => f.presente).length
+            const ultima = (freq || [])
+              .filter((f: Frequencia) => f.presente)
+              .sort((x: Frequencia, y: Frequencia) => new Date(y.data).getTime() - new Date(x.data).getTime())[0]
+            return { ...a, freq: freq || [], presencas, ultima }
+          })
+        )
+
+        setFrequenciasPorAluno(resultado)
+      } catch (e) {
+        console.error('Erro ao carregar frequencias:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    carregar()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-5 animate-fade-in">
+        <h1 className="text-2xl font-bold text-text-primary">Frequencia dos Alunos</h1>
+        <p className="text-sm text-text-secondary">Carregando...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -43,7 +76,7 @@ export function FrequenciaAlunos() {
               {a.usuario?.nome?.charAt(0) || 'A'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-text-primary">{a.usuario?.nome}</p>
+              <p className="text-sm font-medium text-text-primary">{a.usuario?.nome || 'Aluno'}</p>
               <p className="text-xs text-text-secondary">
                 Ultima presenca: {a.ultima ? new Date(a.ultima.data).toLocaleDateString('pt-BR') : 'Nunca'}
               </p>

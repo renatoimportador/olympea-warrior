@@ -1,41 +1,60 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { useAuth } from '@/context/AuthContext'
-import { criarFrequencia, getAlunoByUsuarioId } from '@/data/seed'
+import { getAlunoByUsuarioId, criarFrequenciaSupabase } from '@/lib/api'
+import type { Aluno } from '@/data/types'
 import toast from 'react-hot-toast'
 import { Clock, CheckCircle, LogIn, LogOut, Dumbbell } from 'lucide-react'
 
 export function CheckIn() {
   const { user } = useAuth()
-  const aluno = user ? getAlunoByUsuarioId(user.id) : undefined
+  const [aluno, setAluno] = useState<Aluno | null>(null)
   const [status, setStatus] = useState<'nenhum' | 'checkin' | 'checkout'>('nenhum')
   const [treinoConcluido, setTreinoConcluido] = useState(false)
   const [horaEntrada, setHoraEntrada] = useState('')
   const [horaSaida, setHoraSaida] = useState('')
 
+  useEffect(() => {
+    async function carregar() {
+      if (!user) return
+      const a = await getAlunoByUsuarioId(user.id)
+      if (a) setAluno(a)
+    }
+    carregar()
+  }, [user])
+
+  const agora = new Date()
+  const horaAtual = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const dataAtual = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
+
   function handleCheckIn() {
     setStatus('checkin')
-    setHoraEntrada(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))
+    setHoraEntrada(new Date().toISOString())
     toast.success('Check-in realizado!')
   }
 
-  function handleCheckOut() {
+  async function handleCheckOut() {
     setStatus('checkout')
-    setHoraSaida(new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))
+    const saida = new Date().toISOString()
+    setHoraSaida(saida)
     if (aluno) {
-      criarFrequencia({
-        aluno_id: aluno.id,
-        treino_id: '',
-        data: new Date().toISOString(),
-        presente: true,
-        treino_concluido: treinoConcluido,
-        checkin_at: horaEntrada,
-        checkout_at: new Date().toISOString(),
-      })
+      try {
+        await criarFrequenciaSupabase({
+          aluno_id: aluno.id,
+          data: new Date().toISOString().split('T')[0],
+          presente: true,
+          treino_concluido: treinoConcluido,
+          checkin_at: horaEntrada,
+          checkout_at: saida,
+        })
+        toast.success('Check-out realizado! Presenca salva.')
+      } catch (e) {
+        console.error('Erro ao salvar frequencia:', e)
+        toast.error('Erro ao salvar frequencia')
+      }
     }
-    toast.success('Check-out realizado! Presenca salva.')
   }
 
   return (
@@ -50,8 +69,8 @@ export function CheckIn() {
           <Clock size={36} className="text-accent" />
         </div>
         <div>
-          <p className="text-3xl font-black text-text-primary">06:00</p>
-          <p className="text-sm text-text-secondary">Segunda, 03 de Junho</p>
+          <p className="text-3xl font-black text-text-primary">{horaAtual}</p>
+          <p className="text-sm text-text-secondary capitalize">{dataAtual}</p>
         </div>
 
         {status === 'nenhum' && (
@@ -67,7 +86,9 @@ export function CheckIn() {
               <CheckCircle size={20} className="text-success" />
               <div className="text-left">
                 <p className="text-sm font-medium text-success">Check-in realizado</p>
-                <p className="text-xs text-text-secondary">06:00 - CrossFit OLYMPEA</p>
+                <p className="text-xs text-text-secondary">
+                  {new Date(horaEntrada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -93,7 +114,9 @@ export function CheckIn() {
               <CheckCircle size={20} className="text-accent" />
               <div className="text-left">
                 <p className="text-sm font-medium text-accent">Treino completo!</p>
-                <p className="text-xs text-text-secondary">Check-in: 06:00 | Check-out: 07:15</p>
+                <p className="text-xs text-text-secondary">
+                  Check-in: {new Date(horaEntrada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} | Check-out: {new Date(horaSaida).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </p>
               </div>
             </div>
             <Badge variant="success">Presente + Concluido</Badge>

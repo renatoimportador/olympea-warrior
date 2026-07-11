@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Input } from '@/components/ui/Input'
-import { exercicios } from '@/data/seed'
+import { listarExercicios } from '@/lib/api'
+import type { Exercicio } from '@/data/types'
 import { Search, BookOpen, ArrowRight } from 'lucide-react'
 
 const categorias = ['TODOS', 'LPO', 'GYMNASTICS', 'MONOSTRUTURAL', 'CORE']
@@ -11,12 +12,37 @@ export function BibliotecaMovimentos() {
   const navigate = useNavigate()
   const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState('TODOS')
+  const [exercicios, setExercicios] = useState<Exercicio[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const data = await listarExercicios()
+        setExercicios(data || [])
+      } catch (e) {
+        console.error('Erro ao carregar exercicios:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    carregar()
+  }, [])
 
   const filtrados = exercicios.filter((e) => {
     const matchCategoria = categoria === 'TODOS' || e.categoria === categoria
     const matchBusca = e.nome.toLowerCase().includes(busca.toLowerCase())
     return matchCategoria && matchBusca && e.ativo
   })
+
+  if (loading) {
+    return (
+      <div className="space-y-5 animate-fade-in">
+        <h1 className="text-2xl font-bold text-text-primary">Biblioteca de Movimentos</h1>
+        <p className="text-sm text-text-secondary">Carregando...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -25,7 +51,6 @@ export function BibliotecaMovimentos() {
         <p className="text-sm text-text-secondary">Exercicios, padroes, erros e escalas</p>
       </div>
 
-      {/* Buscas */}
       <div className="relative">
         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
         <Input
@@ -36,7 +61,6 @@ export function BibliotecaMovimentos() {
         />
       </div>
 
-      {/* Categorias */}
       <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
         {categorias.map((c) => (
           <button
@@ -53,7 +77,6 @@ export function BibliotecaMovimentos() {
         ))}
       </div>
 
-      {/* Lista */}
       <div className="space-y-3">
         {filtrados.length === 0 && (
           <p className="text-center text-sm text-text-secondary py-8">Nenhum movimento encontrado</p>

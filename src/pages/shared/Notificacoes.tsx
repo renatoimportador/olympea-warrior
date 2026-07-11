@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Bell, Check, MessageSquare, Trophy, Dumbbell, AlertCircle } from 'lucide-react'
-import { getNotificacoesByUsuario } from '@/data/seed'
+import { listarNotificacoesByUsuario, marcarNotificacaoLida } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import type { Notificacao } from '@/data/types'
 
 const tipoIcon: Record<string, { icon: typeof MessageSquare; color: string }> = {
   NOVO_TREINO: { icon: Dumbbell, color: 'text-accent' },
@@ -15,12 +17,46 @@ const tipoIcon: Record<string, { icon: typeof MessageSquare; color: string }> = 
 export function Notificacoes() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const notificacoes = user ? getNotificacoesByUsuario(user.id) : []
+  const [notificacoes, setNotificacoes] = useState<Notificacao[]>([])
+  const [loading, setLoading] = useState(true)
 
-  function handleClick(n: typeof notificacoes[0]) {
+  useEffect(() => {
+    async function carregar() {
+      if (!user) { setLoading(false); return }
+      const data = await listarNotificacoesByUsuario(user.id)
+      setNotificacoes(data)
+      setLoading(false)
+    }
+    carregar()
+  }, [user])
+
+  async function handleClick(n: Notificacao) {
+    if (!n.lida) {
+      try {
+        await marcarNotificacaoLida(n.id)
+        setNotificacoes(prev => prev.map(not => not.id === n.id ? { ...not, lida: true } : not))
+      } catch {}
+    }
     if (n.link) {
       navigate(n.link, { state: { notificacaoId: n.id, tipo: n.tipo } })
     }
+  }
+
+  async function handleMarcarLida(e: React.MouseEvent, id: string) {
+    e.stopPropagation()
+    try {
+      await marcarNotificacaoLida(id)
+      setNotificacoes(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n))
+    } catch {}
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-5 animate-fade-in">
+        <h1 className="text-2xl font-bold text-text-primary">Notificacoes</h1>
+        <p className="text-sm text-text-secondary">Carregando...</p>
+      </div>
+    )
   }
 
   return (
@@ -34,7 +70,7 @@ export function Notificacoes() {
         {notificacoes.length === 0 && (
           <GlassCard className="p-8 text-center">
             <Bell size={32} className="mx-auto text-text-secondary mb-2" />
-            <p className="text-sm text-text-secondary">Nenhuma notificacao</p>
+            <p className="text-sm text-text-secondary">Nenhuma notificacao.</p>
           </GlassCard>
         )}
         {notificacoes.map((n) => {
@@ -56,12 +92,12 @@ export function Notificacoes() {
                 </div>
                 <p className="text-xs text-text-secondary mt-0.5">{n.mensagem}</p>
                 <p className="text-[10px] text-text-secondary mt-1">
-                  {new Date(n.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  {n.data ? new Date(n.data).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
                 </p>
               </div>
               {!n.lida && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); /* marcar lida futuro */ }}
+                  onClick={(e) => handleMarcarLida(e, n.id)}
                   className="p-1.5 rounded-lg hover:bg-white/[0.03] transition-colors"
                 >
                   <Check size={14} className="text-success" />

@@ -1,17 +1,45 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProgramacao } from '@/context/ProgramacaoContext'
-import { getProgramacoesByAluno } from '@/data/seed'
+import { getAlunoByUsuarioId, getProgramacoesByAluno } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Dumbbell, ChevronRight, Check } from 'lucide-react'
+import type { Programacao } from '@/data/types'
 
 export function SeletorProgramacao() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { programacaoAtiva, setProgramacaoAtiva } = useProgramacao()
+  const [programacoes, setProgramacoes] = useState<Programacao[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const aluno = user ? { id: 'a-1' } : undefined // usuario mock
-  const programacoes = aluno ? getProgramacoesByAluno(aluno.id) : []
+  useEffect(() => {
+    async function carregar() {
+      if (!user) { setLoading(false); return }
+      try {
+        const aluno = await getAlunoByUsuarioId(user.id)
+        if (aluno) {
+          const progs = await getProgramacoesByAluno(aluno.id)
+          setProgramacoes(progs || [])
+        }
+      } catch (e) {
+        console.error('Erro ao carregar programacoes:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    carregar()
+  }, [user])
+
+  if (loading) {
+    return (
+      <div className="space-y-5 animate-fade-in">
+        <h1 className="text-2xl font-bold text-text-primary">Minhas Programacoes</h1>
+        <p className="text-sm text-text-secondary">Carregando...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -21,6 +49,11 @@ export function SeletorProgramacao() {
       </div>
 
       <div className="space-y-3">
+        {programacoes.length === 0 && (
+          <GlassCard className="p-8 text-center">
+            <p className="text-sm text-text-secondary">Nenhuma programacao encontrada.</p>
+          </GlassCard>
+        )}
         {programacoes.map((prog) => (
           <GlassCard
             key={prog.id}

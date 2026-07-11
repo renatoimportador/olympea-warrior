@@ -1,14 +1,26 @@
 import type { BlocoTreino } from '@/data/types'
-import { getTipoBlocoLabel, getTipoBlocoIcon } from '@/data/seed'
+import { getTipoBlocoLabel } from '@/lib/api'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { Move, Flame, Star, Zap, Dumbbell, Target, MessageCircle, Youtube, Plus, Heart } from 'lucide-react'
 
 const iconMap = { Move, Flame, Star, Zap, Dumbbell, Target, MessageCircle, Youtube, Plus, Heart }
 
+const tipoParaIcone: Record<string, string> = {
+  MOBILIDADE: 'Move',
+  WARM_UP: 'Flame',
+  SKILL: 'Star',
+  FORCA: 'Zap',
+  WORKOUT: 'Dumbbell',
+  GAME_PLAN: 'Target',
+  OBSERVACOES_COACH: 'MessageCircle',
+  ACCESSORIES: 'Plus',
+  CONDITIONING: 'Flame',
+}
+
 function BlocoHeader({ tipo, titulo }: { tipo: string; titulo: string }) {
   const label = getTipoBlocoLabel(tipo)
-  const iconName = getTipoBlocoIcon(tipo)
+  const iconName = tipoParaIcone[tipo] || 'Move'
   const Icon = (iconMap as any)[iconName] || Move
 
   return (

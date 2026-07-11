@@ -1,17 +1,36 @@
-import { useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
-import { exercicios } from '@/data/seed'
+import { listarExercicios } from '@/lib/api'
+import type { Exercicio } from '@/data/types'
 import { BookOpen, Play, AlertTriangle, Lightbulb, ArrowLeft, Scale } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 
 export function DetalheMovimento() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [abaAtiva, setAbaAtiva] = useState<'padrao' | 'erros' | 'dicas' | 'escalas'>('padrao')
+  const [ex, setEx] = useState<Exercicio | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const ex = useMemo(() => exercicios.find((e) => e.slug === slug), [slug])
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const exercicios = await listarExercicios()
+        const found = exercicios.find((e) => e.slug === slug) || null
+        setEx(found)
+      } catch (e) {
+        console.error('Erro ao carregar exercicio:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    carregar()
+  }, [slug])
+
+  if (loading) {
+    return <div className="text-center py-20 text-text-secondary">Carregando...</div>
+  }
 
   if (!ex) {
     return (
@@ -61,7 +80,6 @@ export function DetalheMovimento() {
 
         <p className="text-sm text-text-secondary leading-relaxed">{ex.descricao}</p>
 
-        {/* Video placeholder */}
         <div className="aspect-video rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center">
           <div className="text-center">
             <Play size={36} className="mx-auto text-text-secondary mb-2" />
@@ -69,7 +87,6 @@ export function DetalheMovimento() {
           </div>
         </div>
 
-        {/* Abas */}
         <div className="flex gap-2 overflow-x-auto hide-scrollbar">
           {abas.map((aba) => {
             const Icon = aba.icon

@@ -89,11 +89,29 @@ export function DashboardCoach() {
   const freqMedia =
     totalAlunos > 0 ? (freqTotal / totalAlunos).toFixed(1) : '0'
 
-  const recentPRs = personalRecords.slice(0, 3)
-  const ultimosResultados = resultados.slice(0, 5)
+  const seteDiasAtras = new Date()
+  seteDiasAtras.setDate(seteDiasAtras.getDate() - 7)
+
+  const resultados7d = resultados.filter(
+    (r) => new Date(r.data).getTime() >= seteDiasAtras.getTime()
+  )
+  const prs7d = personalRecords.filter(
+    (pr) => new Date(pr.data).getTime() >= seteDiasAtras.getTime()
+  )
+
+  const recentPRs = prs7d.slice(0, 3)
+  const ultimosResultados = resultados7d.slice(0, 5)
+
+  const inicioSemana = new Date()
+  inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay())
+  inicioSemana.setHours(0, 0, 0, 0)
 
   const alunosSemRegistro = alunos.filter((a) => {
-    return !resultados.some((r) => r.aluno_id === a.id)
+    return !resultados.some(
+      (r) =>
+        r.aluno_id === a.id &&
+        new Date(r.data).getTime() >= inicioSemana.getTime()
+    )
   })
 
   const alunosStats = [

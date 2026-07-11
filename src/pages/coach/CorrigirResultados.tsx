@@ -10,6 +10,7 @@ import {
   listarComentariosByResultado,
   adicionarComentario,
   listarUsuarios,
+  criarNotificacaoSupabase,
 } from '@/lib/api'
 
 export function CorrigirResultados() {
@@ -31,13 +32,21 @@ export function CorrigirResultados() {
           listarUsuarios(),
         ])
 
-        setResultados(resData || [])
+        const inicioSemana = new Date()
+        inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay())
+        inicioSemana.setHours(0, 0, 0, 0)
+
+        const resultadosSemana = (resData || []).filter(
+          (r: any) => new Date(r.data).getTime() >= inicioSemana.getTime()
+        )
+
+        setResultados(resultadosSemana)
         setAlunos(alunosData || [])
         setUsuarios(usuariosData || [])
 
         const comentariosMap: Record<string, any[]> = {}
 
-        for (const r of resData || []) {
+        for (const r of resultadosSemana) {
           const coms = await listarComentariosByResultado(r.id)
           comentariosMap[r.id] = coms || []
         }
@@ -77,6 +86,21 @@ export function CorrigirResultados() {
         ...prev,
         [resultadoId]: '',
       }))
+
+      const resultado = resultados.find((r) => r.id === resultadoId)
+      if (resultado) {
+        const aluno = alunos.find((a: any) => a.id === resultado.aluno_id)
+        if (aluno?.usuario_id) {
+          await criarNotificacaoSupabase({
+            usuario_id: aluno.usuario_id,
+            tipo: 'MENSAGEM_COACH',
+            titulo: 'Coach comentou seu resultado',
+            mensagem: texto.substring(0, 100),
+            link: '/aluno/comentarios',
+            data: new Date().toISOString(),
+          })
+        }
+      }
 
       toast.success('Comentário adicionado!')
     } catch (error) {

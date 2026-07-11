@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
-import { auditorias } from '@/data/seed'
+import { listarAuditorias } from '@/lib/api'
+import type { Auditoria as AuditoriaType } from '@/data/types'
 import { Edit3, Trash2, Copy, CheckSquare } from 'lucide-react'
 
 const iconeAcao: Record<string, typeof Edit3> = {
@@ -22,6 +24,32 @@ const corAcao: Record<string, string> = {
 }
 
 export function Auditoria() {
+  const [auditorias, setAuditorias] = useState<AuditoriaType[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function carregar() {
+      try {
+        const data = await listarAuditorias()
+        setAuditorias(data)
+      } catch (e) {
+        console.error('Erro ao carregar auditorias:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    carregar()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-5 animate-fade-in">
+        <h1 className="text-2xl font-bold text-text-primary">Auditoria</h1>
+        <p className="text-sm text-text-secondary">Carregando...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
@@ -30,6 +58,11 @@ export function Auditoria() {
       </div>
 
       <div className="space-y-2">
+        {auditorias.length === 0 && (
+          <GlassCard className="p-8 text-center">
+            <p className="text-sm text-text-secondary">Nenhum registro de auditoria.</p>
+          </GlassCard>
+        )}
         {auditorias.map((a) => {
           const Icon = iconeAcao[a.acao] || Edit3
           return (
@@ -43,7 +76,7 @@ export function Auditoria() {
                   <span className="text-xs text-text-secondary">em {a.tabela}</span>
                 </div>
                 <p className="text-xs text-text-secondary mt-0.5">
-                  Por: {a.usuario_id === 'u-admin' ? 'Administrador' : a.usuario_id} | {new Date(a.created_at).toLocaleString('pt-BR')}
+                  {new Date(a.created_at).toLocaleString('pt-BR')}
                 </p>
                 {a.dados_novos && (
                   <p className="text-[10px] text-text-secondary mt-1 font-mono truncate">

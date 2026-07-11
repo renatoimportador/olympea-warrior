@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import type { BlocoTreino, ExercicioBloco, TipoBloco } from '@/data/types'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Input } from '@/components/ui/Input'
-import { getTipoBlocoLabel } from '@/data/seed'
+import { getTipoBlocoLabel } from '@/lib/api'
 import { listarExercicios } from '@/lib/api'
 import {
   Move, Flame, Star, Zap, Dumbbell, Target, MessageCircle,
