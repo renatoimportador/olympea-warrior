@@ -101,7 +101,7 @@ export async function getUsuarioByEmail(email: string) {
 export async function listarAlunos() {
   const { data, error } = await supabase
     .from('alunos')
-    .select('*, usuario:usuarios(*)')
+    .select('*, usuario:usuarios!alunos_usuario_id_fkey(*)')
     .eq('ativo', true)
 
   if (error) throw error
