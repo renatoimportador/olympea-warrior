@@ -6,15 +6,14 @@ import { Users, Search } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 
 export function AlunosVinculados() {
-  console.log('*** ALUNOSVINCULADOS RENDERIZOU ***')
   const [alunos, setAlunos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [busca, setBusca] = useState('')
+
   useEffect(() => {
     async function carregar() {
       try {
         const data = await listarAlunos()
-        console.log('ALUNOS >>>', data)
         setAlunos((data || []).filter((a: any) => a.ativo))
       } catch (e) {
         console.error('Erro ao carregar alunos:', e)
@@ -33,9 +32,7 @@ export function AlunosVinculados() {
   if (loading) {
     return (
       <div className="space-y-5 animate-fade-in">
-        <h1 className="text-2xl font-bold text-red-500">
-  TESTE CHATGPT 123
-</h1>
+        <h1 className="text-2xl font-bold text-text-primary">Alunos Vinculados</h1>
         <p className="text-sm text-text-secondary">Carregando...</p>
       </div>
     )
@@ -44,9 +41,7 @@ export function AlunosVinculados() {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-red-500">
-  TESTE CHATGPT 123
-</h1>
+        <h1 className="text-2xl font-bold text-text-primary">Alunos Vinculados</h1>
         <p className="text-sm text-text-secondary">{alunos.length} alunos ativos</p>
       </div>
 

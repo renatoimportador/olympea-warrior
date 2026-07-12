@@ -108,8 +108,7 @@ export interface Aluno {
   objetivos?: string;
   lesoes?: string;
   restricoes?: string;
-  contato_emergencia_nome?: string;
-  contato_emergencia_telefone?: string;
+  contato_emergencia?: string;
   data_inicio_treino?: string;
   ativo: boolean;
   created_at: string;

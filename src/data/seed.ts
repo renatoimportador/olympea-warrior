@@ -26,10 +26,10 @@ export let usuarios: Usuario[] = [
 ]
 
 export let alunos: Aluno[] = [
-  { id: 'a-1', usuario_id: 'u-aluno1', box_id: 'box-1', categoria: 'RX', data_nascimento: '1990-05-15', peso_atual: 78.5, altura: 175, objetivos: 'Competir', lesoes: '', restricoes: '', contato_emergencia_nome: 'Maria', contato_emergencia_telefone: '', data_inicio_treino: '2023-03-01', ativo: true, created_at: '', updated_at: '' },
-  { id: 'a-2', usuario_id: 'u-aluno2', box_id: 'box-1', categoria: 'SCALING', data_nascimento: '1995-08-22', peso_atual: 62, altura: 162, objetivos: 'Condicionamento', lesoes: '', restricoes: '', contato_emergencia_nome: 'Joao', contato_emergencia_telefone: '', data_inicio_treino: '2023-08-15', ativo: true, created_at: '', updated_at: '' },
-  { id: 'a-3', usuario_id: 'u-aluno3', box_id: 'box-1', categoria: 'BEGINNER', data_nascimento: '2000-01-10', peso_atual: 85, altura: 180, objetivos: 'Perder peso', lesoes: '', restricoes: '', contato_emergencia_nome: 'Ana', contato_emergencia_telefone: '', data_inicio_treino: '2024-01-10', ativo: true, created_at: '', updated_at: '' },
-  { id: 'a-4', usuario_id: 'u-aluno4', box_id: 'box-1', categoria: 'RX', data_nascimento: '1988-03-20', peso_atual: 70, altura: 168, objetivos: 'Master', lesoes: '', restricoes: '', contato_emergencia_nome: 'Pedro', contato_emergencia_telefone: '', data_inicio_treino: '2023-05-01', ativo: true, created_at: '', updated_at: '' },
+  { id: 'a-1', usuario_id: 'u-aluno1', box_id: 'box-1', categoria: 'RX', data_nascimento: '1990-05-15', peso_atual: 78.5, altura: 175, objetivos: 'Competir', lesoes: '', restricoes: '', contato_emergencia: 'Maria', data_inicio_treino: '2023-03-01', ativo: true, created_at: '', updated_at: '' },
+  { id: 'a-2', usuario_id: 'u-aluno2', box_id: 'box-1', categoria: 'SCALING', data_nascimento: '1995-08-22', peso_atual: 62, altura: 162, objetivos: 'Condicionamento', lesoes: '', restricoes: '', contato_emergencia: 'Joao', data_inicio_treino: '2023-08-15', ativo: true, created_at: '', updated_at: '' },
+  { id: 'a-3', usuario_id: 'u-aluno3', box_id: 'box-1', categoria: 'BEGINNER', data_nascimento: '2000-01-10', peso_atual: 85, altura: 180, objetivos: 'Perder peso', lesoes: '', restricoes: '', contato_emergencia: 'Ana', data_inicio_treino: '2024-01-10', ativo: true, created_at: '', updated_at: '' },
+  { id: 'a-4', usuario_id: 'u-aluno4', box_id: 'box-1', categoria: 'RX', data_nascimento: '1988-03-20', peso_atual: 70, altura: 168, objetivos: 'Master', lesoes: '', restricoes: '', contato_emergencia: 'Pedro', data_inicio_treino: '2023-05-01', ativo: true, created_at: '', updated_at: '' },
 ]
 
 export let coaches: Coach[] = [

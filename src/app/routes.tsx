@@ -60,6 +60,7 @@ import { DetalheMovimento } from '@/pages/shared/DetalheMovimento'
 import { Notificacoes } from '@/pages/shared/Notificacoes'
 
 export function AppRoutes() {
+  console.log('APP ROUTES RENDERIZOU')
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />

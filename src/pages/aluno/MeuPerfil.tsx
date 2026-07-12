@@ -9,6 +9,19 @@ import { Input } from '@/components/ui/Input'
 import { Edit3, Phone, AlertTriangle, Shield, Target, User, Ruler, Weight, Save, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+function parseContatoEmergencia(valor: string | undefined): { nome: string; telefone: string } {
+  if (!valor) return { nome: '', telefone: '' }
+  const partes = valor.split('|').map(s => s.trim())
+  return { nome: partes[0] || '', telefone: partes[1] || '' }
+}
+
+function formatContatoEmergencia(nome: string, telefone: string): string {
+  if (!nome && !telefone) return ''
+  if (!telefone) return nome
+  if (!nome) return telefone
+  return `${nome} | ${telefone}`
+}
+
 export function MeuPerfil() {
   const { user } = useAuth()
   const [aluno, setAluno] = useState<Aluno | null>(null)
@@ -19,9 +32,8 @@ export function MeuPerfil() {
     telefone: '',
     lesoes: '',
     restricoes: '',
-    contato_emergencia_nome: '',
-    contato_emergencia_telefone: '',
-    objetivos_pessoais: '',
+    emergencia_nome: '',
+    emergencia_telefone: '',
   })
 
   useEffect(() => {
@@ -30,13 +42,13 @@ export function MeuPerfil() {
       const a = await getAlunoByUsuarioId(user.id)
       if (a) {
         setAluno(a)
+        const contato = parseContatoEmergencia(a.contato_emergencia)
         setForm({
           telefone: user.telefone || '',
           lesoes: a.lesoes || '',
           restricoes: a.restricoes || '',
-          contato_emergencia_nome: a.contato_emergencia_nome || '',
-          contato_emergencia_telefone: a.contato_emergencia_telefone || '',
-          objetivos_pessoais: '',
+          emergencia_nome: contato.nome,
+          emergencia_telefone: contato.telefone,
         })
       }
     }
@@ -50,13 +62,13 @@ export function MeuPerfil() {
   function handleCancelar() {
     setEditando(false)
     if (aluno && user) {
+      const contato = parseContatoEmergencia(aluno.contato_emergencia)
       setForm({
         telefone: user.telefone || '',
         lesoes: aluno.lesoes || '',
         restricoes: aluno.restricoes || '',
-        contato_emergencia_nome: aluno.contato_emergencia_nome || '',
-        contato_emergencia_telefone: aluno.contato_emergencia_telefone || '',
-        objetivos_pessoais: '',
+        emergencia_nome: contato.nome,
+        emergencia_telefone: contato.telefone,
       })
     }
   }
@@ -70,11 +82,12 @@ export function MeuPerfil() {
         await atualizarUsuario(user.id, { telefone: form.telefone || undefined })
       }
 
+      const contatoEmergencia = formatContatoEmergencia(form.emergencia_nome, form.emergencia_telefone)
+
       await atualizarPerfilAluno(aluno.id, {
         lesoes: form.lesoes || undefined,
         restricoes: form.restricoes || undefined,
-        contato_emergencia_nome: form.contato_emergencia_nome || undefined,
-        contato_emergencia_telefone: form.contato_emergencia_telefone || undefined,
+        contato_emergencia: contatoEmergencia || undefined,
       })
 
       const alunoAtualizado = await getAlunoByUsuarioId(user.id)
@@ -90,6 +103,8 @@ export function MeuPerfil() {
     }
   }
 
+  const contatoExibicao = parseContatoEmergencia(aluno?.contato_emergencia)
+
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
@@ -97,7 +112,6 @@ export function MeuPerfil() {
         <p className="text-sm text-text-secondary">Seus dados pessoais e preferencias</p>
       </div>
 
-      {/* Foto e nome */}
       <GlassCard className="p-6 flex items-center gap-4">
         <div className="w-16 h-16 rounded-2xl bg-gradient-accent flex items-center justify-center text-bg-primary font-bold text-2xl">
           {user?.nome?.charAt(0) || 'A'}
@@ -117,7 +131,6 @@ export function MeuPerfil() {
         </button>
       </GlassCard>
 
-      {/* Dados fisicos (somente leitura) */}
       <GlassCard className="p-5 space-y-4">
         <h3 className="font-semibold text-text-primary flex items-center gap-2">
           <Ruler size={16} className="text-accent" />
@@ -141,7 +154,6 @@ export function MeuPerfil() {
         </div>
       </GlassCard>
 
-      {/* Telefone */}
       <GlassCard className="p-5 space-y-3">
         <h3 className="font-semibold text-text-primary flex items-center gap-2">
           <Phone size={16} className="text-accent" />
@@ -158,7 +170,6 @@ export function MeuPerfil() {
         )}
       </GlassCard>
 
-      {/* Objetivos (somente leitura) */}
       <GlassCard className="p-5 space-y-3">
         <h3 className="font-semibold text-text-primary flex items-center gap-2">
           <Target size={16} className="text-success" />
@@ -170,7 +181,6 @@ export function MeuPerfil() {
         <p className="text-[10px] text-text-secondary italic">Objetivos sao definidos pelo Coach/Admin</p>
       </GlassCard>
 
-      {/* Saude */}
       <GlassCard className="p-5 space-y-3">
         <h3 className="font-semibold text-text-primary flex items-center gap-2">
           <AlertTriangle size={16} className="text-warning" />
@@ -213,7 +223,6 @@ export function MeuPerfil() {
         )}
       </GlassCard>
 
-      {/* Emergencia */}
       <GlassCard className="p-5 space-y-3">
         <h3 className="font-semibold text-text-primary flex items-center gap-2">
           <Shield size={16} className="text-error" />
@@ -223,13 +232,13 @@ export function MeuPerfil() {
           <div className="space-y-3">
             <Input
               placeholder="Nome do contato"
-              value={form.contato_emergencia_nome}
-              onChange={(e) => setForm({ ...form, contato_emergencia_nome: e.target.value })}
+              value={form.emergencia_nome}
+              onChange={(e) => setForm({ ...form, emergencia_nome: e.target.value })}
             />
             <Input
               placeholder="Telefone do contato"
-              value={form.contato_emergencia_telefone}
-              onChange={(e) => setForm({ ...form, contato_emergencia_telefone: e.target.value })}
+              value={form.emergencia_telefone}
+              onChange={(e) => setForm({ ...form, emergencia_telefone: e.target.value })}
             />
           </div>
         ) : (
@@ -237,14 +246,14 @@ export function MeuPerfil() {
             <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
               <User size={16} className="text-text-secondary" />
               <div>
-                <p className="text-sm text-text-primary">{aluno?.contato_emergencia_nome || 'Nao cadastrado'}</p>
+                <p className="text-sm text-text-primary">{contatoExibicao.nome || 'Nao cadastrado'}</p>
                 <p className="text-xs text-text-secondary">Contato principal</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
               <Phone size={16} className="text-text-secondary" />
               <div>
-                <p className="text-sm text-text-primary">{aluno?.contato_emergencia_telefone || 'Nao cadastrado'}</p>
+                <p className="text-sm text-text-primary">{contatoExibicao.telefone || 'Nao cadastrado'}</p>
                 <p className="text-xs text-text-secondary">Telefone</p>
               </div>
             </div>
@@ -252,7 +261,6 @@ export function MeuPerfil() {
         )}
       </GlassCard>
 
-      {/* Botao salvar */}
       {editando && (
         <div className="flex gap-3">
           <Button onClick={handleSalvar} disabled={salvando} className="flex-1">
