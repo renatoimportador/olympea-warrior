@@ -13,7 +13,7 @@ export function AlunosVinculados() {
     async function carregar() {
       try {
         const data = await listarAlunos()
-        console.log(data)
+        console.log('ALUNOS >>>', data)
         setAlunos((data || []).filter((a: any) => a.ativo))
       } catch (e) {
         console.error('Erro ao carregar alunos:', e)
