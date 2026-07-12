@@ -22,6 +22,18 @@ export function CorrigirResultados() {
   const [comentarios, setComentarios] = useState<Record<string, any[]>>({})
   const [comentarioPorResultado, setComentarioPorResultado] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
+  const getCategoriaBadge = (categoria: string) => {
+  switch (categoria.trim().toUpperCase()) {
+    case 'RX':
+      return 'accent'
+
+    case 'SCALING':
+      return 'warning'
+
+    default:
+      return 'success'
+  }
+}
 
   useEffect(() => {
     async function carregar() {
@@ -96,7 +108,7 @@ export function CorrigirResultados() {
             tipo: 'MENSAGEM_COACH',
             titulo: 'Coach comentou seu resultado',
             mensagem: texto.substring(0, 100),
-            link: '/aluno/comentarios',
+            link: '/aluno/resultados',
             data: new Date().toISOString(),
           })
         }
@@ -165,15 +177,7 @@ export function CorrigirResultados() {
                   </div>
                 </div>
 
-                <Badge
-                  variant={
-                    r.categoria === 'RX'
-                      ? 'accent'
-                      : r.categoria === 'SCALING'
-                      ? 'warning'
-                      : 'success'
-                  }
-                >
+                <Badge variant={getCategoriaBadge(r.categoria)}>
                   {r.categoria}
                 </Badge>
               </div>

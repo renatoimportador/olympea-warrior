@@ -20,13 +20,14 @@ import type {
   Resultado,
   PersonalRecord,
   Frequencia,
+  Aluno,
 } from '@/data/types'
 import { useNavigate } from 'react-router-dom'
 
 export function DashboardCoach() {
   const navigate = useNavigate()
 
-  const [alunos, setAlunos] = useState<any[]>([])
+  const [alunos, setAlunos] = useState<Aluno[]>([])
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [frequencias, setFrequencias] = useState<Frequencia[]>([])
   const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([])
@@ -39,7 +40,7 @@ export function DashboardCoach() {
   async function carregarDashboard() {
     try {
       const alunosData = await listarAlunos()
-      const alunosAtivos = (alunosData || []).filter((a: any) => a.ativo)
+      const alunosAtivos = (alunosData || []).filter((a) => a.ativo)
 
       setAlunos(alunosAtivos)
 
@@ -62,7 +63,7 @@ export function DashboardCoach() {
 
       setResultados(
         todosResultados.sort(
-          (a: any, b: any) =>
+          (a: Resultado, b: Resultado) =>
             new Date(b.created_at || b.data).getTime() -
             new Date(a.created_at || a.data).getTime()
         )
@@ -72,7 +73,7 @@ export function DashboardCoach() {
 
       setPersonalRecords(
         todosPRs.sort(
-          (a: any, b: any) =>
+          (a: PersonalRecord, b: PersonalRecord) =>
             new Date(b.data).getTime() -
             new Date(a.data).getTime()
         )
@@ -114,8 +115,9 @@ export function DashboardCoach() {
         new Date(r.data).getTime() >= inicioSemana.getTime()
     )
   })
-
+const alunosMap = new Map(alunos.map((aluno) => [aluno.id, aluno]))
   const alunosStats = [
+    
     {
       label: 'Total Alunos',
       value: String(totalAlunos),
@@ -141,7 +143,20 @@ export function DashboardCoach() {
       change: 'ultimos 7 dias',
     },
   ]
+const getCategoriaBadge = (categoria: string) => {
+  const categoriaNormalizada = categoria.trim().toUpperCase()
 
+  switch (categoriaNormalizada) {
+    case 'RX':
+      return 'accent'
+
+    case 'SCALING':
+      return 'warning'
+
+    default:
+      return 'success'
+  }
+}
   if (loading) {
     return (
       <div className="space-y-6 animate-fade-in">
@@ -205,7 +220,7 @@ export function DashboardCoach() {
           <div className="space-y-2">
             {recentPRs.length > 0 ? (
               recentPRs.map((pr) => {
-                const aluno = alunos.find((a) => a.id === pr.aluno_id)
+                const aluno = alunosMap.get(pr.aluno_id)
 
                 return (
                   <div
@@ -296,7 +311,7 @@ export function DashboardCoach() {
         <div className="space-y-2">
           {ultimosResultados.length > 0 ? (
             ultimosResultados.map((r) => {
-              const aluno = alunos.find((a) => a.id === r.aluno_id)
+              const aluno = alunosMap.get(r.aluno_id)
 
               return (
                 <div
@@ -321,15 +336,7 @@ export function DashboardCoach() {
                     </div>
                   </div>
 
-                  <Badge
-                    variant={
-                      r.categoria === 'RX'
-                        ? 'accent'
-                        : r.categoria === 'SCALING'
-                        ? 'warning'
-                        : 'success'
-                    }
-                  >
+                  <Badge variant={getCategoriaBadge(r.categoria)}>
                     {r.categoria}
                   </Badge>
                 </div>
