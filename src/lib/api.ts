@@ -105,7 +105,8 @@ export async function listarAlunos() {
     .eq('ativo', true)
 
   if (error) throw error
-  return data as Aluno[]
+  console.log(data)
+return data as Aluno[]
 }
 
 export async function criarAluno(aluno: Partial<Aluno>) {
@@ -912,7 +913,7 @@ export async function listarAuditorias() {
 }
 
 /* ========================= ALUNO UPDATE (perfil) ========================= */
-// TESTE RENATO
+
 export async function atualizarPerfilAluno(id: string, dados: Partial<Aluno>) {
   const { data, error } = await supabase
     .from('alunos')

@@ -9,11 +9,11 @@ export function AlunosVinculados() {
   const [alunos, setAlunos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [busca, setBusca] = useState('')
-
   useEffect(() => {
     async function carregar() {
       try {
         const data = await listarAlunos()
+        console.log(data)
         setAlunos((data || []).filter((a: any) => a.ativo))
       } catch (e) {
         console.error('Erro ao carregar alunos:', e)
