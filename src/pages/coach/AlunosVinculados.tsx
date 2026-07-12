@@ -33,7 +33,9 @@ export function AlunosVinculados() {
   if (loading) {
     return (
       <div className="space-y-5 animate-fade-in">
-        <h1 className="text-2xl font-bold text-text-primary">Alunos Vinculados</h1>
+        <h1 className="text-2xl font-bold text-red-500">
+  TESTE CHATGPT 123
+</h1>
         <p className="text-sm text-text-secondary">Carregando...</p>
       </div>
     )
@@ -42,7 +44,9 @@ export function AlunosVinculados() {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-text-primary">Alunos Vinculados</h1>
+        <h1 className="text-2xl font-bold text-red-500">
+  TESTE CHATGPT 123
+</h1>
         <p className="text-sm text-text-secondary">{alunos.length} alunos ativos</p>
       </div>
 
