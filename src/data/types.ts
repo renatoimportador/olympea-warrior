@@ -79,6 +79,7 @@ export interface Box {
    ============================================================= */
 export interface Usuario {
   id: UUID;
+  auth_id?: string;
   box_id: UUID;
   nome: string;
   email: string;

@@ -116,6 +116,16 @@ export function Login() {
           >
             {isLoading ? 'Entrando...' : 'Entrar'}
           </button>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => navigate('/recuperar-senha')}
+              className="text-sm text-text-secondary hover:text-accent transition-colors"
+            >
+              Esqueceu a senha?
+            </button>
+          </div>
         </form>
 
         <div className="pt-4 border-t border-border-dark">

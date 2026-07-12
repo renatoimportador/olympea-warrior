@@ -4,17 +4,16 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import {
   listarAlunos,
-  criarAluno,
   atualizarAluno,
   excluirAluno,
-  criarUsuario,
   atualizarUsuario,
-  getUsuarioByEmail,
+  criarAcessoUsuario,
+  reenviarConvite,
   getBoxId,
 } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import type { Aluno } from '@/data/types'
-import { Search, Plus, Edit2, Ban, Save } from 'lucide-react'
+import { Search, Plus, Edit2, Ban, Save, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 
@@ -24,6 +23,7 @@ export function GerenciarAlunos() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [alunos, setAlunos] = useState<Aluno[]>([])
   const [niveis, setNiveis] = useState<any[]>([])
+  const [saving, setSaving] = useState(false)
 
   const [form, setForm] = useState({
     nome: '',
@@ -88,8 +88,12 @@ export function GerenciarAlunos() {
       return
     }
 
+    if (saving) return
+    setSaving(true)
+
     try {
       if (editingId) {
+        // Edição: mantém fluxo direto (não cria auth user)
         const alunoAtual = alunos.find((a) => a.id === editingId)
         if (!alunoAtual) return
 
@@ -107,51 +111,26 @@ export function GerenciarAlunos() {
 
         toast.success('Aluno atualizado!')
       } else {
-        let usuario = null
+        // Criação: usa API segura que cria auth user + envia convite
+        const boxId = await getBoxId()
 
-        const usuarioExistente = await getUsuarioByEmail(form.email)
-        if (usuarioExistente) {
-          usuario = usuarioExistente
-        } else {
-          try {
-            const boxId = await getBoxId()
-            usuario = await criarUsuario({
-              box_id: boxId || undefined,
-              nome: form.nome,
-              email: form.email.trim().toLowerCase(),
-              telefone: form.telefone || undefined,
-              role: 'aluno',
-              ativo: true,
-              auth_provider: 'email',
-            })
-          } catch (insertErr: any) {
-            if (insertErr?.message?.includes('duplicate key') || insertErr?.code === '23505') {
-              usuario = await getUsuarioByEmail(form.email)
-            }
-            if (!usuario) throw insertErr
+        const result = await criarAcessoUsuario({
+          nome: form.nome.trim(),
+          email: form.email.trim().toLowerCase(),
+          role: 'aluno',
+          box_id: boxId || undefined,
+          dadosExtra: {
+            categoria: form.categoria,
+            peso_atual: form.peso || undefined,
+            altura: form.altura || undefined,
           }
-        }
-
-        if (!usuario) {
-          toast.error('Erro ao criar usuario')
-          return
-        }
-
-        const novoAluno = await criarAluno({
-          usuario_id: usuario.id,
-          box_id: usuario.box_id || undefined,
-          categoria: form.categoria as any,
-          peso_atual: form.peso ? parseFloat(form.peso) : undefined,
-          altura: form.altura ? parseFloat(form.altura.replace(',', '.')) : undefined,
-          ativo: true,
         })
 
-        if (!novoAluno) {
-          toast.error('Erro ao salvar aluno no banco')
-          return
+        if (result.warning) {
+          toast.success(result.message, { duration: 6000 })
+        } else {
+          toast.success(result.message || 'Aluno cadastrado com sucesso!', { duration: 5000 })
         }
-
-        toast.success('Aluno criado!')
       }
 
       resetForm()
@@ -160,6 +139,8 @@ export function GerenciarAlunos() {
     } catch (e: any) {
       console.error('Erro ao salvar aluno:', e)
       toast.error(e?.message || 'Erro ao salvar aluno')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -184,6 +165,15 @@ export function GerenciarAlunos() {
       carregarAlunos()
     } catch {
       toast.error('Erro ao excluir aluno')
+    }
+  }
+
+  async function handleReenviarConvite(email: string) {
+    try {
+      const result = await reenviarConvite(email)
+      toast.success(result.message || 'Convite reenviado!')
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao reenviar convite')
     }
   }
 
@@ -216,9 +206,19 @@ export function GerenciarAlunos() {
       {showForm && (
         <GlassCard className="p-5 space-y-4">
           <h3>{editingId ? 'Editar Aluno' : 'Novo Aluno'}</h3>
+          {!editingId && (
+            <p className="text-xs text-text-secondary">
+              Ao cadastrar, um convite será enviado por e-mail para o aluno criar a própria senha.
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input placeholder="Nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-            <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Input
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              disabled={!!editingId}
+            />
             <select
               value={form.categoria}
               onChange={(e) => setForm({ ...form, categoria: e.target.value })}
@@ -236,7 +236,10 @@ export function GerenciarAlunos() {
             <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleSave}><Save size={16} className="mr-2" />Salvar</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              <Save size={16} className="mr-2" />
+              {saving ? 'Salvando...' : 'Salvar'}
+            </Button>
             <Button variant="ghost" onClick={() => setShowForm(false)}>Cancelar</Button>
           </div>
         </GlassCard>
@@ -250,10 +253,17 @@ export function GerenciarAlunos() {
             </div>
             <div className="flex-1">
               <p>{a.usuario?.nome}</p>
-              <p>{a.usuario?.email}</p>
+              <p className="text-xs text-text-secondary">{a.usuario?.email}</p>
             </div>
             <Badge>{a.categoria}</Badge>
             <div className="flex gap-2">
+              <button
+                onClick={() => handleReenviarConvite(a.usuario?.email)}
+                title="Reenviar convite"
+                className="p-1.5 rounded-lg hover:bg-accent/10 text-text-secondary hover:text-accent"
+              >
+                <Mail size={14} />
+              </button>
               <button onClick={() => handleEdit(a)}><Edit2 size={14} /></button>
               <button onClick={() => handleDelete(a.id)} className="p-1.5 rounded-lg hover:bg-error/5 text-error"><Ban size={14} /></button>
             </div>

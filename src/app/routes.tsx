@@ -9,6 +9,7 @@ import { AuthLayout } from '@/components/layout/AuthLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { Login } from '@/pages/auth/Login'
 import { RecuperarSenha } from '@/pages/auth/RecuperarSenha'
+import { DefinirSenha } from '@/pages/auth/DefinirSenha'
 
 import { DashboardAdmin } from '@/pages/admin/DashboardAdmin'
 import { GerenciarUsuarios } from '@/pages/admin/GerenciarUsuarios'
@@ -60,7 +61,6 @@ import { DetalheMovimento } from '@/pages/shared/DetalheMovimento'
 import { Notificacoes } from '@/pages/shared/Notificacoes'
 
 export function AppRoutes() {
-  console.log('APP ROUTES RENDERIZOU')
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
@@ -68,6 +68,7 @@ export function AppRoutes() {
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+        <Route path="/definir-senha" element={<DefinirSenha />} />
       </Route>
 
       <Route

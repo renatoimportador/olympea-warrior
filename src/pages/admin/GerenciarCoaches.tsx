@@ -4,16 +4,15 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import {
   listarCoaches,
-  criarCoach,
   atualizarCoach,
   excluirCoach,
-  criarUsuario,
   atualizarUsuario,
-  getUsuarioByEmail,
+  criarAcessoUsuario,
+  reenviarConvite,
   getBoxId,
 } from '@/lib/api'
 import type { Coach } from '@/data/types'
-import { UserCog, Plus, Edit2, Ban, Save } from 'lucide-react'
+import { UserCog, Plus, Edit2, Ban, Save, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 
@@ -22,6 +21,7 @@ export function GerenciarCoaches() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [coaches, setCoaches] = useState<Coach[]>([])
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     nome: '',
     email: '',
@@ -49,8 +49,12 @@ export function GerenciarCoaches() {
       return
     }
 
+    if (saving) return
+    setSaving(true)
+
     try {
       if (editingId) {
+        // Edição: mantém fluxo direto
         const coachAtual = coaches.find((c) => c.id === editingId)
         if (!coachAtual) return
 
@@ -67,45 +71,25 @@ export function GerenciarCoaches() {
 
         toast.success('Coach atualizado!')
       } else {
+        // Criação: usa API segura
         const boxId = await getBoxId()
-        let usuario = null
 
-        const usuarioExistente = await getUsuarioByEmail(form.email)
-        if (usuarioExistente) {
-          usuario = usuarioExistente
-        } else {
-          try {
-            usuario = await criarUsuario({
-              box_id: boxId || undefined,
-              nome: form.nome,
-              email: form.email.trim().toLowerCase(),
-              telefone: form.telefone || undefined,
-              role: 'coach',
-              ativo: true,
-              auth_provider: 'email',
-            })
-          } catch (insertErr: any) {
-            if (insertErr?.message?.includes('duplicate key') || insertErr?.code === '23505') {
-              usuario = await getUsuarioByEmail(form.email)
-            }
-            if (!usuario) throw insertErr
+        const result = await criarAcessoUsuario({
+          nome: form.nome.trim(),
+          email: form.email.trim().toLowerCase(),
+          role: 'coach',
+          box_id: boxId || undefined,
+          dadosExtra: {
+            bio: form.bio || undefined,
+            especialidade: form.especialidade || undefined,
           }
-        }
-
-        if (!usuario) {
-          toast.error('Erro ao criar usuario')
-          return
-        }
-
-        await criarCoach({
-          usuario_id: usuario.id,
-          box_id: boxId || usuario.box_id || undefined,
-          bio: form.bio,
-          especialidade: form.especialidade || undefined,
-          ativo: true,
         })
 
-        toast.success('Coach criado!')
+        if (result.warning) {
+          toast.success(result.message, { duration: 6000 })
+        } else {
+          toast.success(result.message || 'Coach cadastrado com sucesso!', { duration: 5000 })
+        }
       }
 
       setForm({ nome: '', email: '', telefone: '', bio: '', especialidade: '' })
@@ -114,6 +98,8 @@ export function GerenciarCoaches() {
       carregarCoaches()
     } catch (e: any) {
       toast.error(e?.message || 'Erro ao salvar coach')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -140,6 +126,15 @@ export function GerenciarCoaches() {
     }
   }
 
+  async function handleReenviarConvite(email: string) {
+    try {
+      const result = await reenviarConvite(email)
+      toast.success(result.message || 'Convite reenviado!')
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao reenviar convite')
+    }
+  }
+
   const coachesFiltrados = coaches.filter((c: any) => {
     const termo = busca.toLowerCase()
     return (
@@ -162,12 +157,25 @@ export function GerenciarCoaches() {
 
       {showForm && (
         <GlassCard className="p-5 space-y-4">
+          {!editingId && (
+            <p className="text-xs text-text-secondary">
+              Ao cadastrar, um convite será enviado por e-mail para o coach criar a própria senha.
+            </p>
+          )}
           <Input placeholder="Nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-          <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <Input
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            disabled={!!editingId}
+          />
           <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
           <Input placeholder="Especialidade" value={form.especialidade} onChange={(e) => setForm({ ...form, especialidade: e.target.value })} />
           <Input placeholder="Bio" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
-          <Button onClick={handleSave}><Save size={16} className="mr-2" />Salvar</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            <Save size={16} className="mr-2" />
+            {saving ? 'Salvando...' : 'Salvar'}
+          </Button>
         </GlassCard>
       )}
 
@@ -177,11 +185,18 @@ export function GerenciarCoaches() {
             <div className="flex justify-between">
               <div>
                 <h3>{c.usuario?.nome}</h3>
-                <p>{c.usuario?.email}</p>
+                <p className="text-xs text-text-secondary">{c.usuario?.email}</p>
                 <Badge>{c.especialidade}</Badge>
                 <p>{c.bio}</p>
               </div>
               <div className="flex gap-2">
+                <button
+                  onClick={() => handleReenviarConvite(c.usuario?.email)}
+                  title="Reenviar convite"
+                  className="p-1.5 rounded-lg hover:bg-accent/10 text-text-secondary hover:text-accent"
+                >
+                  <Mail size={14} />
+                </button>
                 <button onClick={() => handleEdit(c)}><Edit2 size={14} /></button>
                 <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg hover:bg-error/5 text-error"><Ban size={14} /></button>
               </div>

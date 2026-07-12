@@ -942,6 +942,50 @@ export async function atualizarPerfilAluno(id: string, dados: Partial<Aluno>) {
   return data as Aluno
 }
 
+/* ========================= CRIAR ACESSO (via Vercel API segura) ========================= */
+
+export async function criarAcessoUsuario(dados: {
+  nome: string
+  email: string
+  role: 'aluno' | 'coach'
+  box_id?: string
+  dadosExtra?: Record<string, unknown>
+}) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.access_token) throw new Error('Sessão não encontrada. Faça login novamente.')
+
+  const res = await fetch('/api/create-user-access', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify(dados)
+  })
+
+  const result = await res.json()
+  if (!res.ok) throw new Error(result.error || 'Erro ao criar acesso')
+  return result
+}
+
+export async function reenviarConvite(email: string) {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.access_token) throw new Error('Sessão não encontrada')
+
+  const res = await fetch('/api/resend-invite', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({ email })
+  })
+
+  const result = await res.json()
+  if (!res.ok) throw new Error(result.error || 'Erro ao reenviar convite')
+  return result
+}
+
 /* ========================= HELPER: getTipoBlocoLabel ========================= */
 export function getTipoBlocoLabel(tipo: string): string {
   const labels: Record<string, string> = {
