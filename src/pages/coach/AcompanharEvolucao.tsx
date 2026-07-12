@@ -1,20 +1,25 @@
 import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
-import { Badge } from '@/components/ui/Badge'
+
 import {
   listarAlunos,
   listarResultadosByAluno,
   getPRsByAluno,
   getFrequenciasByAluno,
 } from '@/lib/api'
-import type { Resultado, PersonalRecord, Frequencia } from '@/data/types'
+import type {
+  Resultado,
+  PersonalRecord,
+  Frequencia,
+  Aluno,
+} from '@/data/types'
 import { TrendingUp, Trophy, CalendarCheck } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 
 export function AcompanharEvolucao() {
-  const [alunos, setAlunos] = useState<any[]>([])
+  const [alunos, setAlunos] = useState<Aluno[]>([])
   const [selectedAluno, setSelectedAluno] = useState<string>('')
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [prs, setPrs] = useState<PersonalRecord[]>([])
@@ -25,7 +30,7 @@ export function AcompanharEvolucao() {
     async function carregar() {
       try {
         const data = await listarAlunos()
-        const ativos = (data || []).filter((a: any) => a.ativo)
+        const ativos = (data || []).filter((a) => a.ativo)
         setAlunos(ativos)
         if (ativos.length > 0) {
           setSelectedAluno(ativos[0].id)
@@ -54,8 +59,8 @@ export function AcompanharEvolucao() {
     carregarDados()
   }, [selectedAluno])
 
-  const chartData = resultados
-    .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())
+  const chartData = [...resultados]
+  .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())
     .slice(-12)
     .map((r) => ({
       data: new Date(r.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
@@ -87,7 +92,7 @@ export function AcompanharEvolucao() {
         onChange={(e) => setSelectedAluno(e.target.value)}
         className="glass-input w-full"
       >
-        {alunos.map((a: any) => (
+        {alunos.map((a) => (
           <option key={a.id} value={a.id}>
             {a.usuario?.nome || 'Aluno'}
           </option>
