@@ -99,14 +99,30 @@ export async function getUsuarioByEmail(email: string) {
 
 /* ========================= ALUNOS ========================= */
 export async function listarAlunos() {
-  const { data, error } = await supabase
+  const { data: alunos, error: erroAlunos } = await supabase
     .from('alunos')
-    .select('*, usuario:usuarios!alunos_usuario_id_fkey(*)')
+    .select('*')
     .eq('ativo', true)
 
-  if (error) throw error
-  console.log(data)
-return data as Aluno[]
+  if (erroAlunos) throw erroAlunos
+
+  const { data: usuarios, error: erroUsuarios } = await supabase
+    .from('usuarios')
+    .select('*')
+    .eq('ativo', true)
+
+  if (erroUsuarios) throw erroUsuarios
+
+  const mapaUsuarios = new Map(
+    (usuarios || []).map((u: any) => [u.id, u])
+  )
+
+  const resultado = (alunos || []).map((aluno: any) => ({
+    ...aluno,
+    usuario: mapaUsuarios.get(aluno.usuario_id) || null,
+  }))
+
+  return resultado as Aluno[]
 }
 
 export async function criarAluno(aluno: Partial<Aluno>) {
