@@ -6,6 +6,7 @@ import { Users, Search } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 
 export function AlunosVinculados() {
+  console.log('*** ALUNOSVINCULADOS RENDERIZOU ***')
   const [alunos, setAlunos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [busca, setBusca] = useState('')
