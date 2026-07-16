@@ -39,6 +39,18 @@ export async function getBoxId(): Promise<string | null> {
   }
 }
 
+export async function atualizarBox(id: string, dados: Record<string, unknown>) {
+  const { data, error } = await supabase
+    .from('boxes')
+    .update(dados)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
 /* ========================= USUARIOS ========================= */
 export async function listarUsuarios() {
   const { data, error } = await supabase

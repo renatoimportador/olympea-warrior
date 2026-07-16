@@ -125,7 +125,7 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
         </div>
         <h1 className="text-xl font-bold text-text-primary">{treino?.titulo || 'Treino do Dia'}</h1>
         <div className="flex items-center gap-2 mt-1">
-          <Badge variant="accent">CrossFit OLYMPEA</Badge>
+          <Badge variant="accent">Planilha Olympea</Badge>
           <Badge>{fase?.nome || 'Programacao'}</Badge>
         </div>
       </div>

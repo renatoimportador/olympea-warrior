@@ -3,11 +3,13 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useBox } from '@/context/BoxContext'
+import { atualizarBox } from '@/lib/api'
 import { Building2, Save, Palette, Globe, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export function ConfigurarBox() {
   const { box, setBox } = useBox()
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     nome: box.nome,
     cor_primaria: box.cor_primaria,
@@ -18,9 +20,33 @@ export function ConfigurarBox() {
     dominio_customizado: box.dominio_customizado,
   })
 
-  function handleSave() {
-    setBox({ ...box, ...form })
-    toast.success('Configuracoes do box salvas!')
+  async function handleSave() {
+    if (saving) return
+    if (!box.id) {
+      toast.error('Box nao identificado')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const updated = await atualizarBox(box.id, {
+        nome: form.nome,
+        cor_primaria: form.cor_primaria,
+        cor_secundaria: form.cor_secundaria,
+        cor_sucesso: form.cor_sucesso,
+        cor_alerta: form.cor_alerta,
+        cor_erro: form.cor_erro,
+        dominio_customizado: form.dominio_customizado || null,
+      })
+
+      setBox({ ...box, ...updated })
+      toast.success('Configuracoes do box salvas!')
+    } catch (err: any) {
+      console.error('Erro ao salvar box:', err)
+      toast.error(err?.message || 'Erro ao salvar configuracoes')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const cores = [
@@ -97,9 +123,9 @@ export function ConfigurarBox() {
           </div>
         </div>
 
-        <Button onClick={handleSave}>
+        <Button onClick={handleSave} disabled={saving}>
           <Save size={18} className="mr-2" />
-          Salvar Configuracoes
+          {saving ? 'Salvando...' : 'Salvar Configuracoes'}
         </Button>
       </GlassCard>
 

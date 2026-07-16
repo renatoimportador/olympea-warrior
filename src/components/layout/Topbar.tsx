@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Bell, User, LogOut } from 'lucide-react'
+import { Bell, User, LogOut } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useBox } from '@/context/BoxContext'
 
 export function Topbar() {
-  const [searchOpen, setSearchOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
   const { user, logout } = useAuth()
@@ -29,23 +28,6 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        {searchOpen && (
-          <input
-            type="text"
-            placeholder="Buscar..."
-            autoFocus
-            onBlur={() => setSearchOpen(false)}
-            className="glass-input w-40 md:w-56 text-sm"
-          />
-        )}
-
-        <button
-          onClick={() => setSearchOpen(!searchOpen)}
-          className="p-2 rounded-xl hover:bg-white/[0.03] transition-colors"
-        >
-          <Search size={18} className="text-text-secondary" />
-        </button>
-
         <button
           onClick={() => navigate('/notificacoes')}
           className="relative p-2 rounded-xl hover:bg-white/[0.03] transition-colors"

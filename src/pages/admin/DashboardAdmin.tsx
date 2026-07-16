@@ -11,7 +11,15 @@ import {
   listarUsuarios, listarAlunos, listarCoaches, listarProgramacoes,
   listarResultadosByAluno, listarFasesByProg, listarSemanasByFase,
 } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import type { Usuario, Aluno, Coach, Programacao, Resultado, Fase, Semana } from '@/data/types'
+
+function formatarResultadoAdmin(r: Resultado): string {
+  if (r.tempo) return r.tempo
+  if (r.carga) return `${r.carga} kg`
+  if (r.rounds != null) return `${r.rounds} rounds${r.repeticoes ? ` + ${r.repeticoes} reps` : ''}`
+  return '--'
+}
 
 export function DashboardAdmin() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
@@ -37,11 +45,19 @@ export function DashboardAdmin() {
         setCoaches(c)
         setProgramacoes(p)
 
-        // Buscar resultados de todos os alunos
+        // Buscar IDs de treinos existentes para filtrar resultados órfãos
+        const { data: treinosExistentes } = await supabase
+          .from('treinos')
+          .select('id')
+        const treinoIds = new Set((treinosExistentes || []).map((t: any) => t.id))
+
+        // Buscar resultados de todos os alunos, filtrando órfãos
         const allResultados: Resultado[] = []
         for (const al of a) {
           const r = await listarResultadosByAluno(al.id)
-          allResultados.push(...r)
+          // Manter apenas resultados cujo treino_id existe
+          const validos = r.filter((res: any) => res.treino_id && treinoIds.has(res.treino_id))
+          allResultados.push(...validos)
         }
         setResultados(allResultados)
 
@@ -68,16 +84,11 @@ export function DashboardAdmin() {
   }, [])
 
   const totalUsuarios = usuarios.filter(
-  (u: any) => u.ativo && u.auth_id && u.box_id
-).length
+    (u: any) => u.ativo && u.auth_id && u.box_id
+  ).length
 
-const totalAlunos = alunos.filter(
-  (a: any) => a.ativo
-).length
-
-const totalCoaches = coaches.filter(
-  (c: any) => c.ativo
-).length
+  const totalAlunos = alunos.filter((a: any) => a.ativo).length
+  const totalCoaches = coaches.filter((c: any) => c.ativo).length
   const totalProgramacoes = programacoes.filter((p) => p.ativa).length
   const totalResultados = resultados.length
   const totalFases = fases.filter((f) => f.ativa).length
@@ -100,8 +111,9 @@ const totalCoaches = coaches.filter(
   ]
 
   const recentActivity = resultados.slice(-5).reverse().map((r) => ({
-    action: `Resultado: ${r.tempo || r.carga || r.rounds || '--'}`,
-    user: alunos.find((a) => a.id === r.aluno_id)?.nome || alunos.find((a) => a.id === r.aluno_id)?.usuario?.nome || 'Aluno',
+    action: `Resultado: ${formatarResultadoAdmin(r)}`,
+    user: alunos.find((a) => a.id === r.aluno_id)?.usuario?.nome ||
+          alunos.find((a) => a.id === r.aluno_id)?.nome || 'Aluno',
     time: new Date(r.data).toLocaleDateString('pt-BR'),
   }))
 
@@ -216,9 +228,14 @@ const totalCoaches = coaches.filter(
                   {i + 1}
                 </span>
                 <span className="text-sm text-text-primary flex-1">
-                  {alunos.find((a) => a.id === r.aluno_id)?.nome || alunos.find((a) => a.id === r.aluno_id)?.usuario?.nome || 'Aluno'} — {r.tempo || `${r.carga || r.rounds} ${r.carga ? 'kg' : 'rounds'}`}
+                  {alunos.find((a) => a.id === r.aluno_id)?.usuario?.nome ||
+                   alunos.find((a) => a.id === r.aluno_id)?.nome || 'Aluno'}
+                  {' — '}
+                  {formatarResultadoAdmin(r)}
                 </span>
-                <span className="text-sm font-bold text-accent">RPE {r.rpe}</span>
+                {r.rpe && (
+                  <span className="text-xs text-text-secondary">RPE {r.rpe}</span>
+                )}
               </div>
             ))}
           </div>
@@ -235,7 +252,7 @@ const totalCoaches = coaches.filter(
                 <span className="text-sm text-text-primary">{prog.nome}</span>
                 <div className="flex items-center gap-2">
                   <div className="w-24 h-2 rounded-full bg-white/[0.05] overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-accent" style={{ width: `90%` }} />
+                    <div className="h-full rounded-full bg-gradient-accent" style={{ width: '90%' }} />
                   </div>
                   <span className="text-xs text-text-secondary w-8">Ativa</span>
                 </div>

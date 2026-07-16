@@ -15,19 +15,29 @@ import {
   listarResultadosByTreino,
   listarAlunos,
   getTreinoDoDia,
+  listarTreinosByDia,
 } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
   Zap, TrendingUp, CalendarCheck, Dumbbell, Flame, Trophy,
-  ChevronRight, Clock, ArrowUpRight,
+  ChevronRight, Clock, ArrowUpRight, Users,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 
+function formatarResultado(r: any, tipoWod?: string): string {
+  if (!r) return '-'
+  if (tipoWod === 'FOR_TIME' && r.tempo) return r.tempo
+  if (tipoWod === 'AMRAP') return `${r.rounds || 0} rounds + ${r.repeticoes || 0} reps`
+  if (r.tempo) return r.tempo
+  if (r.carga) return `${r.carga} kg`
+  if (r.rounds != null) return `${r.rounds} rounds${r.repeticoes ? ` + ${r.repeticoes} reps` : ''}`
+  return '-'
+}
+
 export function DashboardAluno() {
-  //alert('Dashboard carregou!')
   const { user } = useAuth()
   const { programacaoAtiva } = useProgramacao()
   const [aluno, setAluno] = useState<Aluno | null>(null)
@@ -37,18 +47,18 @@ export function DashboardAluno() {
   const [programacoes, setProgramacoes] = useState<Programacao[]>([])
   const [diasTreino, setDiasTreino] = useState<DiaTreino[]>([])
   const [treinoHoje, setTreinoHoje] = useState<Treino | null>(null)
-  const [rankingPosicao, setRankingPosicao] = useState<any>(null)
+  const [proximoTreino, setProximoTreino] = useState<{ dia: string; treino: Treino } | null>(null)
   const [rankingSemana, setRankingSemana] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [meusCampeonatos, setMeusCampeonatos] = useState<any[]>([])
   const [campeonatos, setCampeonatos] = useState<any[]>([])
+  const [participantesPorCamp, setParticipantesPorCamp] = useState<Record<string, any[]>>({})
 
   useEffect(() => {
     async function load() {
       if (!user) { setLoading(false); return }
       try {
         const a = await getAlunoByUsuarioId(user.id)
-        console.log('Aluno:', a)
         if (!a) { setLoading(false); return }
         setAluno(a)
 
@@ -62,104 +72,115 @@ export function DashboardAluno() {
         setFrequencias(f)
         setResultados(r)
         setProgramacoes(progs)
-        const { data: inscricoes, error } = await supabase
-  .from('participacoes_campeonato')
-  .select(`
-    *,
-    campeonatos(*)
-  `)
-  .eq('aluno_id', a.id)
 
-console.log('INSCRIÇÕES:', inscricoes)
-console.log('ERRO INSCRIÇÕES:', error)
+        // Campeonatos + inscrições
+        const [inscRes, campRes] = await Promise.all([
+          supabase
+            .from('participacoes_campeonato')
+            .select('*, campeonatos(*)')
+            .eq('aluno_id', a.id),
+          supabase
+            .from('campeonatos')
+            .select('*')
+            .eq('ativo', true)
+            .order('data_inicio'),
+        ])
 
-setMeusCampeonatos(inscricoes || [])
-        const { data: listaCampeonatos } = await supabase
-  .from('campeonatos')
-  .select('*')
-  .eq('ativo', true)
-  .order('data_inicio')
+        setMeusCampeonatos(inscRes.data || [])
+        const listaCamp = campRes.data || []
+        setCampeonatos(listaCamp)
 
-setCampeonatos(listaCampeonatos || [])
-        console.log('INSCRIÇÕES:', inscricoes)
+        // Buscar participantes de cada campeonato
+        if (listaCamp.length > 0) {
+          const partMap: Record<string, any[]> = {}
+          for (const camp of listaCamp) {
+            const { data: parts } = await supabase
+              .from('participacoes_campeonato')
+              .select('*, alunos(id, usuario_id, usuarios(nome))')
+              .eq('campeonato_id', camp.id)
+            partMap[camp.id] = (parts || []).map((p: any) => ({
+              nome: p.alunos?.usuarios?.nome || 'Atleta',
+              aluno_id: p.aluno_id,
+            }))
+          }
+          setParticipantesPorCamp(partMap)
+        }
+
+        // Ranking do treino de hoje
         const treino = await getTreinoDoDia()
+        setTreinoHoje(treino as Treino | null)
 
-if (treino) {
-  const resultados = await listarResultadosByTreino(treino.id)
-  const alunos = await listarAlunos()
+        if (treino) {
+          const resHoje = await listarResultadosByTreino(treino.id)
+          const todosAlunos = await listarAlunos()
 
-  const ranking = alunos
-    .map((alunoRanking) => {
-      
-          const resultadosAluno = resultados.filter(
-  (r) => r.aluno_id === alunoRanking.id
-)
-      
-  let pontos = 0
+          const ranking = todosAlunos
+            .map((al) => {
+              const resAluno = resHoje.filter((rr: any) => rr.aluno_id === al.id)
+              const resultado = resAluno[0] || null
+              return {
+                id: al.id,
+                nome: al.usuario?.nome || 'Sem nome',
+                resultado,
+              }
+            })
+            .filter((x) => x.resultado)
+            .sort((aa, bb) => {
+              const ra = aa.resultado
+              const rb = bb.resultado
+              if (!ra) return 1
+              if (!rb) return -1
 
-resultadosAluno.forEach((r) => {
-  if (r.carga) {
-    pontos += r.carga
-  } else if (r.rounds) {
-    pontos += r.rounds * 100 + (r.repeticoes || 0)
-  } else if (r.tempo) {
-    const [min, seg] = r.tempo.split(':').map(Number)
-    pontos += Math.max(0, 10000 - (min * 60 + seg))
-  }
-})
+              if ((treino as any).tipo_wod === 'FOR_TIME') {
+                return (ra.tempo || '').localeCompare(rb.tempo || '')
+              }
+              if ((treino as any).tipo_wod === 'AMRAP') {
+                if ((rb.rounds || 0) !== (ra.rounds || 0))
+                  return (rb.rounds || 0) - (ra.rounds || 0)
+                return (rb.repeticoes || 0) - (ra.repeticoes || 0)
+              }
+              return (rb.carga || 0) - (ra.carga || 0)
+            })
+            .map((x, i) => ({ ...x, posicao: i + 1 }))
 
-return {
-  id: alunoRanking.id,
-  nome: alunoRanking.usuario?.nome || 'Sem nome',
-  categoria: '',
-  treinos: resultadosAluno.length,
-  pontos,
-}
-})
-    .filter((a) => a.treinos > 0)
-    .sort((a, b) => b.pontos - a.pontos)
-    .map((a, index) => ({
-      ...a,
-      posicao: index + 1,
-    }))
+          setRankingSemana(ranking)
+        }
 
-  setRankingPosicao(
-    ranking.find((r) => r.id === a.id) || null
-  )
-  setRankingSemana(ranking)
-}
-        
-console.log('PRs:', p.length)
-console.log('Frequências:', f.length)
-console.log('Resultados:', r.length)
-console.log('Programações:', progs.length)
-        // Buscar dias da semana da programacao ativa
-        //alert("Programação ativa: " + JSON.stringify(programacaoAtiva))
+        // Buscar próximo treino
         if (programacaoAtiva?.id) {
-          // Buscar fases da programacao
           const { listarFasesByProg } = await import('@/lib/api')
           const fases = await listarFasesByProg(programacaoAtiva.id)
           if (fases.length > 0) {
             const { listarSemanasByFase } = await import('@/lib/api')
             const semanas = await listarSemanasByFase(fases[0].id)
             if (semanas.length > 0) {
-              const { listarDiasBySemana } = await import('@/lib/api')
               const dias = await listarDiasBySemana(semanas[0].id)
-              //alert("Dias encontrados: " + dias.length)
-              console.log('Dias:', JSON.stringify(dias, null, 2))
-
               setDiasTreino(dias)
 
-              // Buscar treino do dia atual
+              // Encontrar próximo dia com treino
               const hoje = new Date()
-              const semanaNomes = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
-              const diaSemana = semanaNomes[hoje.getDay()]
-              console.log('Hoje é:', diaSemana)
-              const diaAtual = dias.find(d => d.dia_semana === diaSemana.toUpperCase())
-              //alert("Dia atual: " + JSON.stringify(diaAtual))
-              if (diaAtual) {
-                const t = await getTreinoByDia(diaAtual.id)
-                setTreinoHoje(t)
+              const diaSemanaIdx = hoje.getDay() // 0=Dom
+              const nomesOrdem = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
+
+              // Buscar a partir de amanhã, ciclicamente
+              for (let offset = 1; offset <= 7; offset++) {
+                const idx = (diaSemanaIdx + offset) % 7
+                const nomeDia = nomesOrdem[idx]
+                const dia = dias.find((d) => d.dia_semana === nomeDia)
+                if (dia) {
+                  const treinos = await listarTreinosByDia(dia.id)
+                  if (treinos.length > 0) {
+                    const nomesLegivel: Record<string, string> = {
+                      DOM: 'Domingo', SEG: 'Segunda', TER: 'Terça',
+                      QUA: 'Quarta', QUI: 'Quinta', SEX: 'Sexta', SAB: 'Sábado'
+                    }
+                    setProximoTreino({
+                      dia: nomesLegivel[nomeDia] || nomeDia,
+                      treino: treinos[0]
+                    })
+                    break
+                  }
+                }
               }
             }
           }
@@ -173,35 +194,34 @@ console.log('Programações:', progs.length)
     load()
   }, [user, programacaoAtiva])
 
-  const streak = useMemo(() => {
-    if (frequencias.length === 0) return 0
-    const sorted = [...frequencias].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
-    let count = 1
-    for (let i = 1; i < sorted.length; i++) {
-      const prev = new Date(sorted[i - 1].data)
-      const curr = new Date(sorted[i].data)
-      const diff = (prev.getTime() - curr.getTime()) / (1000 * 60 * 60 * 24)
-      if (diff <= 2) count++
-      else break
-    }
-    return count
-  }, [frequencias])
+  // Frequência do mês: contar dias únicos com resultado no mês atual
+  const agora = new Date()
+  const mesAtual = agora.getMonth()
+  const anoAtual = agora.getFullYear()
 
-  const freqMes = frequencias.length
+  const freqMes = useMemo(() => {
+    const diasUnicos = new Set(
+      resultados
+        .filter((r) => {
+          const d = new Date(r.data)
+          return d.getMonth() === mesAtual && d.getFullYear() === anoAtual
+        })
+        .map((r) => new Date(r.data).toDateString())
+    )
+    return diasUnicos.size
+  }, [resultados, mesAtual, anoAtual])
+
   const treinosTotal = resultados.length
   const pesoAtual = aluno?.peso_atual ?? 0
-  const hoje = new Date()
-  const semanaNomes = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
-  const diaSemana = semanaNomes[hoje.getDay()]
-  const dataHoje = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 
-  const frequenciaData = semanaNomes.map(nome => ({
-  name: nome,
-  freq: resultados.filter(r => {
-    const d = new Date(r.data)
-    return semanaNomes[d.getDay()] === nome
-  }).length
-}))
+  const semanaNomes = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
+  const frequenciaData = semanaNomes.map((nome) => ({
+    name: nome,
+    freq: resultados.filter((r) => {
+      const d = new Date(r.data)
+      return semanaNomes[d.getDay()] === nome
+    }).length,
+  }))
 
   if (loading) {
     return (
@@ -216,7 +236,7 @@ console.log('Programações:', progs.length)
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {/* Header com perfil */}
+      {/* Header */}
       <div className="flex items-center gap-4">
         <div className="w-14 h-14 rounded-2xl bg-gradient-accent flex items-center justify-center text-bg-primary font-bold text-xl">
           {user?.nome?.charAt(0) || 'A'}
@@ -230,9 +250,7 @@ console.log('Programações:', progs.length)
         </div>
       </div>
 
-  
-
-      {/* Metricas Grid */}
+      {/* Metricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <GlassCard className="p-4 space-y-2">
           <div className="flex items-center justify-between">
@@ -274,55 +292,75 @@ console.log('Programações:', progs.length)
       </div>
 
       {/* Proximo Treino */}
-<GlassCard className="p-5">
-  <div className="flex items-center gap-2">
-    <Clock size={16} className="text-accent" />
-    <h2 className="font-semibold text-text-primary">Próximo Treino</h2>
-  </div>
+      <GlassCard className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Clock size={16} className="text-accent" />
+          <h2 className="font-semibold text-text-primary">Proximo Treino</h2>
+        </div>
 
-  <p className="mt-3 text-sm text-text-secondary">
-    Consulte seu treino na aba <strong>Treino</strong>.
-  </p>
+        {proximoTreino ? (
+          <div>
+            <p className="text-sm text-text-primary font-medium">
+              {proximoTreino.treino.titulo || 'Treino'}
+            </p>
+            <p className="text-xs text-text-secondary mt-1">
+              {proximoTreino.dia}
+              {(proximoTreino.treino as any).tipo_wod && (
+                <> &bull; {(proximoTreino.treino as any).tipo_wod}</>
+              )}
+            </p>
+            <Link
+              to="/aluno/treino"
+              className="inline-flex items-center gap-1 text-xs text-accent mt-3 hover:underline"
+            >
+              Ver detalhes <ChevronRight size={12} />
+            </Link>
+          </div>
+        ) : (
+          <p className="text-sm text-text-secondary">
+            Nenhum proximo treino programado.
+          </p>
+        )}
+      </GlassCard>
 
-  <p className="mt-4 text-xs text-accent">
-  Acesse a aba Treino para visualizar o treino do dia.
-</p>
-</GlassCard>
-<GlassCard className="p-5 space-y-3">
-  <h2 className="font-semibold text-text-primary flex items-center gap-2">
-    <Trophy size={16} className="text-warning" />
-    Ranking da Semana
-  </h2>
+      {/* Ranking da Semana */}
+      <GlassCard className="p-5 space-y-3">
+        <h2 className="font-semibold text-text-primary flex items-center gap-2">
+          <Trophy size={16} className="text-warning" />
+          Ranking da Semana
+        </h2>
 
-  {rankingSemana.length === 0 ? (
-  <p className="text-sm text-text-secondary py-4 text-center">
-    Ainda não há resultados registrados para o treino de hoje.
-  </p>
-) : (
-  rankingSemana.slice(0, 3).map((r, index) => (
-    <div
-      key={r.id}
-      className="flex items-center justify-between py-2 border-b border-white/5 last:border-0"
-    >
-      <div>
-        <p className="font-medium text-text-primary">
-          {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} {r.nome}
-        </p>
+        {rankingSemana.length === 0 ? (
+          <p className="text-sm text-text-secondary py-4 text-center">
+            Ainda nao ha resultados registrados para o treino de hoje.
+          </p>
+        ) : (
+          rankingSemana.slice(0, 5).map((r, index) => (
+            <div
+              key={r.id}
+              className={`flex items-center justify-between py-2 border-b border-white/5 last:border-0 ${
+                r.id === aluno?.id ? 'bg-accent/5 rounded-lg px-2 -mx-2' : ''
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold w-5">
+                  {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`}
+                </span>
+                <p className="font-medium text-text-primary text-sm">
+                  {r.nome}
+                </p>
+                {r.id === aluno?.id && (
+                  <Badge variant="accent">Voce</Badge>
+                )}
+              </div>
+              <p className="text-sm font-bold text-accent">
+                {formatarResultado(r.resultado, (treinoHoje as any)?.tipo_wod)}
+              </p>
+            </div>
+          ))
+        )}
+      </GlassCard>
 
-        <p className="text-xs text-text-secondary">
-          {r.pontos} pts
-        </p>
-      </div>
-
-      {r.id === aluno?.id && (
-        <Badge variant="accent">
-          Você
-        </Badge>
-      )}
-    </div>
-  ))
-)}
-</GlassCard>
       {/* Grafico de Frequencia */}
       <GlassCard className="p-5 space-y-3">
         <h2 className="font-semibold text-text-primary flex items-center gap-2">
@@ -379,74 +417,82 @@ console.log('Programações:', progs.length)
             ))}
           </div>
         ) : (
-          <p className="text-sm text-text-secondary">Nenhum PR registrado ainda. Vamos comecar!</p>
+          <p className="text-sm text-text-secondary">Nenhum PR registrado ainda.</p>
         )}
       </GlassCard>
 
-      {/* Multi-Programacao */}
+      {/* Campeonatos */}
       <GlassCard className="p-5 space-y-3">
-  <h2 className="font-semibold text-text-primary flex items-center gap-2">
-    <Trophy size={16} className="text-warning" />
-    Meus Campeonatos
-  </h2>
+        <h2 className="font-semibold text-text-primary flex items-center gap-2">
+          <Trophy size={16} className="text-warning" />
+          Campeonatos
+        </h2>
 
-  <div className="space-y-2">
-  {campeonatos.length === 0 ? (
-    <Link
-      to="/aluno/campeonatos"
-      className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-semibold text-text-primary">
-            Nenhum campeonato disponível
-          </p>
+        <div className="space-y-3">
+          {campeonatos.length === 0 ? (
+            <p className="text-sm text-text-secondary py-4 text-center">
+              Nenhum campeonato disponivel no momento.
+            </p>
+          ) : (
+            campeonatos.map((camp) => {
+              const inscrito = meusCampeonatos.some((i) => i.campeonato_id === camp.id)
+              const participantes = participantesPorCamp[camp.id] || []
 
-          <p className="text-xs text-text-secondary mt-1">
-            Você ainda não está inscrito em nenhum campeonato.
-          </p>
+              return (
+                <Link
+                  key={camp.id}
+                  to="/aluno/campeonatos"
+                  className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-text-primary">{camp.nome}</p>
+                      <p className="text-xs text-text-secondary mt-1">
+                        {camp.data_inicio
+                          ? new Date(camp.data_inicio).toLocaleDateString('pt-BR')
+                          : ''}{' '}
+                        {camp.local && `• ${camp.local}`}
+                      </p>
+                      <p className={`text-xs mt-1.5 ${inscrito ? 'text-success' : 'text-warning'}`}>
+                        {inscrito ? 'Inscrito' : 'Disponivel'}
+                      </p>
+                    </div>
+                    <Trophy size={24} className="text-warning opacity-60 flex-shrink-0" />
+                  </div>
+
+                  {participantes.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-white/5">
+                      <p className="text-xs text-text-secondary flex items-center gap-1 mb-1.5">
+                        <Users size={12} />
+                        {participantes.length} inscrito{participantes.length !== 1 ? 's' : ''}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {participantes.slice(0, 8).map((pt, i) => (
+                          <span
+                            key={i}
+                            className={`text-[10px] px-2 py-0.5 rounded-full ${
+                              pt.aluno_id === aluno?.id
+                                ? 'bg-accent/15 text-accent'
+                                : 'bg-white/[0.04] text-text-secondary'
+                            }`}
+                          >
+                            {pt.aluno_id === aluno?.id ? 'Voce' : pt.nome}
+                          </span>
+                        ))}
+                        {participantes.length > 8 && (
+                          <span className="text-[10px] text-text-secondary">
+                            +{participantes.length - 8}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </Link>
+              )
+            })
+          )}
         </div>
-
-        <Trophy size={28} className="text-warning opacity-60" />
-      </div>
-    </Link>
-  ) : (
-    campeonatos.map((camp) => {
-  const inscrito = meusCampeonatos.some(
-    (i) => i.campeonato_id === camp.id
-  )
-
-  return (
-      <Link
-        key={camp.id}
-        to="/aluno/campeonatos"
-        className="block rounded-xl bg-white/[0.02] border border-white/[0.04] p-4 hover:bg-white/[0.04] transition"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-text-primary">
-  {camp.nome}
-</p>
-
-<p className="text-xs text-text-secondary mt-1">
-  {camp.data_inicio} • {camp.local}
-</p>
-
-<p className={`text-xs mt-2 ${
-  inscrito ? 'text-success' : 'text-warning'
-}`}>
-  {inscrito ? '✅ Inscrito' : '🟡 Disponível'}
-</p>
-          </div>
-
-          <Trophy size={28} className="text-warning" />
-        </div>
-      </Link>
-    )
-    })
-  )}
-</div>
-</GlassCard>
+      </GlassCard>
     </div>
   )
 }

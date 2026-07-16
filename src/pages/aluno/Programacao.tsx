@@ -102,7 +102,7 @@ export function Programacao() {
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-text-primary">Programacao</h1>
-        <p className="text-sm text-text-secondary">CrossFit Olympea Warrior</p>
+        <p className="text-sm text-text-secondary">Planilha Olympea</p>
       </div>
 
       {/* Fases */}
