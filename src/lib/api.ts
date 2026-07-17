@@ -691,13 +691,26 @@ export async function listarComentariosByResultado(resultadoId: string) {
   return data as Comentario[]
 }
 
+export async function listarComentariosByAluno(alunoId: string) {
+  const { data, error } = await supabase
+    .from('comentarios')
+    .select('*, autor:usuarios(nome)')
+    .eq('aluno_id', alunoId)
+    .is('resultado_id', null)
+    .order('created_at', { ascending: true })
+
+  if (error) throw error
+  return data as any[]
+}
+
 export async function adicionarComentario(comentario: Partial<Comentario>) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('comentarios')
     .insert(comentario)
     .select()
     .single()
 
+  if (error) throw error
   return data as Comentario
 }
 

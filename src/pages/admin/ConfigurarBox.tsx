@@ -36,7 +36,7 @@ export function ConfigurarBox() {
         cor_sucesso: form.cor_sucesso,
         cor_alerta: form.cor_alerta,
         cor_erro: form.cor_erro,
-        dominio_customizado: form.dominio_customizado || null,
+        // dominio_customizado omitido intencionalmente — coluna nao existe no schema
       })
 
       setBox({ ...box, ...updated })
@@ -117,9 +117,13 @@ export function ConfigurarBox() {
             </label>
             <Input
               value={form.dominio_customizado || ''}
-              onChange={(e) => setForm({ ...form, dominio_customizado: e.target.value })}
+              disabled
               placeholder="meubox.olympea.com"
+              title="Campo informativo — configuracao de dominio ainda nao disponivel"
             />
+            <p className="text-[10px] text-text-secondary mt-1">
+              Campo informativo. A configuracao de dominio proprio estara disponivel em breve.
+            </p>
           </div>
         </div>
 

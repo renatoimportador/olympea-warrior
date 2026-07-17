@@ -5,14 +5,11 @@ import { Input } from '@/components/ui/Input'
 import { useAuth } from '@/context/AuthContext'
 import {
   listarAlunos,
-  listarComentarios,
+  listarComentariosByAluno,
   adicionarComentario,
-  listarUsuarios,
   criarNotificacaoSupabase,
 } from '@/lib/api'
-import { supabase } from '@/lib/supabase'
-import type { Comentario } from '@/data/types'
-import { MessageSquare, Send, Users } from 'lucide-react'
+import { MessageSquare, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export function ComentariosCoach() {
@@ -32,10 +29,10 @@ export function ComentariosCoach() {
         const ativos = (data || []).filter((a: any) => a.ativo)
         setAlunos(ativos)
         if (ativos.length > 0) {
-          setSelectedAluno(ativos[0].usuario_id)
+          setSelectedAluno(ativos[0].id)
         }
       } catch (e) {
-        console.error('Erro:', e)
+        console.error('Erro ao carregar alunos:', e)
       } finally {
         setLoading(false)
       }
@@ -49,22 +46,14 @@ export function ComentariosCoach() {
   }, [selectedAluno])
 
   async function carregarMensagens() {
+    if (!selectedAluno) return
+
+    // Limpa mensagens anteriores imediatamente ao trocar de aluno
+    setMensagens([])
+
     try {
-      const { data, error } = await supabase
-        .from('comentarios')
-        .select('*, autor:usuarios(nome)')
-        .order('created_at', { ascending: true })
-
-      if (error) {
-        console.error('Erro ao carregar comentarios:', error)
-        return
-      }
-
-      const mensagensFiltradas = (data || []).filter((c: any) => {
-        return c.autor_id === selectedAluno || c.autor_id === user?.id
-      })
-
-      setMensagens(mensagensFiltradas)
+      const data = await listarComentariosByAluno(selectedAluno)
+      setMensagens(data || [])
 
       setTimeout(() => {
         if (chatRef.current) {
@@ -72,38 +61,41 @@ export function ComentariosCoach() {
         }
       }, 100)
     } catch (e) {
-      console.error('Erro:', e)
+      console.error('Erro ao carregar mensagens:', e)
     }
   }
 
   async function handleEnviar() {
     if (!novaMensagem.trim() || !user || !selectedAluno) return
+
     setEnviando(true)
 
     try {
-      const { data, error } = await supabase
-        .from('comentarios')
-        .insert({
-          autor_id: user.id,
-          mensagem: novaMensagem.trim(),
-          lido: false,
-        })
-        .select('*, autor:usuarios(nome)')
-        .single()
+      const data = await adicionarComentario({
+        aluno_id: selectedAluno,
+        resultado_id: null,
+        autor_id: user.id,
+        mensagem: novaMensagem.trim(),
+        lido: false,
+      })
 
-      if (error) throw error
-
-      setMensagens(prev => [...prev, data])
+      setMensagens((prev) => [...prev, { ...data, autor: { nome: user.nome } }])
       setNovaMensagem('')
 
-      await criarNotificacaoSupabase({
-        usuario_id: selectedAluno,
-        tipo: 'MENSAGEM_COACH',
-        titulo: 'Nova mensagem do Coach',
-        mensagem: novaMensagem.trim().substring(0, 100),
-        link: '/aluno/comentarios',
-        data: new Date().toISOString(),
-      })
+      // Notificar o usuario dono do aluno selecionado
+      const alunoSelecionado = alunos.find((a: any) => a.id === selectedAluno)
+      const usuarioId = alunoSelecionado?.usuario_id
+
+      if (usuarioId) {
+        await criarNotificacaoSupabase({
+          usuario_id: usuarioId,
+          tipo: 'MENSAGEM_COACH',
+          titulo: 'Nova mensagem do Coach',
+          mensagem: novaMensagem.trim().substring(0, 100),
+          link: '/aluno/comentarios',
+          data: new Date().toISOString(),
+        })
+      }
 
       setTimeout(() => {
         if (chatRef.current) {
@@ -118,7 +110,7 @@ export function ComentariosCoach() {
     }
   }
 
-  const alunoSelecionado = alunos.find((a: any) => a.usuario_id === selectedAluno)
+  const alunoSelecionado = alunos.find((a: any) => a.id === selectedAluno)
 
   if (loading) {
     return (
@@ -142,7 +134,7 @@ export function ComentariosCoach() {
         className="glass-input w-full"
       >
         {alunos.map((a: any) => (
-          <option key={a.id} value={a.usuario_id}>
+          <option key={a.id} value={a.id}>
             {a.usuario?.nome || 'Aluno'}
           </option>
         ))}
@@ -159,31 +151,32 @@ export function ComentariosCoach() {
         </div>
 
         <div ref={chatRef} className="p-4 space-y-3 max-h-[400px] overflow-y-auto">
-          {mensagens.length === 0 && (
+          {mensagens.length === 0 ? (
             <p className="text-sm text-text-secondary text-center py-8">
               Nenhuma mensagem ainda. Inicie a conversa!
             </p>
-          )}
-          {mensagens.map((m: any) => {
-            const isCoach = m.autor_id === user?.id
-            return (
-              <div key={m.id} className={`flex ${isCoach ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-3 rounded-xl ${
-                  isCoach
-                    ? 'bg-accent/10 border border-accent/20'
-                    : 'bg-white/[0.03] border border-white/[0.05]'
-                }`}>
-                  <p className="text-[10px] text-text-secondary mb-1">
-                    {m.autor?.nome || (isCoach ? 'Voce' : 'Aluno')}
-                  </p>
-                  <p className="text-sm text-text-primary">{m.mensagem}</p>
-                  <p className="text-[10px] text-text-secondary mt-1">
-                    {new Date(m.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </p>
+          ) : (
+            mensagens.map((m: any) => {
+              const isCoach = m.autor_id === user?.id
+              return (
+                <div key={m.id} className={`flex ${isCoach ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[80%] p-3 rounded-xl ${
+                    isCoach
+                      ? 'bg-accent/10 border border-accent/20'
+                      : 'bg-white/[0.03] border border-white/[0.05]'
+                  }`}>
+                    <p className="text-[10px] text-text-secondary mb-1">
+                      {m.autor?.nome || (isCoach ? 'Voce' : 'Aluno')}
+                    </p>
+                    <p className="text-sm text-text-primary">{m.mensagem}</p>
+                    <p className="text-[10px] text-text-secondary mt-1">
+                      {new Date(m.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
 
         <div className="p-4 border-t border-white/[0.05] flex gap-2">
@@ -194,7 +187,7 @@ export function ComentariosCoach() {
             onKeyDown={(e) => e.key === 'Enter' && handleEnviar()}
             className="flex-1"
           />
-          <Button onClick={handleEnviar} disabled={enviando || !novaMensagem.trim()}>
+          <Button onClick={handleEnviar} disabled={enviando || !novaMensagem.trim() || !selectedAluno}>
             <Send size={16} />
           </Button>
         </div>

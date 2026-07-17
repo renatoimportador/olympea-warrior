@@ -278,13 +278,15 @@ export interface Resultado {
    ============================================================= */
 export interface Comentario {
   id: UUID;
-  resultado_id: UUID;
+  resultado_id?: UUID | null;
+  aluno_id?: UUID | null;
   autor_id: UUID;
   autor?: Usuario;
   parent_id?: UUID;
   mensagem: string;
   lido: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 /* =============================================================

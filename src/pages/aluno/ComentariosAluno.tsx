@@ -5,8 +5,7 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import {
   getAlunoByUsuarioId,
-  listarResultadosByAluno,
-  listarComentariosByResultado,
+  listarComentariosByAluno,
   adicionarComentario,
 } from '@/lib/api'
 
@@ -16,6 +15,7 @@ export function ComentariosAluno() {
   const [mensagem, setMensagem] = useState('')
   const [comentarios, setComentarios] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [alunoId, setAlunoId] = useState<string | null>(null)
 
   useEffect(() => {
     carregarComentarios()
@@ -32,25 +32,13 @@ export function ComentariosAluno() {
         return
       }
 
-      const resultados = await listarResultadosByAluno(aluno.id)
+      setAlunoId(aluno.id)
 
-      let todosComentarios: any[] = []
-
-      for (const resultado of resultados || []) {
-        const coms = await listarComentariosByResultado(resultado.id)
-        todosComentarios.push(...(coms || []))
-      }
-
-      todosComentarios.sort(
-        (a, b) =>
-          new Date(a.created_at).getTime() -
-          new Date(b.created_at).getTime()
-      )
-
-      setComentarios(todosComentarios)
+      const comentarios = await listarComentariosByAluno(aluno.id)
+      setComentarios(comentarios || [])
     } catch (error) {
       console.error(error)
-      toast.error('Erro ao carregar comentários')
+      toast.error('Erro ao carregar comentarios')
     } finally {
       setLoading(false)
     }
@@ -60,30 +48,18 @@ export function ComentariosAluno() {
     if (!mensagem.trim()) return
 
     try {
-      if (!user?.id) return
-
-      const aluno = await getAlunoByUsuarioId(user.id)
-
-      if (!aluno) {
-        toast.error('Aluno não encontrado')
+      if (!user?.id || !alunoId) {
+        toast.error('Aluno nao encontrado')
         return
       }
-
-      const resultados = await listarResultadosByAluno(aluno.id)
-
-      if (!resultados || resultados.length === 0) {
-        toast.error('Nenhum resultado encontrado para comentar')
-        return
-      }
-
-      const ultimoResultado = resultados[0]
 
       await adicionarComentario({
-        resultado_id: ultimoResultado.id,
+        aluno_id: alunoId,
+        resultado_id: null,
         autor_id: user.id,
         mensagem,
         lido: false,
-      } as any)
+      })
 
       setMensagem('')
       toast.success('Mensagem enviada!')
@@ -91,7 +67,7 @@ export function ComentariosAluno() {
       await carregarComentarios()
     } catch (error) {
       console.error(error)
-      toast.error('Erro ao enviar comentário')
+      toast.error('Erro ao enviar comentario')
     }
   }
 
@@ -99,7 +75,7 @@ export function ComentariosAluno() {
     return (
       <div className="space-y-5">
         <p className="text-sm text-text-secondary">
-          Carregando comentários...
+          Carregando comentarios...
         </p>
       </div>
     )
@@ -109,7 +85,7 @@ export function ComentariosAluno() {
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold text-text-primary">
-          Comentários
+          Comentarios
         </h1>
 
         <p className="text-sm text-text-secondary">
@@ -125,7 +101,7 @@ export function ComentariosAluno() {
               className="mx-auto text-text-secondary mb-2"
             />
             <p className="text-sm text-text-secondary">
-              Nenhum comentário ainda
+              Nenhum comentario ainda
             </p>
           </GlassCard>
         )}
@@ -147,7 +123,7 @@ export function ComentariosAluno() {
                 </div>
 
                 <span className="text-sm font-medium text-text-primary">
-                  {isCoach ? 'Coach' : 'Você'}
+                  {isCoach ? 'Coach' : 'Voce'}
                 </span>
 
                 <span className="text-[10px] text-text-secondary ml-auto">
@@ -168,7 +144,7 @@ export function ComentariosAluno() {
       <div className="flex gap-2 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
         <input
           type="text"
-          placeholder="Escrever comentário..."
+          placeholder="Escrever comentario..."
           className="flex-1 bg-transparent text-sm text-text-primary placeholder-text-secondary focus:outline-none"
           value={mensagem}
           onChange={(e) => setMensagem(e.target.value)}

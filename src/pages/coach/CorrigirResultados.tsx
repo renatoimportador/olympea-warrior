@@ -80,8 +80,11 @@ export function CorrigirResultados() {
     if (!texto) return
 
     try {
+      const resultadoAtual = resultados.find((r) => r.id === resultadoId)
+
       await adicionarComentario({
         resultado_id: resultadoId,
+        aluno_id: resultadoAtual?.aluno_id || null,
         autor_id: user?.id,
         mensagem: texto,
         lido: false,
