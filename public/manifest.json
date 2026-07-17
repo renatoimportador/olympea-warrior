@@ -1,7 +1,7 @@
 {
-  "name": "OLYMPA Community",
-  "short_name": "OLYMPA",
-  "description": "Sistema profissional de gerenciamento de treinamento esportivo",
+  "name": "OLYMPEA Warrior",
+  "short_name": "OLYMPEA",
+  "description": "Sistema profissional de gerenciamento de treinamento esportivo OLYMPEA Warrior",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A0F14",
@@ -11,9 +11,15 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/vite.svg",
-      "sizes": "48x48 96x96 192x192",
-      "type": "image/svg+xml",
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
