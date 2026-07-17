@@ -14,7 +14,7 @@ interface AuthUser {
 interface AuthContextData {
   user: AuthUser | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<AuthUser | null>
   logout: () => Promise<void>
 }
 
@@ -28,42 +28,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true
 
     const initAuth = async () => {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
 
       if (!mounted) return
 
       if (session?.user) {
-        await fetchProfile()
+        const profile = await fetchProfile()
+        if (mounted) setUser(profile)
       } else {
         setUser(null)
-        setLoading(false)
       }
+
+      if (mounted) setLoading(false)
     }
 
     initAuth()
 
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth event:', event)
 
-      if (!mounted) return
+        if (!mounted) return
 
-      if (event === 'SIGNED_OUT') {
-        setUser(null)
-        setLoading(false)
-        return
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setLoading(false)
+          return
+        }
+
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          if (session?.user) {
+            const profile = await fetchProfile()
+            if (mounted) setUser(profile)
+          } else {
+            setUser(null)
+          }
+        }
+
+        if (mounted) setLoading(false)
       }
-
-      if (session?.user) {
-        await fetchProfile()
-      } else {
-        setUser(null)
-        setLoading(false)
-      }
-    })
+    )
 
     return () => {
       mounted = false
@@ -71,48 +75,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  async function fetchProfile() {
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
+  async function fetchProfile(): Promise<AuthUser | null> {
+    try {
+      // Aguardar o usuário autenticado ficar disponível
+      const { data: { user: authUser }, error: userError } = await supabase.auth.getUser()
 
-    if (!user?.email) {
-      setUser(null)
-      setLoading(false)
-      return
+      if (userError || !authUser?.email) {
+        console.error('fetchProfile: auth user não disponível', userError)
+        return null
+      }
+
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', authUser.email.toLowerCase())
+        .maybeSingle()
+
+      if (error) {
+        console.error('fetchProfile: erro ao buscar usuarios', error)
+        return null
+      }
+
+      if (!data) {
+        console.error('fetchProfile: nenhum registro em public.usuarios para', authUser.email)
+        return null
+      }
+
+      return {
+        id: data.id,
+        nome: data.nome,
+        email: data.email,
+        role: data.role as UserRole,
+        foto_url: data.foto_url,
+        telefone: data.telefone
+      }
+    } catch (err) {
+      console.error('fetchProfile: erro inesperado', err)
+      return null
     }
-
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('email', user.email)
-      .maybeSingle()
-
-    if (error || !data) {
-      setUser(null)
-      setLoading(false)
-      return
-    }
-
-    setUser({
-      id: data.id,
-      nome: data.nome,
-      email: data.email,
-      role: data.role as UserRole,
-      foto_url: data.foto_url,
-      telefone: data.telefone
-    })
-
-    setLoading(false)
   }
 
-  async function login(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
+  async function login(email: string, password: string): Promise<AuthUser | null> {
+    const emailNorm = email.trim().toLowerCase()
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: emailNorm,
       password
     })
 
-    if (error) throw error
+    if (signInError) throw signInError
+
+    // Garantir que o profile seja carregado antes de retornar
+    const profile = await fetchProfile()
+    setUser(profile)
+    setLoading(false)
+    return profile
   }
 
   async function logout() {

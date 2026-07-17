@@ -18,8 +18,25 @@ export function Login() {
     setIsLoading(true)
 
     try {
-      await login(email, password)
+      const user = await login(email, password)
+
+      if (!user) {
+        toast.error('Usuario autenticado, mas perfil nao encontrado.')
+        return
+      }
+
       toast.success('Login realizado com sucesso!')
+
+      // Redirecionar imediatamente conforme a role
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard', { replace: true })
+      } else if (user.role === 'coach') {
+        navigate('/coach/dashboard', { replace: true })
+      } else if (user.role === 'aluno') {
+        navigate('/aluno/dashboard', { replace: true })
+      } else {
+        toast.error('Perfil nao reconhecido.')
+      }
     } catch (err) {
       console.error('ERRO LOGIN:', err)
       toast.error('Credenciais invalidas')

@@ -1,5 +1,5 @@
 import { useAuth } from '@/context/AuthContext'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import type { UserRole } from '@/data/types'
 
 interface ProtectedRouteProps {
@@ -9,26 +9,26 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
-
-  console.log('PROTECTED ROUTE')
-  console.log('LOADING:', loading)
-  console.log('USER:', user)
-  console.log('ROLES PERMITIDAS:', roles)
+  const location = useLocation()
 
   if (loading) {
-    return <div>Carregando...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full" />
+          <p className="text-sm text-text-secondary">Carregando sessao...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!user) {
-    console.log('BLOQUEADO: user null')
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace state={{ from: location }} />
   }
 
   if (!roles.includes(user.role)) {
-    console.log('BLOQUEADO: role inválida ->', user.role)
-    return <div>Sem permissão: {user.role}</div>
+    return <Navigate to="/login" replace />
   }
 
-  console.log('LIBERADO')
   return <>{children}</>
 }
