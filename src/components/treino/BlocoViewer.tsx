@@ -71,62 +71,70 @@ interface BlocoViewerProps {
 }
 
 export function BlocoViewer({ blocos, wod: wodProp }: BlocoViewerProps) {
-  const ordenados = blocos.sort((a, b) => a.ordem - b.ordem)
-  const wodBloco = ordenados.find(b => b.tipo === 'WORKOUT')
-  const wod = wodProp || (wodBloco ? { tipo: 'WOD', nome: wodBloco.titulo || 'Workout (WOD)', descricao: wodBloco.descricao || '', time_cap: wodBloco.observacoes } : undefined)
-  const gamePlan = ordenados.find(b => b.tipo === 'GAME_PLAN')
-  const obsCoach = ordenados.find(b => b.tipo === 'OBSERVACOES_COACH')
-  const outros = ordenados.filter(b => !['WORKOUT', 'GAME_PLAN', 'OBSERVACOES_COACH'].includes(b.tipo))
+  const ordenados = [...blocos].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
 
   return (
     <div className="space-y-4">
-      {outros.map(b => (
-        <GlassCard key={b.id} className="p-5">
-          <BlocoHeader tipo={b.tipo} titulo={b.titulo} />
-          {b.descricao && <p className="text-sm text-text-secondary mb-3 whitespace-pre-wrap">{b.descricao}</p>}
-          <ExerciciosList exercicios={b.exercicios} />
-          {b.link_youtube && (
-            <a href={b.link_youtube} target="_blank" rel="noopener noreferrer"
-               className="inline-flex items-center gap-1.5 mt-3 text-xs text-error hover:text-red-400 transition-colors">
-              <Youtube size={12} /> Video do YouTube
-            </a>
-          )}
-        </GlassCard>
-      ))}
+      {ordenados.map((b) => {
+        if (b.tipo === 'WORKOUT') {
+          const wod = wodProp || {
+            tipo: 'WOD',
+            nome: b.titulo || 'Workout (WOD)',
+            descricao: b.descricao || '',
+            time_cap: b.observacoes,
+          }
 
-      {wod && (
-        <GlassCard className="p-5 bg-gradient-to-br from-accent/[0.04] to-transparent border-accent/10">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                <Dumbbell size={16} className="text-accent" />
+          return (
+            <GlassCard key={b.id} className="p-5 bg-gradient-to-br from-accent/[0.04] to-transparent border-accent/10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <Dumbbell size={16} className="text-accent" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-text-primary">{wod.nome || 'Workout (WOD)'}</h3>
+                    <p className="text-[10px] text-accent uppercase tracking-wider font-medium">{wod.tipo}</p>
+                  </div>
+                </div>
+                {wod.time_cap && <Badge variant="accent">Time Cap: {wod.time_cap}</Badge>}
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-text-primary">{wod.nome || 'Workout (WOD)'}</h3>
-                <p className="text-[10px] text-accent uppercase tracking-wider font-medium">{wod.tipo}</p>
-              </div>
-            </div>
-            {wod.time_cap && (
-              <Badge variant="accent">Time Cap: {wod.time_cap}</Badge>
+              <p className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed">{wod.descricao}</p>
+            </GlassCard>
+          )
+        }
+
+        if (b.tipo === 'GAME_PLAN') {
+          return (
+            <GlassCard key={b.id} className="p-5">
+              <BlocoHeader tipo="GAME_PLAN" titulo={b.titulo || 'Game Plan'} />
+              <p className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed">{b.descricao || b.observacoes}</p>
+            </GlassCard>
+          )
+        }
+
+        if (b.tipo === 'OBSERVACOES_COACH') {
+          return (
+            <GlassCard key={b.id} className="p-5 bg-gradient-to-br from-warning/[0.03] to-transparent border-warning/10">
+              <BlocoHeader tipo="OBSERVACOES_COACH" titulo={b.titulo || 'Observacoes do Coach'} />
+              <p className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed">{b.descricao || b.observacoes}</p>
+            </GlassCard>
+          )
+        }
+
+        return (
+          <GlassCard key={b.id} className="p-5">
+            <BlocoHeader tipo={b.tipo} titulo={b.titulo} />
+            {b.descricao && <p className="text-sm text-text-secondary mb-3 whitespace-pre-wrap">{b.descricao}</p>}
+            <ExerciciosList exercicios={b.exercicios} />
+            {b.link_youtube && (
+              <a href={b.link_youtube} target="_blank" rel="noopener noreferrer"
+                 className="inline-flex items-center gap-1.5 mt-3 text-xs text-error hover:text-red-400 transition-colors">
+                <Youtube size={12} /> Video do YouTube
+              </a>
             )}
-          </div>
-          <p className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed">{wod.descricao}</p>
-        </GlassCard>
-      )}
-
-      {gamePlan && gamePlan.tipo === 'GAME_PLAN' && (
-        <GlassCard className="p-5">
-          <BlocoHeader tipo="GAME_PLAN" titulo={gamePlan.titulo || 'Game Plan'} />
-          <p className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed">{gamePlan.descricao || gamePlan.observacoes}</p>
-        </GlassCard>
-      )}
-
-      {obsCoach && (
-        <GlassCard className="p-5 bg-gradient-to-br from-warning/[0.03] to-transparent border-warning/10">
-          <BlocoHeader tipo="OBSERVACOES_COACH" titulo={obsCoach.titulo || 'Observacoes do Coach'} />
-          <p className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed">{obsCoach.descricao || obsCoach.observacoes}</p>
-        </GlassCard>
-      )}
+          </GlassCard>
+        )
+      })}
     </div>
   )
 }
