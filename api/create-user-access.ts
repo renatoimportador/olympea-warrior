@@ -121,6 +121,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 4. Verificar/criar public.usuarios
     // ============================================================
     let usuarioId: string | null = null
+    let usuarioReativado = false
 
     const { data: existingUsuario } = await supabaseAdmin
       .from('usuarios')
@@ -146,7 +147,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
-      // Atualizar role se necessário (somente se não for admin)
+      // Reativar usuario se estiver desativado
+      if (existingUsuario.ativo === false) {
+        const { error: reativarError } = await supabaseAdmin
+          .from('usuarios')
+          .update({ ativo: true })
+          .eq('id', existingUsuario.id)
+
+        if (reativarError) {
+          return res.status(400).json({
+            error: `Falha ao reativar usuario existente: ${reativarError.message}`,
+            etapa: 'reativar_usuario'
+          })
+        }
+
+        usuarioReativado = true
+      }
+
+      // Atualizar role se necessario (somente se nao for admin)
       if (existingUsuario.role !== 'admin' && existingUsuario.role !== role) {
         await supabaseAdmin
           .from('usuarios')
@@ -189,15 +207,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ============================================================
     // 5. Criar aluno ou coach
     // ============================================================
+    let perfilReativado = false
+    let perfilCriado = false
+
     if (role === 'aluno') {
-      // Verificar se já existe aluno vinculado
+      // Verificar se já existe aluno vinculado (ativo ou inativo)
       const { data: existingAluno } = await supabaseAdmin
         .from('alunos')
-        .select('id')
+        .select('*')
         .eq('usuario_id', usuarioId)
         .maybeSingle()
 
-      if (!existingAluno) {
+      if (existingAluno) {
+        // Reativar aluno inativo
+        if (existingAluno.ativo === false) {
+          const { error: reativarAlunoError } = await supabaseAdmin
+            .from('alunos')
+            .update({ ativo: true })
+            .eq('id', existingAluno.id)
+
+          if (reativarAlunoError) {
+            return res.status(400).json({
+              error: `Falha ao reativar aluno existente: ${reativarAlunoError.message}`,
+              etapa: 'reativar_aluno'
+            })
+          }
+
+          perfilReativado = true
+        }
+      } else {
         const alunoData: Record<string, unknown> = {
           usuario_id: usuarioId,
           box_id: box_id || null,
@@ -221,15 +259,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             auth_id: authUserId
           })
         }
+
+        perfilCriado = true
       }
     } else if (role === 'coach') {
       const { data: existingCoach } = await supabaseAdmin
         .from('coaches')
-        .select('id')
+        .select('*')
         .eq('usuario_id', usuarioId)
         .maybeSingle()
 
-      if (!existingCoach) {
+      if (existingCoach) {
+        if (existingCoach.ativo === false) {
+          const { error: reativarCoachError } = await supabaseAdmin
+            .from('coaches')
+            .update({ ativo: true })
+            .eq('id', existingCoach.id)
+
+          if (reativarCoachError) {
+            return res.status(400).json({
+              error: `Falha ao reativar coach existente: ${reativarCoachError.message}`,
+              etapa: 'reativar_coach'
+            })
+          }
+
+          perfilReativado = true
+        }
+      } else {
         const coachData: Record<string, unknown> = {
           usuario_id: usuarioId,
           box_id: box_id || null,
@@ -251,12 +307,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             auth_id: authUserId
           })
         }
+
+        perfilCriado = true
       }
     }
 
     // ============================================================
     // 6. Resposta final
     // ============================================================
+    if (usuarioReativado || perfilReativado) {
+      return res.status(200).json({
+        success: true,
+        message: `${role === 'aluno' ? 'Aluno' : 'Coach'} reativado com sucesso. O registro estava inativo e foi reativado.`,
+        usuario_id: usuarioId,
+        auth_id: authUserId,
+        reativado: true
+      })
+    }
+
     if (authUserJaExistia) {
       return res.status(200).json({
         success: true,

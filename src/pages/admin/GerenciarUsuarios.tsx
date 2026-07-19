@@ -1,17 +1,17 @@
+import { useState, useEffect } from 'react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import {
   listarUsuarios,
-  criarUsuario,
   atualizarUsuario,
   excluirUsuario,
-  getBoxId,
+  criarAcessoUsuario,
+  reenviarConvite,
 } from '@/lib/api'
 import type { Usuario } from '@/data/types'
-import { Search, Plus, Edit2, Ban, Save } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Search, Plus, Edit2, Ban, Save, Mail } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export function GerenciarUsuarios() {
@@ -19,6 +19,8 @@ export function GerenciarUsuarios() {
   const [busca, setBusca] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [reenviando, setReenviando] = useState<string | null>(null)
 
   const [form, setForm] = useState({
     nome: '',
@@ -55,6 +57,8 @@ export function GerenciarUsuarios() {
       return
     }
 
+    setSaving(true)
+
     try {
       if (editingId) {
         await atualizarUsuario(editingId, {
@@ -65,25 +69,37 @@ export function GerenciarUsuarios() {
         })
         toast.success('Usuario atualizado!')
       } else {
-        const boxId = await getBoxId()
-        await criarUsuario({
-          box_id: boxId || undefined,
-          nome: form.nome,
-          email: form.email,
-          role: form.role,
-          telefone: form.telefone || undefined,
-          ativo: true,
-          auth_provider: 'email',
+        await criarAcessoUsuario({
+          nome: form.nome.trim(),
+          email: form.email.trim().toLowerCase(),
+          role: form.role === 'admin' ? 'coach' : form.role,
+          dadosExtra: {
+            telefone: form.telefone || undefined,
+          },
         })
-        toast.success('Usuario criado!')
+        toast.success('Usuario criado! Um convite foi enviado para o e-mail informado.')
       }
 
       setForm({ nome: '', email: '', role: 'aluno', telefone: '' })
       setEditingId(null)
       setShowForm(false)
-      carregarUsuarios()
+      await carregarUsuarios()
     } catch (e: any) {
       toast.error(e?.message || 'Erro ao salvar usuario')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleReenviar(email: string) {
+    setReenviando(email)
+    try {
+      await reenviarConvite(email)
+      toast.success('Convite reenviado com sucesso!')
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao reenviar convite')
+    } finally {
+      setReenviando(null)
     }
   }
 
@@ -151,7 +167,10 @@ export function GerenciarUsuarios() {
             <Input placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
           </div>
           <div className="flex gap-2">
-            <Button onClick={handleSave}><Save size={16} className="mr-2" />Salvar</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              <Save size={16} className="mr-2" />
+              {saving ? 'Salvando...' : 'Salvar'}
+            </Button>
             <Button variant="ghost" onClick={() => setShowForm(false)}>Cancelar</Button>
           </div>
         </GlassCard>
@@ -169,6 +188,14 @@ export function GerenciarUsuarios() {
             </div>
             <Badge variant={u.role === 'admin' ? 'accent' : u.role === 'coach' ? 'warning' : 'success'}>{u.role}</Badge>
             <div className="flex gap-1">
+              <button
+                onClick={() => handleReenviar(u.email)}
+                disabled={reenviando === u.email}
+                className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary disabled:opacity-50"
+                title="Reenviar convite"
+              >
+                <Mail size={14} />
+              </button>
               <button onClick={() => handleEdit(u)} className="p-1.5 rounded-lg hover:bg-white/[0.03] text-text-secondary"><Edit2 size={14} /></button>
               <button onClick={() => handleDelete(u.id)} className="p-1.5 rounded-lg hover:bg-error/5 text-error"><Ban size={14} /></button>
             </div>
