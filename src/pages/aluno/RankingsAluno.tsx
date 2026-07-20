@@ -9,17 +9,8 @@ import {
   getTreinoDoDia,
   getAlunoByUsuarioId,
 } from '@/lib/api'
+import { formatarResultadoRanking, isResultadoValido, compararResultados } from '@/lib/ranking'
 import type { Resultado } from '@/data/types'
-
-function formatarResultado(r: any, tipoWod?: string): string {
-  if (!r) return '-'
-  if (tipoWod === 'FOR_TIME' && r.tempo) return r.tempo
-  if (tipoWod === 'AMRAP') return `${r.rounds || 0} rounds + ${r.repeticoes || 0} reps`
-  if (r.tempo) return r.tempo
-  if (r.carga) return `${r.carga} kg`
-  if (r.rounds != null) return `${r.rounds} rounds${r.repeticoes ? ` + ${r.repeticoes} reps` : ''}`
-  return '-'
-}
 
 export function RankingsAluno() {
   const { user } = useAuth()
@@ -55,7 +46,7 @@ export function RankingsAluno() {
         for (const aluno of alunosAtivos) {
           const resAluno = resultadosBanco.filter((r: any) => r.aluno_id === aluno.id)
           const resultado = resAluno[0]
-          if (resultado) {
+          if (resultado && isResultadoValido(resultado, treino.tipo_wod)) {
             const cat = aluno.categoria || 'Sem categoria'
             catsSet.add(cat)
             rankingData.push({
@@ -75,18 +66,7 @@ export function RankingsAluno() {
 
         // Ordenar pelo tipo do treino
         const sorted = rankingData
-          .sort((a: any, b: any) => {
-            if (treino.tipo_wod === 'FOR_TIME') {
-              return (a.resultado?.tempo || '').localeCompare(b.resultado?.tempo || '')
-            }
-            if (treino.tipo_wod === 'AMRAP') {
-              if ((b.resultado?.rounds || 0) !== (a.resultado?.rounds || 0)) {
-                return (b.resultado?.rounds || 0) - (a.resultado?.rounds || 0)
-              }
-              return (b.resultado?.repeticoes || 0) - (a.resultado?.repeticoes || 0)
-            }
-            return (b.resultado?.carga || 0) - (a.resultado?.carga || 0)
-          })
+          .sort((a: any, b: any) => compararResultados(a.resultado, b.resultado, treino.tipo_wod))
           .map((r, index) => ({ ...r, posicao: index + 1 }))
 
         setRankings(sorted)
@@ -176,12 +156,12 @@ export function RankingsAluno() {
                   )}
                 </p>
                 <p className="text-xs text-text-secondary">
-                  {formatarResultado(r.resultado, treinoHoje?.tipo_wod)}
+                  {formatarResultadoRanking(r.resultado, treinoHoje?.tipo_wod)}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold text-accent">
-                  {formatarResultado(r.resultado, treinoHoje?.tipo_wod)}
+                  {formatarResultadoRanking(r.resultado, treinoHoje?.tipo_wod)}
                 </p>
               </div>
             </GlassCard>
@@ -200,7 +180,7 @@ export function RankingsAluno() {
             Na categoria {categoriaAtiva}
           </p>
           <p className="text-xs text-accent">
-            {formatarResultado(minhaPosicao.resultado, treinoHoje?.tipo_wod)}
+            {formatarResultadoRanking(minhaPosicao.resultado, treinoHoje?.tipo_wod)}
           </p>
         </GlassCard>
       )}

@@ -11,12 +11,12 @@ import {
   listarResultadosByAluno,
   getProgramacoesByAluno,
   listarDiasBySemana,
-  getTreinoByDia,
   listarResultadosByTreino,
   listarAlunos,
   getTreinoDoDia,
   listarTreinosByDia,
 } from '@/lib/api'
+import { formatarResultadoRanking, isResultadoValido, compararResultados } from '@/lib/ranking'
 import { supabase } from '@/lib/supabase'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
@@ -113,6 +113,7 @@ export function DashboardAluno() {
         if (treino) {
           const resHoje = await listarResultadosByTreino(treino.id)
           const todosAlunos = await listarAlunos()
+          const tipoWod = (treino as any).tipo_wod
 
           const ranking = todosAlunos
             .map((al) => {
@@ -124,23 +125,8 @@ export function DashboardAluno() {
                 resultado,
               }
             })
-            .filter((x) => x.resultado)
-            .sort((aa, bb) => {
-              const ra = aa.resultado
-              const rb = bb.resultado
-              if (!ra) return 1
-              if (!rb) return -1
-
-              if ((treino as any).tipo_wod === 'FOR_TIME') {
-                return (ra.tempo || '').localeCompare(rb.tempo || '')
-              }
-              if ((treino as any).tipo_wod === 'AMRAP') {
-                if ((rb.rounds || 0) !== (ra.rounds || 0))
-                  return (rb.rounds || 0) - (ra.rounds || 0)
-                return (rb.repeticoes || 0) - (ra.repeticoes || 0)
-              }
-              return (rb.carga || 0) - (ra.carga || 0)
-            })
+            .filter((x) => isResultadoValido(x.resultado, tipoWod))
+            .sort((aa, bb) => compararResultados(aa.resultado, bb.resultado, tipoWod))
             .map((x, i) => ({ ...x, posicao: i + 1 }))
 
           setRankingSemana(ranking)
@@ -354,7 +340,7 @@ export function DashboardAluno() {
                 )}
               </div>
               <p className="text-sm font-bold text-accent">
-                {formatarResultado(r.resultado, (treinoHoje as any)?.tipo_wod)}
+                {formatarResultadoRanking(r.resultado, (treinoHoje as any)?.tipo_wod)}
               </p>
             </div>
           ))
