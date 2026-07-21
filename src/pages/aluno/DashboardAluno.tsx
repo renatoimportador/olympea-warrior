@@ -300,7 +300,7 @@ export function DashboardAluno() {
             Ainda nao ha resultados registrados para o treino de hoje.
           </p>
         ) : (
-          rankingSemana.slice(0, 5).map((r, index) => (
+          rankingSemana.map((r, index) => (
             <div
               key={r.id}
               className={`flex items-center justify-between py-2 border-b border-white/5 last:border-0 ${
