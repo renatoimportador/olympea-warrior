@@ -463,36 +463,52 @@ export const getTreinoByDia = async (diaTreinoId: string) => {
 
   return data?.[0] as Treino
 }
-export async function getTreinoDoDia() {
+export async function listarTreinosDoDia(boxId?: string): Promise<Treino[]> {
   const programacoes = await listarProgramacoes()
-  const programacao = programacoes.find(p => p.ativa) || programacoes[0]
+  const hoje = new Date()
+  const hojeStr = hoje.toISOString().split('T')[0]
 
-  if (!programacao) return null
+  const programacoesValidas = programacoes.filter((p: any) => {
+    if (!p.ativa) return false
+    if (boxId && p.box_id && p.box_id !== boxId) return false
+    if (!p.data_inicio) return false
+    const inicio = p.data_inicio
+    const fim = p.data_fim || null
+    return hojeStr >= inicio && (!fim || hojeStr <= fim)
+  })
+
+  const programacao = programacoesValidas[0] || null
+
+  if (!programacao) return []
 
   const fases = await listarFasesByProg(programacao.id)
   const fase = fases.find(f => f.ativa) || fases[0]
 
-  if (!fase) return null
+  if (!fase) return []
 
   const semanas = await listarSemanasByFase(fase.id)
   const semana = semanas.find(s => s.ativa) || semanas[0]
 
-  if (!semana) return null
+  if (!semana) return []
 
   const dias = await listarDiasBySemana(semana.id)
 
-  const hoje = new Date()
   const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
   const diaHoje = diasSemana[hoje.getDay()]
 
   const dia = dias.find(d => d.dia_semana === diaHoje) || dias[0]
 
-  if (!dia) return null
+  if (!dia) return []
 
-  const treino = await getTreinoByDia(dia.id)
+  const treinos = await listarTreinosByDia(dia.id)
+  return treinos || []
+}
 
-  if (!treino) return null
+export async function getTreinoDoDia(boxId?: string) {
+  const treinos = await listarTreinosDoDia(boxId)
+  if (treinos.length === 0) return null
 
+  const treino = treinos[0]
   const blocos = await listarBlocosByTreino(treino.id)
 
   return {

@@ -1,25 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
+import { useBox } from '@/context/BoxContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import { Trophy, Medal } from 'lucide-react'
-import {
-  listarResultadosByTreino,
-  listarAlunos,
-  getTreinoDoDia,
-  getAlunoByUsuarioId,
-} from '@/lib/api'
-import { formatarResultadoRanking, isResultadoValido, compararResultados } from '@/lib/ranking'
-import type { Resultado } from '@/data/types'
+import { getAlunoByUsuarioId } from '@/lib/api'
+import { carregarRankingDoDia, formatarResultadoRanking } from '@/lib/ranking'
+import type { RankingItem } from '@/lib/ranking'
 
 export function RankingsAluno() {
   const { user } = useAuth()
-  const [categoriaAtiva, setCategoriaAtiva] = useState<string>('RX')
+  const { box } = useBox()
   const [treinoHoje, setTreinoHoje] = useState<any>(null)
-  const [rankings, setRankings] = useState<any[]>([])
+  const [rankings, setRankings] = useState<RankingItem[]>([])
   const [meuAlunoId, setMeuAlunoId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
-  const [categorias, setCategorias] = useState<string[]>([])
 
   useEffect(() => {
     async function load() {
@@ -30,46 +25,9 @@ export function RankingsAluno() {
           if (meuAluno) setMeuAlunoId(meuAluno.id)
         }
 
-        const treino = await getTreinoDoDia()
+        const { treino, ranking } = await carregarRankingDoDia(box?.id)
         setTreinoHoje(treino)
-
-        if (!treino) { setLoading(false); return }
-
-        const resultadosBanco = await listarResultadosByTreino(treino.id)
-        const alunosData = await listarAlunos()
-        const alunosAtivos = (alunosData || []).filter((a: any) => a.ativo)
-
-        // Extrair categorias dos alunos que têm resultado
-        const catsSet = new Set<string>()
-        const rankingData: any[] = []
-
-        for (const aluno of alunosAtivos) {
-          const resAluno = resultadosBanco.filter((r: any) => r.aluno_id === aluno.id)
-          const resultado = resAluno[0]
-          if (resultado && isResultadoValido(resultado, treino.tipo_wod)) {
-            const cat = aluno.categoria || 'Sem categoria'
-            catsSet.add(cat)
-            rankingData.push({
-              id: aluno.id,
-              nome: aluno.usuario?.nome || aluno.nome || 'Atleta',
-              categoria: cat,
-              resultado,
-            })
-          }
-        }
-
-        const catsArr = Array.from(catsSet)
-        setCategorias(catsArr)
-        if (catsArr.length > 0 && !catsArr.includes(categoriaAtiva)) {
-          setCategoriaAtiva(catsArr[0])
-        }
-
-        // Ordenar pelo tipo do treino
-        const sorted = rankingData
-          .sort((a: any, b: any) => compararResultados(a.resultado, b.resultado, treino.tipo_wod))
-          .map((r, index) => ({ ...r, posicao: index + 1 }))
-
-        setRankings(sorted)
+        setRankings(ranking)
       } catch (err) {
         console.error('Erro ao carregar rankings:', err)
       } finally {
@@ -78,13 +36,9 @@ export function RankingsAluno() {
     }
 
     load()
-  }, [user])
+  }, [user, box])
 
-  const rankingFiltrado = rankings
-    .filter((r) => r.categoria === categoriaAtiva)
-    .map((r, i) => ({ ...r, posicao: i + 1 }))
-
-  const minhaPosicao = rankingFiltrado.find((r) => r.id === meuAlunoId)
+  const minhaPosicao = rankings.find((r) => r.id === meuAlunoId)
 
   if (loading) {
     return (
@@ -105,35 +59,16 @@ export function RankingsAluno() {
         </p>
       </div>
 
-      {/* Filtros de categoria */}
-      {categorias.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
-          {categorias.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCategoriaAtiva(c)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                categoriaAtiva === c
-                  ? 'bg-accent/15 text-accent border border-accent/20'
-                  : 'bg-white/[0.03] text-text-secondary border border-white/[0.05]'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Lista */}
       <div className="space-y-2">
-        {rankingFiltrado.length === 0 ? (
+        {rankings.length === 0 ? (
           <GlassCard className="p-8 text-center">
             <p className="text-sm text-text-secondary">
-              Nenhum resultado registrado para esta categoria no treino de hoje.
+              Nenhum resultado registrado para o treino de hoje.
             </p>
           </GlassCard>
         ) : (
-          rankingFiltrado.map((r) => (
+          rankings.map((r) => (
             <GlassCard
               key={r.id}
               className={`p-4 flex items-center gap-4 ${
@@ -159,6 +94,17 @@ export function RankingsAluno() {
                   {formatarResultadoRanking(r.resultado, treinoHoje?.tipo_wod)}
                 </p>
               </div>
+              <Badge
+                variant={
+                  r.categoria === 'RX'
+                    ? 'accent'
+                    : r.categoria === 'SCALING'
+                    ? 'warning'
+                    : 'success'
+                }
+              >
+                {r.categoria}
+              </Badge>
               <div className="text-right">
                 <p className="text-sm font-bold text-accent">
                   {formatarResultadoRanking(r.resultado, treinoHoje?.tipo_wod)}
@@ -177,7 +123,7 @@ export function RankingsAluno() {
             Voce esta em {minhaPosicao.posicao}o lugar!
           </p>
           <p className="text-sm text-text-secondary">
-            Na categoria {categoriaAtiva}
+            Ranking geral
           </p>
           <p className="text-xs text-accent">
             {formatarResultadoRanking(minhaPosicao.resultado, treinoHoje?.tipo_wod)}

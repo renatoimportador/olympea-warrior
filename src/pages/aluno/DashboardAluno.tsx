@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { useProgramacao } from '@/context/ProgramacaoContext'
+import { useBox } from '@/context/BoxContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Badge } from '@/components/ui/Badge'
 import {
@@ -11,12 +12,10 @@ import {
   listarResultadosByAluno,
   getProgramacoesByAluno,
   listarDiasBySemana,
-  listarResultadosByTreino,
-  listarAlunos,
   getTreinoDoDia,
   listarTreinosByDia,
 } from '@/lib/api'
-import { formatarResultadoRanking, isResultadoValido, compararResultados } from '@/lib/ranking'
+import { formatarResultadoRanking, carregarRankingDoDia } from '@/lib/ranking'
 import { supabase } from '@/lib/supabase'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
@@ -40,6 +39,7 @@ function formatarResultado(r: any, tipoWod?: string): string {
 export function DashboardAluno() {
   const { user } = useAuth()
   const { programacaoAtiva } = useProgramacao()
+  const { box } = useBox()
   const [aluno, setAluno] = useState<Aluno | null>(null)
   const [prs, setPRs] = useState<PersonalRecord[]>([])
   const [frequencias, setFrequencias] = useState<Frequencia[]>([])
@@ -106,31 +106,10 @@ export function DashboardAluno() {
           setParticipantesPorCamp(partMap)
         }
 
-        // Ranking do treino de hoje
-        const treino = await getTreinoDoDia()
+        // Ranking do treino de hoje (fonte unificada)
+        const { treino, ranking } = await carregarRankingDoDia(box?.id)
         setTreinoHoje(treino as Treino | null)
-
-        if (treino) {
-          const resHoje = await listarResultadosByTreino(treino.id)
-          const todosAlunos = await listarAlunos()
-          const tipoWod = (treino as any).tipo_wod
-
-          const ranking = todosAlunos
-            .map((al) => {
-              const resAluno = resHoje.filter((rr: any) => rr.aluno_id === al.id)
-              const resultado = resAluno[0] || null
-              return {
-                id: al.id,
-                nome: al.usuario?.nome || 'Sem nome',
-                resultado,
-              }
-            })
-            .filter((x) => isResultadoValido(x.resultado, tipoWod))
-            .sort((aa, bb) => compararResultados(aa.resultado, bb.resultado, tipoWod))
-            .map((x, i) => ({ ...x, posicao: i + 1 }))
-
-          setRankingSemana(ranking)
-        }
+        setRankingSemana(ranking)
 
         // Buscar próximo treino
         if (programacaoAtiva?.id) {

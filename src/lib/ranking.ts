@@ -1,6 +1,70 @@
 import type { Resultado } from '@/data/types'
+import { listarTreinosDoDia, listarResultadosByTreino, listarAlunos } from './api'
 
 export type TipoWodRanking = 'FOR_TIME' | 'AMRAP' | 'CARGA'
+
+export interface RankingItem {
+  id: string
+  nome: string
+  categoria: string
+  resultado: Resultado
+  posicao: number
+}
+
+export async function carregarRankingDoDia(boxId?: string): Promise<{
+  treino: any
+  ranking: RankingItem[]
+}> {
+  const treinos = await listarTreinosDoDia(boxId)
+
+  if (treinos.length === 0) {
+    return { treino: null, ranking: [] }
+  }
+
+  // Usa o primeiro treino do dia como referencia de tipo e titulo
+  const treinoPrincipal = treinos[0]
+  const tipoWod = treinoPrincipal.tipo_wod
+
+  const [resultadosHoje, alunosData] = await Promise.all([
+    Promise.all(treinos.map((t) => listarResultadosByTreino(t.id))).then((listas) => listas.flat()),
+    listarAlunos(),
+  ])
+
+  const alunosAtivos = (alunosData || []).filter((a) => a.ativo)
+
+  const rankingData: Omit<RankingItem, 'posicao'>[] = []
+  const alunosProcessados = new Set<string>()
+
+  for (const aluno of alunosAtivos) {
+    // Evitar duplicar se o aluno tiver resultado em mais de um treino do dia
+    if (alunosProcessados.has(aluno.id)) continue
+
+    const resultadosAluno = resultadosHoje.filter(
+      (r: any) => r.aluno_id === aluno.id
+    )
+
+    // Se houver mais de um resultado para o mesmo aluno, priorizar o mais recente
+    const resultado = resultadosAluno.sort(
+      (a: any, b: any) => new Date(b.created_at || b.data).getTime() - new Date(a.created_at || a.data).getTime()
+    )[0]
+
+    if (resultado && isResultadoValido(resultado, tipoWod)) {
+      rankingData.push({
+        id: aluno.id,
+        nome: aluno.usuario?.nome || aluno.nome || 'Atleta',
+        categoria: aluno.categoria || 'Sem categoria',
+        resultado,
+      })
+      alunosProcessados.add(aluno.id)
+    }
+  }
+
+  const ranking = rankingData
+    .sort((a, b) => compararResultados(a.resultado, b.resultado, tipoWod))
+    .map((item, index) => ({ ...item, posicao: index + 1 }))
+
+  return { treino: treinoPrincipal, ranking }
+}
 
 export function tempoParaSegundos(tempo: string): number {
   if (!tempo || typeof tempo !== 'string') return Infinity

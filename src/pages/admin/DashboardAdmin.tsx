@@ -7,10 +7,12 @@ import { GlassCard } from '@/components/ui/GlassCard'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
+import { useBox } from '@/context/BoxContext'
 import {
   listarUsuarios, listarAlunos, listarCoaches, listarProgramacoes,
   listarResultadosByAluno, listarFasesByProg, listarSemanasByFase,
 } from '@/lib/api'
+import { carregarRankingDoDia, formatarResultadoRanking } from '@/lib/ranking'
 import { supabase } from '@/lib/supabase'
 import type { Usuario, Aluno, Coach, Programacao, Resultado, Fase, Semana } from '@/data/types'
 
@@ -22,6 +24,7 @@ function formatarResultadoAdmin(r: Resultado): string {
 }
 
 export function DashboardAdmin() {
+  const { box } = useBox()
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [alunos, setAlunos] = useState<Aluno[]>([])
   const [coaches, setCoaches] = useState<Coach[]>([])
@@ -29,33 +32,37 @@ export function DashboardAdmin() {
   const [resultados, setResultados] = useState<Resultado[]>([])
   const [fases, setFases] = useState<Fase[]>([])
   const [semanas, setSemanas] = useState<Semana[]>([])
+  const [rankingHoje, setRankingHoje] = useState<any[]>([])
+  const [treinoHoje, setTreinoHoje] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
       try {
-        const [u, a, c, p] = await Promise.all([
+        const [u, a, c, p, { treino, ranking }] = await Promise.all([
           listarUsuarios(),
           listarAlunos(),
           listarCoaches(),
           listarProgramacoes(),
+          carregarRankingDoDia(box?.id),
         ])
         setUsuarios(u)
         setAlunos(a)
         setCoaches(c)
         setProgramacoes(p)
+        setTreinoHoje(treino)
+        setRankingHoje(ranking)
 
-        // Buscar IDs de treinos existentes para filtrar resultados órfãos
+        // Buscar IDs de treinos existentes para filtrar resultados orfaos
         const { data: treinosExistentes } = await supabase
           .from('treinos')
           .select('id')
         const treinoIds = new Set((treinosExistentes || []).map((t: any) => t.id))
 
-        // Buscar resultados de todos os alunos, filtrando órfãos
+        // Buscar resultados de todos os alunos, filtrando orfaos
         const allResultados: Resultado[] = []
         for (const al of a) {
           const r = await listarResultadosByAluno(al.id)
-          // Manter apenas resultados cujo treino_id existe
           const validos = r.filter((res: any) => res.treino_id && treinoIds.has(res.treino_id))
           allResultados.push(...validos)
         }
@@ -116,6 +123,9 @@ export function DashboardAdmin() {
           alunos.find((a) => a.id === r.aluno_id)?.nome || 'Aluno',
     time: new Date(r.data).toLocaleDateString('pt-BR'),
   }))
+
+  // Ultimos Resultados RX: fonte unificada do ranking do treino de hoje
+  const ultimosRX = rankingHoje.filter((r) => (r.categoria || '').toUpperCase() === 'RX')
 
   if (loading) {
     return (
@@ -220,24 +230,27 @@ export function DashboardAdmin() {
             Ultimos Resultados RX
           </h2>
           <div className="space-y-2">
-            {resultados.filter((r) => r.categoria === 'RX').slice(-5).reverse().map((r, i) => (
-              <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  i === 0 ? 'bg-warning/15 text-warning' : i === 1 ? 'bg-text-secondary/15 text-text-secondary' : i === 2 ? 'bg-orange-500/15 text-orange-500' : 'bg-white/[0.03] text-text-secondary'
-                }`}>
-                  {i + 1}
-                </span>
-                <span className="text-sm text-text-primary flex-1">
-                  {alunos.find((a) => a.id === r.aluno_id)?.usuario?.nome ||
-                   alunos.find((a) => a.id === r.aluno_id)?.nome || 'Aluno'}
-                  {' — '}
-                  {formatarResultadoAdmin(r)}
-                </span>
-                {r.rpe && (
-                  <span className="text-xs text-text-secondary">RPE {r.rpe}</span>
-                )}
-              </div>
-            ))}
+            {ultimosRX.length === 0 ? (
+              <p className="text-sm text-text-secondary text-center py-6">Nenhum resultado RX valido para o treino de hoje.</p>
+            ) : (
+              ultimosRX.slice(0, 5).map((r, i) => (
+                <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    i === 0 ? 'bg-warning/15 text-warning' : i === 1 ? 'bg-text-secondary/15 text-text-secondary' : i === 2 ? 'bg-orange-500/15 text-orange-500' : 'bg-white/[0.03] text-text-secondary'
+                  }`}>
+                    {i + 1}
+                  </span>
+                  <span className="text-sm text-text-primary flex-1">
+                    {r.nome}
+                    {' — '}
+                    {formatarResultadoRanking(r.resultado, treinoHoje?.tipo_wod)}
+                  </span>
+                  {r.resultado?.rpe && (
+                    <span className="text-xs text-text-secondary">RPE {r.resultado.rpe}</span>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </GlassCard>
 
