@@ -1,5 +1,5 @@
 import type { Resultado } from '@/data/types'
-import { listarTreinosDoDia, listarResultadosByTreino, listarAlunosParaRanking } from './api'
+import { listarResultadosDoDia, listarAlunosParaRanking, getTreinoById } from './api'
 
 export type TipoWodRanking = 'FOR_TIME' | 'AMRAP' | 'CARGA'
 
@@ -15,25 +15,34 @@ export async function carregarRankingDoDia(boxId?: string): Promise<{
   treino: any
   ranking: RankingItem[]
 }> {
-  const treinos = await listarTreinosDoDia(boxId)
+  const hoje = new Date().toISOString().split('T')[0]
+  const resultadosHoje = await listarResultadosDoDia(hoje)
 
-  if (treinos.length === 0) {
+  if (resultadosHoje.length === 0) {
     return { treino: null, ranking: [] }
   }
 
-  // Usa o primeiro treino do dia como referencia de tipo e titulo
-  const treinoPrincipal = treinos[0]
-  const tipoWod = treinoPrincipal.tipo_wod
+  // Identifica o treino mais recente com resultados no dia
+  const treinoIdCounts = new Map<string, number>()
+  for (const r of resultadosHoje) {
+    if (r.treino_id) {
+      treinoIdCounts.set(r.treino_id, (treinoIdCounts.get(r.treino_id) || 0) + 1)
+    }
+  }
 
-  // Buscar resultados dos treinos corretos
-  const resultadosHoje = await Promise.all(
-    treinos.map((t) => listarResultadosByTreino(t.id))
-  ).then((listas) => listas.flat())
+  const treinoPrincipalId = Array.from(treinoIdCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0]
+  const treinoPrincipal = treinoPrincipalId ? await getTreinoById(treinoPrincipalId) : null
+  const tipoWod = treinoPrincipal?.tipo_wod
+
+  // Filtra apenas resultados do treino principal para evitar misturar WODs
+  const resultadosDoTreino = treinoPrincipalId
+    ? resultadosHoje.filter((r) => r.treino_id === treinoPrincipalId)
+    : resultadosHoje
 
   // Agrupar resultados validos por aluno_id, priorizando o mais recente
   const melhorResultadoPorAluno = new Map<string, Resultado>()
 
-  for (const resultado of resultadosHoje) {
+  for (const resultado of resultadosDoTreino) {
     if (!resultado.aluno_id) continue
     if (!isResultadoValido(resultado, tipoWod)) continue
 
@@ -54,12 +63,6 @@ export async function carregarRankingDoDia(boxId?: string): Promise<{
   const alunoIds = Array.from(melhorResultadoPorAluno.keys())
   const alunosData = await listarAlunosParaRanking(alunoIds)
   const mapaAlunos = new Map(alunosData.map((a) => [a.id, a]))
-
-  // Confirmar localizacao do aluno_id fornecido
-  const alunoIdMarcio = 'ae369425-5df3-4458-ab58-9389edccd7a5'
-  if (melhorResultadoPorAluno.has(alunoIdMarcio)) {
-    console.log('[carregarRankingDoDia] Resultado do aluno', alunoIdMarcio, 'foi localizado. Encontrado em alunosData:', mapaAlunos.has(alunoIdMarcio))
-  }
 
   // Construir ranking enriquecido com nome e categoria reais
   const rankingData: Omit<RankingItem, 'posicao'>[] = []
