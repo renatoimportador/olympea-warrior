@@ -1,5 +1,5 @@
 import type { Resultado } from '@/data/types'
-import { listarTreinosDoDia, listarResultadosByTreino, listarAlunos } from './api'
+import { listarTreinosDoDia, listarResultadosByTreino, listarAlunosParaRanking } from './api'
 
 export type TipoWodRanking = 'FOR_TIME' | 'AMRAP' | 'CARGA'
 
@@ -25,38 +25,59 @@ export async function carregarRankingDoDia(boxId?: string): Promise<{
   const treinoPrincipal = treinos[0]
   const tipoWod = treinoPrincipal.tipo_wod
 
-  const [resultadosHoje, alunosData] = await Promise.all([
-    Promise.all(treinos.map((t) => listarResultadosByTreino(t.id))).then((listas) => listas.flat()),
-    listarAlunos(),
-  ])
+  // Buscar resultados dos treinos corretos
+  const resultadosHoje = await Promise.all(
+    treinos.map((t) => listarResultadosByTreino(t.id))
+  ).then((listas) => listas.flat())
 
-  const alunosAtivos = (alunosData || []).filter((a) => a.ativo)
+  // Agrupar resultados validos por aluno_id, priorizando o mais recente
+  const melhorResultadoPorAluno = new Map<string, Resultado>()
 
-  const rankingData: Omit<RankingItem, 'posicao'>[] = []
-  const alunosProcessados = new Set<string>()
+  for (const resultado of resultadosHoje) {
+    if (!resultado.aluno_id) continue
+    if (!isResultadoValido(resultado, tipoWod)) continue
 
-  for (const aluno of alunosAtivos) {
-    // Evitar duplicar se o aluno tiver resultado em mais de um treino do dia
-    if (alunosProcessados.has(aluno.id)) continue
-
-    const resultadosAluno = resultadosHoje.filter(
-      (r: any) => r.aluno_id === aluno.id
-    )
-
-    // Se houver mais de um resultado para o mesmo aluno, priorizar o mais recente
-    const resultado = resultadosAluno.sort(
-      (a: any, b: any) => new Date(b.created_at || b.data).getTime() - new Date(a.created_at || a.data).getTime()
-    )[0]
-
-    if (resultado && isResultadoValido(resultado, tipoWod)) {
-      rankingData.push({
-        id: aluno.id,
-        nome: aluno.usuario?.nome || aluno.nome || 'Atleta',
-        categoria: aluno.categoria || 'Sem categoria',
-        resultado,
-      })
-      alunosProcessados.add(aluno.id)
+    const existente = melhorResultadoPorAluno.get(resultado.aluno_id)
+    if (!existente) {
+      melhorResultadoPorAluno.set(resultado.aluno_id, resultado)
+      continue
     }
+
+    const dataExistente = new Date(existente.created_at || existente.data).getTime()
+    const dataNovo = new Date(resultado.created_at || resultado.data).getTime()
+    if (dataNovo > dataExistente) {
+      melhorResultadoPorAluno.set(resultado.aluno_id, resultado)
+    }
+  }
+
+  // Buscar dados dos alunos relacionados aos resultados, sem filtro de ativo
+  const alunoIds = Array.from(melhorResultadoPorAluno.keys())
+  const alunosData = await listarAlunosParaRanking(alunoIds)
+  const mapaAlunos = new Map(alunosData.map((a) => [a.id, a]))
+
+  // Confirmar localizacao do aluno_id fornecido
+  const alunoIdMarcio = 'ae369425-5df3-4458-ab58-9389edccd7a5'
+  if (melhorResultadoPorAluno.has(alunoIdMarcio)) {
+    console.log('[carregarRankingDoDia] Resultado do aluno', alunoIdMarcio, 'foi localizado. Encontrado em alunosData:', mapaAlunos.has(alunoIdMarcio))
+  }
+
+  // Construir ranking enriquecido com nome e categoria reais
+  const rankingData: Omit<RankingItem, 'posicao'>[] = []
+
+  for (const [alunoId, resultado] of melhorResultadoPorAluno) {
+    const aluno = mapaAlunos.get(alunoId)
+
+    if (!aluno) {
+      console.warn(`[carregarRankingDoDia] Aluno nao encontrado para resultado. aluno_id=${alunoId}, resultado_id=${resultado.id}`)
+      continue
+    }
+
+    rankingData.push({
+      id: alunoId,
+      nome: aluno.usuario?.nome || aluno.nome || alunoId,
+      categoria: aluno.categoria || 'Sem categoria',
+      resultado,
+    })
   }
 
   const ranking = rankingData

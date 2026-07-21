@@ -137,6 +137,37 @@ export async function listarAlunos() {
   return resultado as Aluno[]
 }
 
+export async function listarAlunosParaRanking(alunoIds: string[]): Promise<Aluno[]> {
+  if (alunoIds.length === 0) return []
+
+  const { data: alunos, error: erroAlunos } = await supabase
+    .from('alunos')
+    .select('*')
+    .in('id', alunoIds)
+
+  if (erroAlunos) throw erroAlunos
+
+  const usuarioIds = (alunos || []).map((a: any) => a.usuario_id).filter(Boolean)
+
+  const { data: usuarios, error: erroUsuarios } = await supabase
+    .from('usuarios')
+    .select('*')
+    .in('id', usuarioIds)
+
+  if (erroUsuarios) throw erroUsuarios
+
+  const mapaUsuarios = new Map(
+    (usuarios || []).map((u: any) => [u.id, u])
+  )
+
+  const resultado = (alunos || []).map((aluno: any) => ({
+    ...aluno,
+    usuario: mapaUsuarios.get(aluno.usuario_id) || null,
+  }))
+
+  return resultado as Aluno[]
+}
+
 export async function criarAluno(aluno: Partial<Aluno>) {
   const { data, error } = await supabase
     .from('alunos')
