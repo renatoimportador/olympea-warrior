@@ -140,17 +140,29 @@ export async function listarAlunos() {
 export async function listarAlunosParaRanking(alunoIds: string[]): Promise<Aluno[]> {
   if (alunoIds.length === 0) return []
 
-  const { data, error } = await supabase
+  const { data: alunos, error: erroAlunos } = await supabase
     .from('alunos')
-    .select('*, usuarios(nome)')
+    .select('*')
     .in('id', alunoIds)
 
-  if (error) throw error
+  if (erroAlunos) throw erroAlunos
 
-  const resultado = (data || []).map((aluno: any) => ({
+  const usuarioIds = (alunos || []).map((a: any) => a.usuario_id).filter(Boolean)
+
+  const { data: usuarios, error: erroUsuarios } = await supabase
+    .from('usuarios')
+    .select('*')
+    .in('id', usuarioIds)
+
+  if (erroUsuarios) throw erroUsuarios
+
+  const mapaUsuarios = new Map(
+    (usuarios || []).map((u: any) => [u.id, u])
+  )
+
+  const resultado = (alunos || []).map((aluno: any) => ({
     ...aluno,
-    usuario: aluno.usuarios ? { nome: aluno.usuarios.nome } : null,
-    nome: aluno.usuarios?.nome || aluno.nome,
+    usuario: mapaUsuarios.get(aluno.usuario_id) || null,
   }))
 
   return resultado as Aluno[]
@@ -651,21 +663,6 @@ export async function listarResultados() {
     .order('data', { ascending: false })
 
   return data as Resultado[]
-}
-
-export async function listarResultadosDoDia(data?: string): Promise<Resultado[]> {
-  const dataAlvo = data || new Date().toISOString().split('T')[0]
-
-  const { data: resultados, error } = await supabase
-    .from('resultados')
-    .select('*')
-    .gte('data', `${dataAlvo}T00:00:00`)
-    .lte('data', `${dataAlvo}T23:59:59`)
-    .order('data', { ascending: false })
-
-  if (error) throw error
-
-  return resultados as Resultado[]
 }
 
 export async function listarResultadosByAluno(alunoId: string) {

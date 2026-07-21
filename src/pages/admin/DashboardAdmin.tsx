@@ -124,8 +124,8 @@ export function DashboardAdmin() {
     time: new Date(r.data).toLocaleDateString('pt-BR'),
   }))
 
-  // Ranking do Dia: fonte unificada do ranking do treino de hoje
-  const rankingDoDia = rankingHoje
+  // Ultimos Resultados RX: fonte unificada do ranking do treino de hoje
+  const ultimosRX = rankingHoje.filter((r) => (r.categoria || '').toUpperCase() === 'RX')
 
   if (loading) {
     return (
@@ -227,13 +227,13 @@ export function DashboardAdmin() {
         <GlassCard className="p-6 space-y-4">
           <h2 className="font-semibold text-text-primary flex items-center gap-2">
             <Trophy size={16} className="text-warning" />
-            Ranking do Dia
+            Ultimos Resultados RX
           </h2>
           <div className="space-y-2">
-            {rankingDoDia.length === 0 ? (
-              <p className="text-sm text-text-secondary text-center py-6">Nenhum resultado valido para o treino de hoje.</p>
+            {ultimosRX.length === 0 ? (
+              <p className="text-sm text-text-secondary text-center py-6">Nenhum resultado RX valido para o treino de hoje.</p>
             ) : (
-              rankingDoDia.slice(0, 5).map((r, i) => (
+              ultimosRX.slice(0, 5).map((r, i) => (
                 <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
                   <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                     i === 0 ? 'bg-warning/15 text-warning' : i === 1 ? 'bg-text-secondary/15 text-text-secondary' : i === 2 ? 'bg-orange-500/15 text-orange-500' : 'bg-white/[0.03] text-text-secondary'
