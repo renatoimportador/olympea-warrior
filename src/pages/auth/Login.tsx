@@ -46,7 +46,7 @@ export function Login() {
   }
 
   return (
-    <div className="w-full max-w-xs mx-auto">
+    <div className="w-full max-w-xs mx-auto md:translate-y-28">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div
           className="rounded-xl overflow-hidden"
