@@ -19,20 +19,20 @@ export function AuthLayout() {
     <div
       className={`flex min-h-screen items-center justify-center p-4 ${
         isLogin
-          ? 'bg-cover bg-center bg-no-repeat md:bg-[center_25%]'
+          ? 'bg-cover bg-center bg-no-repeat'
           : 'bg-bg-primary'
       }`}
       style={
         isLogin
           ? {
-              backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${bgImage})`,
+              backgroundImage: `url(${bgImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center center',
+              backgroundRepeat: 'no-repeat',
             }
           : undefined
       }
     >
-      {isLogin && (
-        <div className="fixed inset-0 bg-black/50 -z-10 pointer-events-none" />
-      )}
       <Outlet />
     </div>
   )
