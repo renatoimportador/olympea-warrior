@@ -46,15 +46,22 @@ export function Login() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="glass-card p-8 space-y-6">
-
-        <div className="text-center space-y-3">
-          <div className="flex justify-center mb-2">
+    <div className="w-full max-w-sm mx-auto">
+      <div
+        className="p-6 space-y-4 rounded-2xl"
+        style={{
+          background: 'rgba(0,0,0,0.60)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(0,255,255,0.15)',
+        }}
+      >
+        <div className="text-center space-y-2">
+          <div className="flex justify-center mb-1">
             <img
               src="/assets/logo.png"
               alt="OLYMPEA Warrior"
-              className="w-20 h-20 object-contain"
+              className="w-16 h-16 object-contain"
             />
           </div>
 
