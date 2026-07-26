@@ -18,16 +18,14 @@ export function AuthLayout() {
   return (
     <div
       className={`flex min-h-screen items-center justify-center p-4 ${
-        isLogin
-          ? 'bg-cover bg-center bg-no-repeat'
-          : 'bg-bg-primary'
+        isLogin ? 'bg-no-repeat' : 'bg-bg-primary'
       }`}
       style={
         isLogin
           ? {
               backgroundImage: `url(${bgImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center center',
+              backgroundSize: isMobile ? 'cover' : 'cover',
+              backgroundPosition: isMobile ? 'center center' : 'center top',
               backgroundRepeat: 'no-repeat',
             }
           : undefined
