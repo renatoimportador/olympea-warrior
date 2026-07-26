@@ -25,7 +25,7 @@ export function AuthLayout() {
           ? {
               backgroundImage: `url(${bgImage})`,
               backgroundSize: isMobile ? 'cover' : 'contain',
-              backgroundPosition: isMobile ? 'center center' :,
+              backgroundPosition: isMobile ? 'center center' : 'center center',
               backgroundRepeat: 'no-repeat',
               backgroundColor: '#000',
             }
