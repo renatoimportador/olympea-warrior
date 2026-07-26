@@ -14,13 +14,13 @@ export function AuthLayout() {
       style={
         isLogin
           ? {
-              backgroundImage: 'linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url(/login-bg.jpg)',
+              backgroundImage: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(/login-bg.jpg)',
             }
           : undefined
       }
     >
       {isLogin && (
-        <div className="fixed inset-0 bg-black/65 -z-10 pointer-events-none" />
+        <div className="fixed inset-0 bg-black/50 -z-10 pointer-events-none" />
       )}
       <Outlet />
     </div>
