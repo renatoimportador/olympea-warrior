@@ -12,9 +12,10 @@ import {
   listarTreinosByDia,
   listarBlocosByTreino,
   buscarResultadoDoDia,
-  getAlunoByUsuarioId
+  getAlunoByUsuarioId,
+  getSemanaVigentePorData,
 } from '@/lib/api'
-import type { DiaTreino, Treino, BlocoTreino, Fase, Semana } from '@/data/types'
+import type { DiaTreino, Treino, BlocoTreino, Fase, Semana, Programacao } from '@/data/types'
 import { CalendarDays, History, PlayCircle, Layers, Calendar } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
@@ -22,6 +23,7 @@ export function TreinoDoDia() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
+  const [programacao, setProgramacao] = useState<Programacao | null>(null)
   const [fase, setFase] = useState<Fase | null>(null)
   const [semana, setSemana] = useState<Semana | null>(null)
   const [dias, setDias] = useState<DiaTreino[]>([])
@@ -31,33 +33,40 @@ export function TreinoDoDia() {
   const [blocos, setBlocos] = useState<BlocoTreino[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Carregar hierarquia do Supabase: Programacoes -> Fases -> Semanas -> Dias
+  const hoje = new Date()
+  const hojeStr = hoje.toISOString().split('T')[0]
+  const semanaNomes = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
+
+  // Carregar hierarquia do Supabase: Programacoes -> Fases -> Semana vigente -> Dias
   useEffect(() => {
     async function load() {
       setLoading(true)
       try {
         const progs = await listarProgramacoes()
-        const prog = progs.find(p => p.ativa) || progs[0]
-        if (!prog) { setLoading(false); return }
+        const progVigente = progs.find((p: Programacao) => {
+          if (!p.ativa) return false
+          if (!p.data_inicio) return false
+          const inicio = p.data_inicio
+          const fim = p.data_fim || null
+          return hojeStr >= inicio && (!fim || hojeStr <= fim)
+        })
+        if (!progVigente) { setLoading(false); return }
+        setProgramacao(progVigente)
 
-        const fases = await listarFasesByProg(prog.id)
+        const fases = await listarFasesByProg(progVigente.id)
         const faseAtiva = fases.find(f => f.ativa) || fases[0]
         if (!faseAtiva) { setLoading(false); return }
         setFase(faseAtiva)
 
-        const semanas = await listarSemanasByFase(faseAtiva.id)
-        const semanaAtiva = semanas.find(s => s.ativa) || semanas[0]
-        if (!semanaAtiva) { setLoading(false); return }
-        setSemana(semanaAtiva)
+        const semanaVigente = await getSemanaVigentePorData(faseAtiva.id, hojeStr)
+        if (!semanaVigente) { setLoading(false); return }
+        setSemana(semanaVigente)
 
-        const diasDaSemana = await listarDiasBySemana(semanaAtiva.id)
+        const diasDaSemana = await listarDiasBySemana(semanaVigente.id)
         setDias(diasDaSemana)
 
-        // Selecionar dia atual (hoje) ou o primeiro
-        const hoje = new Date()
-        const semanaNomes = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
         const diaHoje = semanaNomes[hoje.getDay()]
-        const diaAtual = diasDaSemana.find(d => d.dia_semana === diaHoje) || diasDaSemana[0]
+        const diaAtual = diasDaSemana.find(d => d.dia_semana === diaHoje)
 
         if (diaAtual) {
           setDiaAtivo(diaAtual.id)
@@ -178,7 +187,7 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
         <GlassCard className="p-8 text-center">
           <CalendarDays size={32} className="mx-auto text-text-secondary mb-3" />
           <p className="text-sm text-text-secondary">
-            {treino ? 'Nenhum bloco cadastrado para este treino.' : 'Nenhum treino cadastrado para este dia.'}
+            {treino ? 'Nenhum bloco cadastrado para este treino.' : 'Nenhum treino programado para esta data.'}
           </p>
         </GlassCard>
       

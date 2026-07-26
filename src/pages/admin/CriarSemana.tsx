@@ -37,7 +37,14 @@ type SemanaForm = {
   nome: string
   tipo: TipoSemana
   ordem: number
+  data_inicio: string
+  data_fim: string
   descricao: string
+}
+
+function formatDateInput(dateStr?: string): string {
+  if (!dateStr) return ''
+  return dateStr.split('T')[0]
 }
 
 export function CriarSemana() {
@@ -55,6 +62,8 @@ export function CriarSemana() {
     nome: '',
     tipo: 'ORDINARIA',
     ordem: 1,
+    data_inicio: '',
+    data_fim: '',
     descricao: '',
   })
 
@@ -110,8 +119,44 @@ export function CriarSemana() {
       return
     }
 
+    if (!form.data_inicio || !form.data_fim) {
+      toast.error('Informe a data de inicio e fim da semana')
+      return
+    }
+
+    if (form.data_inicio > form.data_fim) {
+      toast.error('A data de inicio nao pode ser posterior a data de fim')
+      return
+    }
+
+    const faseSelecionada = fases.find((f) => f.id === form.fase_id)
+    const programacaoDaFase = faseSelecionada
+      ? programacoes.find((p) => p.id === faseSelecionada.programacao_id)
+      : undefined
+
+    if (programacaoDaFase) {
+      const progInicio = programacaoDaFase.data_inicio
+      const progFim = programacaoDaFase.data_fim
+      if (form.data_inicio < progInicio || (progFim && form.data_fim > progFim)) {
+        toast.error('O periodo da semana deve estar dentro da vigencia da programacao')
+        return
+      }
+    }
+
+    const semanasMesmaFase = semanas.filter(
+      (s) => s.fase_id === form.fase_id && s.ativa && s.id !== form.id
+    )
+    const sobreposicao = semanasMesmaFase.some((s) => {
+      if (!s.data_inicio || !s.data_fim) return false
+      return form.data_inicio <= s.data_fim && form.data_fim >= s.data_inicio
+    })
+    if (sobreposicao) {
+      toast.error('O periodo da semana nao pode se sobrepor a outra semana ativa da mesma fase')
+      return
+    }
+
     if (!user?.id) {
-      toast.error('Usuário não autenticado')
+      toast.error('Usuario nao autenticado')
       return
     }
 
@@ -121,6 +166,8 @@ export function CriarSemana() {
           nome: form.nome,
           tipo: form.tipo,
           ordem: form.ordem,
+          data_inicio: form.data_inicio,
+          data_fim: form.data_fim,
           descricao: form.descricao,
           fase_id: form.fase_id,
         })
@@ -131,6 +178,8 @@ export function CriarSemana() {
           nome: form.nome,
           tipo: form.tipo,
           ordem: form.ordem,
+          data_inicio: form.data_inicio,
+          data_fim: form.data_fim,
           descricao: form.descricao,
           fase_id: form.fase_id,
           ativa: true,
@@ -150,15 +199,14 @@ export function CriarSemana() {
           'DOM',
         ] as const
 
-
         for (const ds of diasSemanaArray) {
           try {
             await criarDia({
-  semana_id: novaSemana.id,
-  dia_semana: ds,
-  data_especifica: null,
-  ativo: true,
-} as any)
+              semana_id: novaSemana.id,
+              dia_semana: ds,
+              data_especifica: null,
+              ativo: true,
+            } as any)
           } catch (error) {
             console.error('Erro ao criar dia:', ds, error)
           }
@@ -176,6 +224,8 @@ export function CriarSemana() {
         nome: '',
         tipo: 'ORDINARIA',
         ordem: 1,
+        data_inicio: '',
+        data_fim: '',
         descricao: '',
       })
     } catch (e: any) {
@@ -191,6 +241,8 @@ export function CriarSemana() {
       nome: s.nome,
       tipo: s.tipo,
       ordem: s.ordem,
+      data_inicio: formatDateInput(s.data_inicio),
+      data_fim: formatDateInput(s.data_fim),
       descricao: s.descricao || '',
     })
 
@@ -203,7 +255,7 @@ export function CriarSemana() {
     try {
       await excluirSemana(id)
       await loadData()
-      toast.success('Semana excluída!')
+      toast.success('Semana excluida!')
     } catch {
       toast.error('Erro ao excluir semana')
     }
@@ -231,6 +283,8 @@ export function CriarSemana() {
               nome: '',
               tipo: 'ORDINARIA',
               ordem: 1,
+              data_inicio: '',
+              data_fim: '',
               descricao: '',
             })
           }}
@@ -303,6 +357,30 @@ export function CriarSemana() {
               }
             />
 
+            <Input
+              type="date"
+              placeholder="Data de inicio"
+              value={form.data_inicio}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  data_inicio: e.target.value,
+                }))
+              }
+            />
+
+            <Input
+              type="date"
+              placeholder="Data de fim"
+              value={form.data_fim}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  data_fim: e.target.value,
+                }))
+              }
+            />
+
             <textarea
               rows={2}
               value={form.descricao}
@@ -347,6 +425,9 @@ export function CriarSemana() {
                       <p>{s.nome}</p>
                       <p className="text-xs">
                         {s.tipo} — Ordem {s.ordem}
+                        {s.data_inicio && s.data_fim
+                          ? ` — ${new Date(s.data_inicio + 'T00:00:00').toLocaleDateString('pt-BR')} ate ${new Date(s.data_fim + 'T00:00:00').toLocaleDateString('pt-BR')}`
+                          : ' — sem datas'}
                       </p>
                     </div>
 

@@ -495,44 +495,60 @@ export const getTreinoByDia = async (diaTreinoId: string) => {
   return data?.[0] as Treino
 }
 export async function listarTreinosDoDia(boxId?: string): Promise<Treino[]> {
-  const programacoes = await listarProgramacoes()
   const hoje = new Date()
-  const hojeStr = hoje.toISOString().split('T')[0]
+  return listarTreinosPorData(hoje, boxId)
+}
 
+export async function listarTreinosPorData(data: Date, boxId?: string): Promise<Treino[]> {
+  const dataStr = data.toISOString().split('T')[0]
+
+  const programacoes = await listarProgramacoes()
   const programacoesValidas = programacoes.filter((p: any) => {
     if (!p.ativa) return false
     if (boxId && p.box_id && p.box_id !== boxId) return false
     if (!p.data_inicio) return false
     const inicio = p.data_inicio
     const fim = p.data_fim || null
-    return hojeStr >= inicio && (!fim || hojeStr <= fim)
+    return dataStr >= inicio && (!fim || dataStr <= fim)
   })
 
   const programacao = programacoesValidas[0] || null
-
   if (!programacao) return []
 
   const fases = await listarFasesByProg(programacao.id)
   const fase = fases.find(f => f.ativa) || fases[0]
-
   if (!fase) return []
 
-  const semanas = await listarSemanasByFase(fase.id)
-  const semana = semanas.find(s => s.ativa) || semanas[0]
-
+  const semana = await getSemanaVigentePorData(fase.id, dataStr)
   if (!semana) return []
 
   const dias = await listarDiasBySemana(semana.id)
-
   const diasSemana = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
-  const diaHoje = diasSemana[hoje.getDay()]
+  const diaHoje = diasSemana[data.getDay()]
 
-  const dia = dias.find(d => d.dia_semana === diaHoje) || dias[0]
-
+  const dia = dias.find(d => d.dia_semana === diaHoje)
   if (!dia) return []
 
   const treinos = await listarTreinosByDia(dia.id)
   return treinos || []
+}
+
+export async function getSemanaVigentePorData(faseId: string, dataStr?: string): Promise<Semana | null> {
+  const dataAlvo = dataStr || new Date().toISOString().split('T')[0]
+
+  const { data: semanas, error } = await supabase
+    .from('semanas')
+    .select('*')
+    .eq('fase_id', faseId)
+    .eq('ativa', true)
+    .lte('data_inicio', dataAlvo)
+    .gte('data_fim', dataAlvo)
+    .order('data_inicio', { ascending: true })
+    .limit(1)
+
+  if (error) throw error
+
+  return (semanas?.[0] as Semana) || null
 }
 
 export async function getTreinoDoDia(boxId?: string) {

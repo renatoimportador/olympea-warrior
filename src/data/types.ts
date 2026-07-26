@@ -193,6 +193,8 @@ export interface Semana {
   nome: string;
   tipo: TipoSemana;
   ordem: number;
+  data_inicio?: string;
+  data_fim?: string;
   descricao?: string;
   ativa: boolean;
   created_by: UUID;
