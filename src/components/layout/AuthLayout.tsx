@@ -1,8 +1,19 @@
 import { Outlet, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 
 export function AuthLayout() {
   const location = useLocation()
   const isLogin = location.pathname === '/login'
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const bgImage = isMobile ? '/login-bg-mobile.jpg' : '/login-bg.jpg'
 
   return (
     <div
@@ -14,7 +25,7 @@ export function AuthLayout() {
       style={
         isLogin
           ? {
-              backgroundImage: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(/login-bg.jpg)',
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${bgImage})`,
             }
           : undefined
       }
