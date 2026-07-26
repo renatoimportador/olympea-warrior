@@ -48,12 +48,13 @@ export function Login() {
   return (
     <div className="w-full max-w-sm mx-auto">
       <div
-        className="p-6 space-y-4 rounded-2xl"
+        className="p-6 space-y-4 rounded-3xl"
         style={{
-          background: 'rgba(0,0,0,0.60)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(0,255,255,0.15)',
+          background: 'rgba(10,15,20,0.32)',
+          backdropFilter: 'blur(24px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+          border: '1px solid rgba(255,255,255,0.12)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)',
         }}
       >
         <div className="text-center space-y-2">
