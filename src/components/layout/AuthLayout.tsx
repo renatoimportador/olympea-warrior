@@ -13,7 +13,7 @@ export function AuthLayout() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  const bgImage = isMobile ? '/login-bg-mobile.jpg' : '/login-bg.jpg'
+  const bgImage = isMobile ? '/login-bg-mobile.jpg' : '/login-bg-v2.jpg'
 
   return (
     <div
