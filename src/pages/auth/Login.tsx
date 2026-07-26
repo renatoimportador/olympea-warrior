@@ -46,96 +46,65 @@ export function Login() {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div
-        className="p-6 space-y-4 rounded-3xl"
-        style={{
-          background: 'rgba(10,15,20,0.32)',
-          backdropFilter: 'blur(24px) saturate(140%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(140%)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)',
-        }}
-      >
-        <div className="text-center space-y-2">
-          <div className="flex justify-center mb-1">
-            <img
-              src="/assets/logo.png"
-              alt="OLYMPEA Warrior"
-              className="w-16 h-16 object-contain"
-            />
-          </div>
+    <div className="w-full max-w-xs mx-auto">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div
+          className="rounded-xl overflow-hidden"
+          style={{
+            background: 'rgba(0,0,0,0.35)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+          }}
+        >
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className="w-full bg-transparent px-4 py-3.5 text-text-primary placeholder:text-text-secondary/70 outline-none border-b border-white/10"
+            required
+          />
 
-          <h1 className="text-2xl font-bold text-gradient-accent">
-            OLYMPEA Warrior
-          </h1>
-
-          <p className="text-sm text-text-secondary">
-            Sistema de treinamento esportivo
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
-              Email
-            </label>
-
+          <div className="relative">
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="glass-input w-full"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Senha"
+              className="w-full bg-transparent px-4 py-3.5 pr-10 text-text-primary placeholder:text-text-secondary/70 outline-none"
               required
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
-              Senha
-            </label>
-
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="********"
-                className="glass-input w-full pr-10"
-                required
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="glass-button w-full text-center disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'Entrando...' : 'Entrar'}
-          </button>
-
-          <div className="text-center">
             <button
               type="button"
-              onClick={() => navigate('/recuperar-senha')}
-              className="text-sm text-text-secondary hover:text-accent transition-colors"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
             >
-              Esqueceu a senha?
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-        </form>
+        </div>
 
-      </div>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="glass-button w-full text-center disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? 'Entrando...' : 'Entrar'}
+        </button>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => navigate('/recuperar-senha')}
+            className="text-sm text-white/80 hover:text-accent transition-colors drop-shadow-md"
+          >
+            Esqueceu a senha?
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
