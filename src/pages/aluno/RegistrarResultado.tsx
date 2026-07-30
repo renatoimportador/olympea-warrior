@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { useAuth } from '@/context/AuthContext'
 import { criarResultado, getAlunoByUsuarioId, getTreinoById } from '@/lib/api'
+import { formatForTimeInput, normalizeForTime, isValidForTime } from '@/lib/time'
 import toast from 'react-hot-toast'
 import {
   Timer, Hash, Weight, Ruler, Camera, MessageSquare,
@@ -63,20 +64,34 @@ console.log('TIPO_WOD:', treino?.tipo_wod)
 }, [user?.id, treinoId])
 
   function onChange(field: string, value: string) {
+    if (field === 'tempo') {
+      setForm(prev => ({ ...prev, [field]: formatForTimeInput(value) }))
+      return
+    }
     setForm(prev => ({ ...prev, [field]: value }))
   }
 
   async function handleSave() {
     if (!alunoId) { toast.error('Aluno nao encontrado'); return }
     if (!treinoId) { toast.error('Treino nao informado'); return }
+
+    if (tipo === 'TEMPO') {
+      if (!isValidForTime(form.tempo)) {
+        toast.error('Informe o tempo corretamente no formato MM:SS.')
+        return
+      }
+    }
+
     setLoading(true)
     try {
+      const tempoNormalizado = tipo === 'TEMPO' ? normalizeForTime(form.tempo) || undefined : undefined
+
       await criarResultado({
         aluno_id: alunoId,
         treino_id: treinoId,
         categoria,
         data: new Date().toISOString(),
-        tempo: tipo === 'TEMPO' ? form.tempo || undefined : undefined,
+        tempo: tempoNormalizado,
         rounds: tipo === 'ROUNDS_REPS' ? (form.rounds ? parseInt(form.rounds) : undefined) : undefined,
         repeticoes: tipo === 'ROUNDS_REPS' ? (form.repeticoes ? parseInt(form.repeticoes) : undefined) : undefined,
         carga: tipo === 'CARGA' ? (form.carga ? parseFloat(form.carga) : undefined) : undefined,
@@ -157,7 +172,15 @@ console.log('TIPO_WOD:', treino?.tipo_wod)
               <Timer size={14} className="text-accent" />
               Tempo
             </label>
-            <Input value={form.tempo} onChange={e => onChange('tempo', e.target.value)} placeholder="MM:SS" />
+            <Input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={5}
+              value={form.tempo}
+              onChange={e => onChange('tempo', e.target.value)}
+              placeholder="MM:SS"
+            />
           </div>
         )}
 
