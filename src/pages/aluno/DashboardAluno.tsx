@@ -288,6 +288,31 @@ export function DashboardAluno() {
         )}
       </GlassCard>
 
+      {/* Aulas do Box Presencial (visivel apenas nesta modalidade) */}
+      {programacaoAtiva?.modalidade === 'BOX_PRESENCIAL' && (
+        <Link
+          to="/aluno/box/aulas"
+          className="block rounded-xl bg-accent/[0.06] border border-accent/20 p-4 hover:bg-accent/[0.1] transition"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center">
+                <CalendarCheck size={20} className="text-accent" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-text-primary">
+                  Aulas do Box
+                </p>
+                <p className="text-xs text-text-secondary">
+                  Reserve sua vaga nas aulas presenciais — check-in 12h antes
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={18} className="text-accent" />
+          </div>
+        </Link>
+      )}
+
       {/* Ranking da Semana */}
       <GlassCard className="p-5 space-y-3">
         <h2 className="font-semibold text-text-primary flex items-center gap-2">

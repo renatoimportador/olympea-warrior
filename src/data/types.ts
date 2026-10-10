@@ -524,6 +524,18 @@ export interface AulaOcupacao {
   janela_checkin_aberta: boolean;
 }
 
+/* Reserva do aluno em uma aula (leitura via RLS: apenas as proprias) */
+export interface Reserva {
+  id: UUID;
+  aula_id: UUID;
+  aluno_id: UUID;
+  status: StatusReserva;
+  checkin_at?: string | null;
+  cancelado_at?: string | null;
+  presenca_confirmada_at?: string | null;
+  created_at: string;
+}
+
 /* =============================================================
    Auxiliares para UI
    ============================================================= */

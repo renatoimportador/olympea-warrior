@@ -43,6 +43,7 @@ import { RankingsCoach } from '@/pages/coach/RankingsCoach'
 import { RelatoriosCoach } from '@/pages/coach/RelatoriosCoach'
 
 import { DashboardAluno } from '@/pages/aluno/DashboardAluno'
+import { BoxAulasAluno } from '@/pages/aluno/BoxAulasAluno'
 import { SeletorProgramacao } from '@/pages/aluno/SeletorProgramacao'
 import { Programacao } from '@/pages/aluno/Programacao'
 import { TreinoDoDia } from '@/pages/aluno/TreinoDoDia'
@@ -142,6 +143,7 @@ export function AppRoutes() {
         <Route path="/aluno/campeonatos" element={<CampeonatosAluno />} />
         <Route path="/aluno/comentarios" element={<ComentariosAluno />} />
         <Route path="/aluno/checkin" element={<CheckIn />} />
+        <Route path="/aluno/box/aulas" element={<BoxAulasAluno />} />
       </Route>
 
       <Route element={<AlunoLayout />}>

@@ -4,6 +4,7 @@ import type {
   AulaOcupacao,
   DiaSemana,
   GradeAula,
+  Reserva,
 } from '@/data/types'
 
 /* =============================================================
@@ -104,6 +105,42 @@ export function traduzirErroBoxAulas(erro: unknown): string {
     return 'Ja existe uma aula neste Box, nesta data e horario.'
   if (msg.includes('row-level security'))
     return 'Voce nao tem permissao para esta operacao.'
+
+  /* Check-in (realizar_checkin) */
+  if (msg.includes('CHECKIN_SESSAO_INVALIDA') || msg.includes('CHECKIN_ALUNO_INVALIDO'))
+    return 'Sessao invalida. Entre novamente para fazer check-in.'
+  if (msg.includes('CHECKIN_SOMENTE_ALUNO'))
+    return 'Apenas alunos realizam check-in.'
+  if (msg.includes('CHECKIN_AULA_INEXISTENTE'))
+    return 'Aula nao encontrada.'
+  if (msg.includes('CHECKIN_AULA_CANCELADA'))
+    return 'Esta aula foi cancelada e nao aceita check-in.'
+  if (msg.includes('CHECKIN_JANELA_FECHADA'))
+    return 'O check-in para esta aula ainda nao esta aberto (abre 12 horas antes do inicio).'
+  if (msg.includes('CHECKIN_JANELA_ENCERRADA'))
+    return 'O check-in para esta aula ja foi encerrado (fecha 10 minutos antes do inicio).'
+  if (msg.includes('CHECKIN_SEM_INSCRICAO'))
+    return 'Voce precisa de uma inscricao ativa no Box Presencial para fazer check-in.'
+  if (msg.includes('CHECKIN_DUPLICADO'))
+    return 'Voce ja possui uma reserva nesta aula.'
+  if (msg.includes('CHECKIN_LOTADA'))
+    return 'Aula lotada — todas as vagas foram preenchidas.'
+
+  /* Cancelamento (cancelar_reserva) */
+  if (msg.includes('CANCELAR_SESSAO_INVALIDA'))
+    return 'Sessao invalida. Entre novamente para cancelar a reserva.'
+  if (msg.includes('CANCELAR_RESERVA_INEXISTENTE'))
+    return 'Reserva nao encontrada.'
+  if (msg.includes('CANCELAR_NAO_AUTORIZADO'))
+    return 'Voce so pode cancelar a propria reserva.'
+  if (msg.includes('CANCELAR_PERFIL_INVALIDO'))
+    return 'Cancelamento disponivel apenas para o proprio aluno.'
+  if (msg.includes('CANCELAR_JA_CANCELADA'))
+    return 'Esta reserva ja esta cancelada.'
+  if (msg.includes('CANCELAR_PRESENCA_CONFIRMADA'))
+    return 'Nao e possivel cancelar: sua presenca ja foi confirmada pelo coach.'
+  if (msg.includes('CANCELAR_AUSENCIA_REGISTRADA'))
+    return 'Nao e possivel cancelar: ausencia ja registrada pelo coach.'
 
   return msg || 'Erro inesperado. Tente novamente.'
 }
@@ -237,4 +274,41 @@ export async function atualizarCapacidadeAula(
     .eq('id', id)
 
   if (error) throw error
+}
+
+/* ========================= CHECK-IN DO ALUNO ========================= */
+
+/* RPC realizar_checkin(p_aula_id) — valida janela 12h/10min, elegibilidade,
+   duplicidade e capacidade no banco. Retorna o id da reserva criada. */
+export async function realizarCheckin(aulaId: string): Promise<string> {
+  const { data, error } = await supabase.rpc('realizar_checkin', {
+    p_aula_id: aulaId,
+  })
+
+  if (error) throw error
+  return data as string
+}
+
+/* RPC cancelar_reserva(p_reserva_id) — permitido a qualquer momento,
+   inclusive apos o encerramento da janela. */
+export async function cancelarReservaAluno(reservaId: string): Promise<void> {
+  const { error } = await supabase.rpc('cancelar_reserva', {
+    p_reserva_id: reservaId,
+  })
+
+  if (error) throw error
+}
+
+/* Minhas reservas nas aulas informadas (RLS: aluno ve apenas as proprias). */
+export async function listarMinhasReservas(aulaIds: string[]): Promise<Reserva[]> {
+  if (aulaIds.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('reservas')
+    .select('id, aula_id, aluno_id, status, checkin_at, cancelado_at, presenca_confirmada_at, created_at')
+    .in('aula_id', aulaIds)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return (data || []) as Reserva[]
 }
