@@ -11,7 +11,7 @@ import {
   listarFasesByProg,
   getBox,
 } from '@/lib/api'
-import type { Programacao, Fase } from '@/data/types'
+import type { Programacao, Fase, ModalidadeProgramacao } from '@/data/types'
 import { useAuth } from '@/context/AuthContext'
 import { Layers, Plus, Edit2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -20,6 +20,7 @@ type ProgramacaoForm = {
   id?: string
   nome: string
   tipo: Programacao['tipo']
+  modalidade: ModalidadeProgramacao
   descricao: string
   data_inicio: string
   data_fim: string
@@ -32,6 +33,7 @@ export function CriarProgramacao() {
   const [form, setForm] = useState<ProgramacaoForm>({
     nome: '',
     tipo: 'CROSSFIT',
+    modalidade: 'PLANILHA',
     descricao: '',
     data_inicio: '',
     data_fim: '',
@@ -90,6 +92,7 @@ export function CriarProgramacao() {
     setForm({
       nome: '',
       tipo: 'CROSSFIT',
+      modalidade: 'PLANILHA',
       descricao: '',
       data_inicio: '',
       data_fim: '',
@@ -117,6 +120,7 @@ export function CriarProgramacao() {
         await atualizarProgramacao(form.id, {
           nome: form.nome,
           tipo: form.tipo,
+          modalidade: form.modalidade,
           descricao: form.descricao,
           data_inicio: form.data_inicio,
           data_fim: form.data_fim,
@@ -127,6 +131,7 @@ export function CriarProgramacao() {
         await criarProgramacao({
           nome: form.nome,
           tipo: form.tipo,
+          modalidade: form.modalidade,
           descricao: form.descricao,
           data_inicio: form.data_inicio,
           data_fim: form.data_fim,
@@ -152,6 +157,7 @@ export function CriarProgramacao() {
       id: programacao.id,
       nome: programacao.nome,
       tipo: programacao.tipo,
+      modalidade: programacao.modalidade || 'PLANILHA',
       descricao: programacao.descricao || '',
       data_inicio: programacao.data_inicio || '',
       data_fim: programacao.data_fim || '',
@@ -232,7 +238,21 @@ export function CriarProgramacao() {
               <option value="GYMNASTICS">Gymnastics</option>
               <option value="ENDURANCE">Endurance</option>
               <option value="MASTER40">Master 40+</option>
-              <option value="COMPETIDORES">Competidores</option>
+              <option value="COMPETIDOR">Competidores</option>
+            </select>
+
+            <select
+              value={form.modalidade}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  modalidade: e.target.value as ModalidadeProgramacao,
+                })
+              }
+              className="glass-input w-full text-sm"
+            >
+              <option value="PLANILHA">Planilha Olympea</option>
+              <option value="BOX_PRESENCIAL">Box Presencial</option>
             </select>
 
             <Input
@@ -310,7 +330,7 @@ export function CriarProgramacao() {
                     </p>
 
                     <p className="text-xs text-text-secondary">
-                      {p.tipo}
+                      {p.tipo} — {p.modalidade === 'BOX_PRESENCIAL' ? 'Box Presencial' : 'Planilha Olympea'}
                     </p>
                   </div>
                 </div>

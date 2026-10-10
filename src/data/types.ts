@@ -9,6 +9,7 @@ export type CategoriaAluno = string;
 export type DiaSemana = 'SEG' | 'TER' | 'QUA' | 'QUI' | 'SEX' | 'SAB' | 'DOM';
 export type TipoSemana = 'ORDINARIA' | 'FORTE' | 'DELOAD' | 'PEAK' | 'TESTE';
 export type TipoProgramacao = 'CROSSFIT' | 'LPO' | 'GYMNASTICS' | 'ENDURANCE' | 'MASTER40' | 'COMPETIDOR';
+export type ModalidadeProgramacao = 'PLANILHA' | 'BOX_PRESENCIAL';
 export type TipoNotificacao = 'NOVO_TREINO' | 'RESULTADO' | 'PR' | 'MENSAGEM_COACH' | 'ATUALIZACAO';
 export type PeriodoRanking = 'SEMANAL' | 'MENSAL' | 'ANUAL';
 export type TipoPlano = 'BASICO' | 'PADRAO' | 'PREMIUM' | 'COMPETIDOR';
@@ -154,6 +155,7 @@ export interface Programacao {
   box_id: UUID;
   nome: string;
   tipo: TipoProgramacao;
+  modalidade: ModalidadeProgramacao;
   descricao?: string;
   data_inicio: string;
   data_fim?: string;

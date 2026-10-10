@@ -37,10 +37,10 @@ export let coaches: Coach[] = [
 ]
 
 export let programacoes: Programacao[] = [
-  { id: 'prog-1', box_id: 'box-1', nome: 'CrossFit OLYMPEA', tipo: 'CROSSFIT', descricao: 'Programacao principal', data_inicio: '2024-06-01', data_fim: '2024-12-31', ativa: true, created_by: 'u-admin', created_at: '', updated_at: '' },
-  { id: 'prog-2', box_id: 'box-1', nome: 'LPO Strength', tipo: 'LPO', descricao: 'Levantamento de peso', data_inicio: '2024-06-01', data_fim: '2024-12-31', ativa: true, created_by: 'u-admin', created_at: '', updated_at: '' },
-  { id: 'prog-3', box_id: 'box-1', nome: 'Gymnastics Skills', tipo: 'GYMNASTICS', descricao: 'Habilidades gimnasticas', data_inicio: '2024-06-01', data_fim: '2024-12-31', ativa: true, created_by: 'u-admin', created_at: '', updated_at: '' },
-  { id: 'prog-4', box_id: 'box-1', nome: 'Master 40+', tipo: 'MASTER40', descricao: 'Atletas 40+', data_inicio: '2024-06-01', data_fim: '2024-12-31', ativa: true, created_by: 'u-admin', created_at: '', updated_at: '' },
+  { id: 'prog-1', box_id: 'box-1', nome: 'CrossFit OLYMPEA', tipo: 'CROSSFIT', modalidade: 'PLANILHA', descricao: 'Programacao principal', data_inicio: '2024-06-01', data_fim: '2024-12-31', ativa: true, created_by: 'u-admin', created_at: '', updated_at: '' },
+  { id: 'prog-2', box_id: 'box-1', nome: 'LPO Strength', tipo: 'LPO', modalidade: 'PLANILHA', descricao: 'Levantamento de peso', data_inicio: '2024-06-01', data_fim: '2024-12-31', ativa: true, created_by: 'u-admin', created_at: '', updated_at: '' },
+  { id: 'prog-3', box_id: 'box-1', nome: 'Gymnastics Skills', tipo: 'GYMNASTICS', modalidade: 'PLANILHA', descricao: 'Habilidades gimnasticas', data_inicio: '2024-06-01', data_fim: '2024-12-31', ativa: true, created_by: 'u-admin', created_at: '', updated_at: '' },
+  { id: 'prog-4', box_id: 'box-1', nome: 'Master 40+', tipo: 'MASTER40', modalidade: 'PLANILHA', descricao: 'Atletas 40+', data_inicio: '2024-06-01', data_fim: '2024-12-31', ativa: true, created_by: 'u-admin', created_at: '', updated_at: '' },
 ]
 
 export let inscricoes: Inscricao[] = [
