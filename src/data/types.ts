@@ -476,6 +476,55 @@ export interface ConfiguracaoSistema {
 }
 
 /* =============================================================
+   Box Presencial - Grade, Aulas e Reservas (Etapa 3)
+   ============================================================= */
+export type StatusAula = 'AGENDADA' | 'CANCELADA';
+export type StatusReserva = 'CONFIRMADA' | 'CANCELADA' | 'COMPARECEU' | 'AUSENTE';
+
+export interface GradeAula {
+  id: UUID;
+  box_id: UUID;
+  dia_semana: DiaSemana;
+  hora_inicio: string;
+  hora_fim: string;
+  capacidade: number;
+  ativo: boolean;
+  vigencia_inicio: string;
+  vigencia_fim?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Aula {
+  id: UUID;
+  box_id: UUID;
+  grade_aula_id?: UUID | null;
+  data: string;
+  hora_inicio: string;
+  hora_fim: string;
+  capacidade: number;
+  status: StatusAula;
+  motivo_cancelamento?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/* Retorno da RPC public.listar_aulas_por_data(date) */
+export interface AulaOcupacao {
+  aula_id: UUID;
+  grade_aula_id: UUID | null;
+  hora_inicio: string;
+  hora_fim: string;
+  capacidade: number;
+  vagas_ocupadas: number;
+  vagas_disponiveis: number;
+  status: StatusAula;
+  janela_abre_em: string;
+  janela_encerra_em: string;
+  janela_checkin_aberta: boolean;
+}
+
+/* =============================================================
    Auxiliares para UI
    ============================================================= */
 export interface DashboardMetric {

@@ -18,6 +18,8 @@ const adminItems = [
   { label: 'Rankings', path: '/admin/rankings', icon: 'Trophy' },
   { label: 'Configuracoes', path: '/admin/configuracoes', icon: 'Settings' },
   { label: 'Box', path: '/admin/box', icon: 'Building2' },
+  { label: 'Grade de Aulas', path: '/admin/box/grade', icon: 'CalendarClock' },
+  { label: 'Aulas do Box', path: '/admin/box/aulas', icon: 'CalendarCheck' },
   { label: 'Auditoria', path: '/admin/auditoria', icon: 'Activity' },
 ]
 
