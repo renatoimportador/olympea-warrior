@@ -142,6 +142,22 @@ export function traduzirErroBoxAulas(erro: unknown): string {
   if (msg.includes('CANCELAR_AUSENCIA_REGISTRADA'))
     return 'Nao e possivel cancelar: ausencia ja registrada pelo coach.'
 
+  /* Confirmacao de presenca (confirmar_presenca) */
+  if (msg.includes('PRESENCA_SESSAO_INVALIDA'))
+    return 'Sessao invalida. Entre novamente para registrar a presenca.'
+  if (msg.includes('PRESENCA_PERFIL_INVALIDO'))
+    return 'Apenas coach ou administrador registram presenca.'
+  if (msg.includes('PRESENCA_RESERVA_INEXISTENTE'))
+    return 'Reserva nao encontrada.'
+  if (msg.includes('PRESENCA_NAO_AUTORIZADA'))
+    return 'Aula fora do escopo do seu Box.'
+  if (msg.includes('PRESENCA_AULA_CANCELADA'))
+    return 'Nao e possivel registrar presenca em aula cancelada.'
+  if (msg.includes('PRESENCA_ANTES_DO_INICIO'))
+    return 'A confirmacao de presenca so e permitida a partir do inicio da aula.'
+  if (msg.includes('PRESENCA_ESTADO_INVALIDO'))
+    return 'Apenas reservas CONFIRMADAS podem ter presenca registrada.'
+
   return msg || 'Erro inesperado. Tente novamente.'
 }
 
@@ -311,4 +327,70 @@ export async function listarMinhasReservas(aulaIds: string[]): Promise<Reserva[]
 
   if (error) throw error
   return (data || []) as Reserva[]
+}
+
+/* ========================= PRESENCA (COACH/ADMIN) ========================= */
+
+/* Reserva com o nome do aluno (leitura via RLS: coach/admin do box da aula
+   veem todas as reservas do seu box — policy reservas_select_autorizadas). */
+export interface ReservaComAluno extends Reserva {
+  aluno_nome: string | null
+}
+
+/* Reservas de uma aula com nome dos alunos. Somente leitura; mutacoes
+   exclusivamente via RPC confirmar_presenca. */
+export async function listarReservasDaAula(
+  aulaId: string
+): Promise<ReservaComAluno[]> {
+  const { data, error } = await supabase
+    .from('reservas')
+    .select(
+      `id, aula_id, aluno_id, status, checkin_at, cancelado_at,
+       presenca_confirmada_at, presenca_confirmada_por, created_at,
+       alunos ( usuarios ( nome ) )`
+    )
+    .eq('aula_id', aulaId)
+    .order('created_at', { ascending: true })
+
+  if (error) throw error
+
+  /* PostgREST pode retornar o relacionamento aninhado como objeto ou array;
+     fazemos parsing defensivo. */
+  const linhas = (data || []) as unknown as Array<
+    Reserva & { alunos?: unknown }
+  >
+
+  function nomeDoAluno(alunos: unknown): string | null {
+    const rel = Array.isArray(alunos) ? alunos[0] : alunos
+    if (!rel || typeof rel !== 'object') return null
+    const usuario = (rel as { usuarios?: unknown }).usuarios
+    const u = Array.isArray(usuario) ? usuario[0] : usuario
+    if (!u || typeof u !== 'object') return null
+    const nome = (u as { nome?: unknown }).nome
+    return typeof nome === 'string' ? nome : null
+  }
+
+  return linhas.map((r) => ({
+    ...r,
+    aluno_nome: nomeDoAluno(r.alunos),
+  }))
+}
+
+/* RPC confirmar_presenca(p_reserva_id, p_compareceu) — valida no backend:
+   papel coach/admin, escopo do box, aula iniciada e reserva CONFIRMADA. */
+export async function confirmarPresenca(
+  reservaId: string,
+  compareceu: boolean
+): Promise<void> {
+  const { error } = await supabase.rpc('confirmar_presenca', {
+    p_reserva_id: reservaId,
+    p_compareceu: compareceu,
+  })
+
+  if (error) throw error
+}
+
+/* Instante de inicio de uma aula (data + hora em America/Sao_Paulo). */
+export function inicioDaAula(data: string, horaInicio: string): Date {
+  return new Date(`${data}T${horaInicio.slice(0, 8)}-03:00`)
 }

@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, UserCog, GraduationCap, CalendarDays, Layers,
   Calendar, Dumbbell, Flame, BarChart3, BookOpen, Trophy, Settings,
   Building2, Activity, TrendingUp, ClipboardCheck, MessageSquare,
-  CalendarCheck, CalendarClock, FileBarChart, X, Menu, LogOut,
+  CalendarCheck, CalendarClock, FileBarChart, UserCheck, X, Menu, LogOut,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useBox } from '@/context/BoxContext'
@@ -15,7 +15,7 @@ const iconMap: Record<string, React.FC<any>> = {
   LayoutDashboard, Users, UserCog, GraduationCap, CalendarDays, Layers,
   Calendar, Dumbbell, Flame, BarChart3, BookOpen, Trophy, Settings,
   Building2, Activity, TrendingUp, ClipboardCheck, MessageSquare,
-  CalendarCheck, CalendarClock, FileBarChart,
+  CalendarCheck, CalendarClock, FileBarChart, UserCheck,
 }
 
 interface SidebarProps {

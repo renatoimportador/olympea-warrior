@@ -19,6 +19,7 @@ import {
   traduzirErroBoxAulas,
 } from '@/lib/boxAulas'
 import type { AulaOcupacao } from '@/data/types'
+import { PresencasAula } from '@/components/box/PresencasAula'
 import {
   Ban,
   CalendarCheck,
@@ -26,6 +27,7 @@ import {
   ChevronRight,
   RefreshCw,
   Users,
+  UserCheck,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -52,6 +54,7 @@ export function BoxAulasAdmin() {
   const [editandoCapId, setEditandoCapId] = useState<string | null>(null)
   const [novaCapacidade, setNovaCapacidade] = useState<number>(20)
   const [salvandoCap, setSalvandoCap] = useState(false)
+  const [presencasAbertasId, setPresencasAbertasId] = useState<string | null>(null)
 
   const hoje = hojeSaoPaulo()
   const diasSemana = Array.from({ length: 7 }, (_, i) =>
@@ -304,6 +307,22 @@ export function BoxAulasAdmin() {
                             Capacidade
                           </Button>
                           <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setPresencasAbertasId(
+                                presencasAbertasId === aula.aula_id
+                                  ? null
+                                  : aula.aula_id
+                              )
+                            }
+                          >
+                            <UserCheck size={12} className="mr-1" />
+                            {presencasAbertasId === aula.aula_id
+                              ? 'Fechar presencas'
+                              : 'Presencas'}
+                          </Button>
+                          <Button
                             variant="danger"
                             size="sm"
                             onClick={() => iniciarCancelamento(aula)}
@@ -313,6 +332,16 @@ export function BoxAulasAdmin() {
                           </Button>
                         </div>
                       )}
+
+                      {!cancelada &&
+                        presencasAbertasId === aula.aula_id &&
+                        editandoCapId !== aula.aula_id && (
+                          <PresencasAula
+                            aula={aula}
+                            data={dia}
+                            onAtualizado={() => loadData()}
+                          />
+                        )}
 
                       {!cancelada && editandoCapId === aula.aula_id && (
                         <div className="space-y-2">

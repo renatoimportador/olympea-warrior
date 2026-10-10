@@ -34,6 +34,7 @@ import { BoxGradeAulas } from '@/pages/admin/BoxGradeAulas'
 import { BoxAulasAdmin } from '@/pages/admin/BoxAulasAdmin'
 
 import { DashboardCoach } from '@/pages/coach/DashboardCoach'
+import { BoxPresencaCoach } from '@/pages/coach/BoxPresencaCoach'
 import { AlunosVinculados } from '@/pages/coach/AlunosVinculados'
 import { AcompanharEvolucao } from '@/pages/coach/AcompanharEvolucao'
 import { CorrigirResultados } from '@/pages/coach/CorrigirResultados'
@@ -112,6 +113,7 @@ export function AppRoutes() {
         }
       >
         <Route path="/coach/dashboard" element={<DashboardCoach />} />
+        <Route path="/coach/box/presenca" element={<BoxPresencaCoach />} />
         <Route path="/coach/alunos" element={<AlunosVinculados />} />
         <Route path="/coach/evolucao" element={<AcompanharEvolucao />} />
         <Route path="/coach/resultados" element={<CorrigirResultados />} />

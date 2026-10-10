@@ -4,6 +4,7 @@ import { Topbar } from '@/components/layout/Topbar'
 
 const coachItems = [
   { label: 'Dashboard', path: '/coach/dashboard', icon: 'LayoutDashboard' },
+  { label: 'Presencas do Box', path: '/coach/box/presenca', icon: 'UserCheck' },
   { label: 'Alunos', path: '/coach/alunos', icon: 'Users' },
   { label: 'Evolucao', path: '/coach/evolucao', icon: 'TrendingUp' },
   { label: 'Resultados', path: '/coach/resultados', icon: 'ClipboardCheck' },
