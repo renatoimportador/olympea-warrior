@@ -802,7 +802,7 @@ export async function getProgramacoesByAluno(alunoId: string) {
     .from('inscricoes')
     .select('programacao:programacoes(*)')
     .eq('aluno_id', alunoId)
-    .eq('ativo', true)
+    .eq('ativa', true)
 
   if (error) throw error
 
