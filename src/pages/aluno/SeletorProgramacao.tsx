@@ -70,7 +70,9 @@ export function SeletorProgramacao() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-text-primary">{prog.nome}</p>
-              <p className="text-xs text-text-secondary">{prog.tipo}</p>
+              <p className="text-xs text-text-secondary">
+                {prog.modalidade === 'BOX_PRESENCIAL' ? 'Box Presencial' : 'Planilha Olympea'} — {prog.tipo}
+              </p>
             </div>
             {programacaoAtiva?.id === prog.id ? (
               <Check size={18} className="text-success" />

@@ -7,7 +7,6 @@ import { BlocoViewer } from '@/components/treino/BlocoViewer'
 import {
   listarProgramacoes,
   listarFasesByProg,
-  listarSemanasByFase,
   listarDiasBySemana,
   listarTreinosByDia,
   listarBlocosByTreino,
@@ -15,15 +14,16 @@ import {
   getAlunoByUsuarioId,
   getSemanaVigentePorData,
 } from '@/lib/api'
+import { useProgramacaoAtiva } from '@/hooks/useProgramacaoAtiva'
+import { encontrarFallbackPlanilha } from '@/lib/programacao'
 import type { DiaTreino, Treino, BlocoTreino, Fase, Semana, Programacao } from '@/data/types'
-import { CalendarDays, History, PlayCircle, Layers, Calendar } from 'lucide-react'
+import { CalendarDays, History, PlayCircle, Layers, Calendar, ChevronDown } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 export function TreinoDoDia() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const [programacao, setProgramacao] = useState<Programacao | null>(null)
   const [fase, setFase] = useState<Fase | null>(null)
   const [semana, setSemana] = useState<Semana | null>(null)
   const [dias, setDias] = useState<DiaTreino[]>([])
@@ -33,27 +33,57 @@ export function TreinoDoDia() {
   const [blocos, setBlocos] = useState<BlocoTreino[]>([])
   const [loading, setLoading] = useState(true)
 
+  const [alunoId, setAlunoId] = useState<string | undefined>(undefined)
+  const [programacaoFallback, setProgramacaoFallback] = useState<Programacao | null>(null)
+  const {
+    programacao,
+    precisaSelecionar,
+    loading: loadingProgramacao,
+    erro: erroProgramacao,
+  } = useProgramacaoAtiva(alunoId, programacaoFallback)
+
   const hoje = new Date()
   const hojeStr = hoje.toISOString().split('T')[0]
   const semanaNomes = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
 
-  // Carregar hierarquia do Supabase: Programacoes -> Fases -> Semana vigente -> Dias
+  // Resolve aluno e fallback de programacao (primeira ativa na vigencia)
   useEffect(() => {
+    async function loadAluno() {
+      if (!user?.id) return
+      const aluno = await getAlunoByUsuarioId(user.id)
+      if (aluno) setAlunoId(aluno.id)
+    }
+    loadAluno()
+  }, [user?.id])
+
+  // Fallback legado: primeira programacao PLANILHA ativa na vigencia
+  // (compatibilidade apenas para alunos sem nenhuma inscricao)
+  useEffect(() => {
+    async function loadFallback() {
+      const progs = await listarProgramacoes()
+      setProgramacaoFallback(encontrarFallbackPlanilha(progs, hojeStr))
+    }
+    loadFallback()
+  }, [hojeStr])
+
+  // Carregar hierarquia da programacao selecionada
+  useEffect(() => {
+    // Reseta estado da programacao anterior para nao exibir dados obsoletos na troca
+    setFase(null)
+    setSemana(null)
+    setDias([])
+    setDiaAtivo('')
+    setTreino(null)
+    setBlocos([])
+    setResultadoJaSalvo(false)
+
     async function load() {
       setLoading(true)
       try {
-        const progs = await listarProgramacoes()
-        const progVigente = progs.find((p: Programacao) => {
-          if (!p.ativa) return false
-          if (!p.data_inicio) return false
-          const inicio = p.data_inicio
-          const fim = p.data_fim || null
-          return hojeStr >= inicio && (!fim || hojeStr <= fim)
-        })
-        if (!progVigente) { setLoading(false); return }
-        setProgramacao(progVigente)
+        const progSelecionada = programacao
+        if (!progSelecionada) { setLoading(false); return }
 
-        const fases = await listarFasesByProg(progVigente.id)
+        const fases = await listarFasesByProg(progSelecionada.id)
         const faseAtiva = fases.find(f => f.ativa) || fases[0]
         if (!faseAtiva) { setLoading(false); return }
         setFase(faseAtiva)
@@ -78,7 +108,7 @@ export function TreinoDoDia() {
       }
     }
     load()
-  }, [user?.id])
+  }, [programacao?.id, hojeStr])
 
   // Quando o dia ativo muda, buscar treino real do Supabase
   useEffect(() => {
@@ -113,10 +143,39 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
 
   const nomes = { SEG: 'Seg', TER: 'Ter', QUA: 'Qua', QUI: 'Qui', SEX: 'Sex', SAB: 'Sab', DOM: 'Dom' }
 
-  if (loading) {
+  if (loading || loadingProgramacao) {
     return (
       <div className="space-y-5 animate-fade-in">
         <p className="text-sm text-text-secondary">Carregando treino...</p>
+      </div>
+    )
+  }
+
+  if (erroProgramacao) {
+    return (
+      <div className="space-y-5 animate-fade-in p-4 text-center">
+        <CalendarDays size={48} className="mx-auto text-text-secondary" />
+        <h2 className="text-lg font-semibold text-text-primary">Não foi possível carregar suas programações</h2>
+        <p className="text-sm text-text-secondary">
+          Tente novamente em alguns instantes. Se o problema persistir, contate o suporte.
+        </p>
+      </div>
+    )
+  }
+
+  if (!programacao) {
+    return (
+      <div className="space-y-5 animate-fade-in p-4 text-center">
+        <CalendarDays size={48} className="mx-auto text-text-secondary" />
+        <h2 className="text-lg font-semibold text-text-primary">Nenhuma programação disponível</h2>
+        <p className="text-sm text-text-secondary">
+          Você não está inscrito em nenhuma programação ativa no momento.
+        </p>
+        {precisaSelecionar && (
+          <Button onClick={() => navigate('/aluno/seletor-programacao')}>
+            Selecionar programação
+          </Button>
+        )}
       </div>
     )
   }
@@ -125,16 +184,29 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
     <div className="space-y-5 animate-fade-in">
       {/* Header com hierarquia */}
       <div className="space-y-1">
-        <div className="flex items-center gap-1.5 text-[10px] text-text-secondary mb-1">
-          <Layers size={12} className="text-accent" />
-          <span>{fase?.nome || 'Fase'}</span>
-          <span>/</span>
-          <Calendar size={12} />
-          <span>{semana?.nome || 'Semana'}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-[10px] text-text-secondary mb-1">
+            <Layers size={12} className="text-accent" />
+            <span>{fase?.nome || 'Fase'}</span>
+            <span>/</span>
+            <Calendar size={12} />
+            <span>{semana?.nome || 'Semana'}</span>
+          </div>
+
+          {precisaSelecionar && (
+            <button
+              onClick={() => navigate('/aluno/seletor-programacao')}
+              className="flex items-center gap-1 text-[10px] text-accent hover:text-accent/80 transition-colors"
+            >
+              Trocar
+              <ChevronDown size={12} />
+            </button>
+          )}
         </div>
+
         <h1 className="text-xl font-bold text-text-primary">{treino?.titulo || 'Treino do Dia'}</h1>
         <div className="flex items-center gap-2 mt-1">
-          <Badge variant="accent">Planilha Olympea</Badge>
+          <Badge variant="accent">{programacao?.modalidade === 'BOX_PRESENCIAL' ? 'Box Presencial' : 'Planilha Olympea'}</Badge>
           <Badge>{fase?.nome || 'Programacao'}</Badge>
         </div>
       </div>

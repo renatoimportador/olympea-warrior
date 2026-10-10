@@ -7,12 +7,27 @@ import {
   listarFasesByProg,
   listarSemanasByFase,
   listarDiasBySemana,
+  getAlunoByUsuarioId,
 } from '@/lib/api'
-import type { Fase, Semana, DiaTreino } from '@/data/types'
-import { Layers, Calendar, ChevronRight } from 'lucide-react'
+import { useProgramacaoAtiva } from '@/hooks/useProgramacaoAtiva'
+import { encontrarFallbackPlanilha } from '@/lib/programacao'
+import { useAuth } from '@/context/AuthContext'
+import type { Fase, Semana, DiaTreino, Programacao } from '@/data/types'
+import { Layers, Calendar, ChevronRight, ChevronDown } from 'lucide-react'
 
 export function Programacao() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+
+  const [programacaoFallback, setProgramacaoFallback] = useState<Programacao | null>(null)
+  const [alunoId, setAlunoId] = useState<string | undefined>(undefined)
+
+  const {
+    programacao,
+    precisaSelecionar,
+    loading: loadingProgramacao,
+    erro: erroProgramacao,
+  } = useProgramacaoAtiva(alunoId, programacaoFallback)
 
   const [fases, setFases] = useState<Fase[]>([])
   const [semanas, setSemanas] = useState<Semana[]>([])
@@ -22,13 +37,40 @@ export function Programacao() {
   const [semanaAtiva, setSemanaAtiva] = useState<string>('')
   const [loading, setLoading] = useState(true)
 
+  // Resolve o aluno logado para buscar suas inscricoes
+  useEffect(() => {
+    async function loadAluno() {
+      if (!user?.id) return
+      const aluno = await getAlunoByUsuarioId(user.id)
+      if (aluno) setAlunoId(aluno.id)
+    }
+    loadAluno()
+  }, [user?.id])
+
+  // Fallback legado: primeira programacao PLANILHA ativa na vigencia
+  // (compatibilidade apenas para alunos sem nenhuma inscricao)
+  useEffect(() => {
+    async function loadFallback() {
+      const hojeStr = new Date().toISOString().split('T')[0]
+      const progs = await listarProgramacoes()
+      setProgramacaoFallback(encontrarFallbackPlanilha(progs, hojeStr))
+    }
+    loadFallback()
+  }, [])
+
   // Carrega hierarquia real do Supabase
   useEffect(() => {
+    // Reseta estado da programacao anterior para nao exibir dados obsoletos na troca
+    setFases([])
+    setSemanas([])
+    setDias([])
+    setFaseAtiva('')
+    setSemanaAtiva('')
+
     async function load() {
       setLoading(true)
       try {
-        const progs = await listarProgramacoes()
-        const prog = progs.find(p => p.ativa) || progs[0]
+        const prog = programacao
         if (!prog) { setLoading(false); return }
 
         const f = await listarFasesByProg(prog.id)
@@ -56,7 +98,7 @@ export function Programacao() {
       }
     }
     load()
-  }, [])
+  }, [programacao?.id])
 
   // Seleção de fase recarrega semanas
   useEffect(() => {
@@ -90,7 +132,7 @@ export function Programacao() {
 
   const nomes = { SEG: 'Seg', TER: 'Ter', QUA: 'Qua', QUI: 'Qui', SEX: 'Sex', SAB: 'Sab', DOM: 'Dom' }
 
-  if (loading) {
+  if (loading || loadingProgramacao) {
     return (
       <div className="space-y-5 animate-fade-in">
         <p className="text-sm text-text-secondary">Carregando programacao...</p>
@@ -98,11 +140,57 @@ export function Programacao() {
     )
   }
 
+  if (erroProgramacao) {
+    return (
+      <div className="space-y-5 animate-fade-in p-4 text-center">
+        <Calendar size={48} className="mx-auto text-text-secondary" />
+        <h2 className="text-lg font-semibold text-text-primary">Não foi possível carregar suas programações</h2>
+        <p className="text-sm text-text-secondary">
+          Tente novamente em alguns instantes. Se o problema persistir, contate o suporte.
+        </p>
+      </div>
+    )
+  }
+
+  if (!programacao) {
+    return (
+      <div className="space-y-5 animate-fade-in p-4 text-center">
+        <Calendar size={48} className="mx-auto text-text-secondary" />
+        <h2 className="text-lg font-semibold text-text-primary">Nenhuma programacao disponivel</h2>
+        <p className="text-sm text-text-secondary">
+          Voce nao esta inscrito em nenhuma programacao ativa no momento.
+        </p>
+        {precisaSelecionar && (
+          <button
+            onClick={() => navigate('/aluno/seletor-programacao')}
+            className="text-accent hover:text-accent/80 transition-colors"
+          >
+            Selecionar programacao
+          </button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-text-primary">Programacao</h1>
-        <p className="text-sm text-text-secondary">Planilha Olympea</p>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-text-primary">Programacao</h1>
+          {precisaSelecionar && (
+            <button
+              onClick={() => navigate('/aluno/seletor-programacao')}
+              className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors"
+            >
+              Trocar
+              <ChevronDown size={14} />
+            </button>
+          )}
+        </div>
+        <p className="text-sm text-text-secondary">
+          {programacao?.modalidade === 'BOX_PRESENCIAL' ? 'Box Presencial' : 'Planilha Olympea'}
+          {programacao?.nome ? ` — ${programacao.nome}` : ''}
+        </p>
       </div>
 
       {/* Fases */}

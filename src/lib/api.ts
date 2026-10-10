@@ -798,12 +798,15 @@ export async function getFrequenciasByAluno(alunoId: string) {
 }
 
 export async function getProgramacoesByAluno(alunoId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('inscricoes')
     .select('programacao:programacoes(*)')
     .eq('aluno_id', alunoId)
+    .eq('ativo', true)
 
-  return (data?.map((i: any) => i.programacao) || []) as Programacao[]
+  if (error) throw error
+
+  return (data?.map((i: any) => i.programacao).filter(Boolean) || []) as Programacao[]
 }
 /* ========================= CAMPEONATOS ========================= */
 
