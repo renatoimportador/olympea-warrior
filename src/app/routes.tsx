@@ -32,6 +32,7 @@ import { Auditoria } from '@/pages/admin/Auditoria'
 import CampeonatosAdmin from '@/pages/admin/CampeonatosAdmin'
 import { BoxGradeAulas } from '@/pages/admin/BoxGradeAulas'
 import { BoxAulasAdmin } from '@/pages/admin/BoxAulasAdmin'
+import { BoxFrequenciaAdmin } from '@/pages/admin/BoxFrequenciaAdmin'
 
 import { DashboardCoach } from '@/pages/coach/DashboardCoach'
 import { BoxPresencaCoach } from '@/pages/coach/BoxPresencaCoach'
@@ -101,6 +102,7 @@ export function AppRoutes() {
         <Route path="/admin/box" element={<ConfigurarBox />} />
         <Route path="/admin/box/grade" element={<BoxGradeAulas />} />
         <Route path="/admin/box/aulas" element={<BoxAulasAdmin />} />
+        <Route path="/admin/box/frequencia" element={<BoxFrequenciaAdmin />} />
         <Route path="/admin/auditoria" element={<Auditoria />} />
         <Route path="/admin/campeonatos" element={<CampeonatosAdmin />} />
       </Route>

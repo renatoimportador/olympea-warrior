@@ -5,6 +5,7 @@ import type {
   DiaSemana,
   GradeAula,
   Reserva,
+  StatusReserva,
 } from '@/data/types'
 
 /* =============================================================
@@ -393,4 +394,110 @@ export async function confirmarPresenca(
 /* Instante de inicio de uma aula (data + hora em America/Sao_Paulo). */
 export function inicioDaAula(data: string, horaInicio: string): Date {
   return new Date(`${data}T${horaInicio.slice(0, 8)}-03:00`)
+}
+
+/* ========================= FREQUENCIA (ADMIN) ========================= */
+
+/* Linha do relatorio de frequencia: reserva + aula + nome do aluno.
+   Leitura agregada no cliente, respeitando RLS (admin ve apenas reservas
+   das aulas do seu box — policy reservas_select_autorizadas). */
+export interface FrequenciaBoxLinha {
+  reserva_id: string
+  aula_id: string
+  aluno_id: string
+  status: StatusReserva
+  data: string
+  hora_inicio: string
+  hora_fim: string
+  aluno_nome: string | null
+}
+
+/* Relatorio de frequencia do Box num periodo, com filtros opcionais.
+   Nao usa a tabela `frequencias` da Planilha — somente reservas/aulas. */
+export async function listarFrequenciaBox(params: {
+  dataInicio: string
+  dataFim: string
+  alunoId?: string
+  status?: StatusReserva
+}): Promise<FrequenciaBoxLinha[]> {
+  const { dataInicio, dataFim, alunoId, status } = params
+
+  let query = supabase
+    .from('reservas')
+    .select(
+      `id, aula_id, aluno_id, status,
+       aulas!inner ( data, hora_inicio, hora_fim ),
+       alunos ( usuarios ( nome ) )`
+    )
+    .gte('aulas.data', dataInicio)
+    .lte('aulas.data', dataFim)
+
+  if (alunoId) query = query.eq('aluno_id', alunoId)
+  if (status) query = query.eq('status', status)
+
+  const { data, error } = await query
+  if (error) throw error
+
+  const linhas = (data || []) as unknown as Array<{
+    id: string
+    aula_id: string
+    aluno_id: string
+    status: StatusReserva
+    aulas: { data: string; hora_inicio: string; hora_fim: string } | Array<{ data: string; hora_inicio: string; hora_fim: string }>
+    alunos: unknown
+  }>
+
+  const resultado = linhas.map((r) => {
+    const aula = Array.isArray(r.aulas) ? r.aulas[0] : r.aulas
+    return {
+      reserva_id: r.id,
+      aula_id: r.aula_id,
+      aluno_id: r.aluno_id,
+      status: r.status,
+      data: aula?.data ?? '',
+      hora_inicio: aula?.hora_inicio ?? '',
+      hora_fim: aula?.hora_fim ?? '',
+      aluno_nome: nomeDoAlunoFrequencia(r.alunos),
+    } as FrequenciaBoxLinha
+  })
+
+  return resultado.sort(
+    (a, b) =>
+      a.data.localeCompare(b.data) || a.hora_inicio.localeCompare(b.hora_inicio)
+  )
+}
+
+/* Reuso interno do parsing defensivo do join alunos->usuarios->nome. */
+function nomeDoAlunoFrequencia(alunos: unknown): string | null {
+  const rel = Array.isArray(alunos) ? alunos[0] : alunos
+  if (!rel || typeof rel !== 'object') return null
+  const usuario = (rel as { usuarios?: unknown }).usuarios
+  const u = Array.isArray(usuario) ? usuario[0] : usuario
+  if (!u || typeof u !== 'object') return null
+  const nome = (u as { nome?: unknown }).nome
+  return typeof nome === 'string' ? nome : null
+}
+
+/* Alunos do box (para o filtro). Leitura base legada (RLS permissiva). */
+export async function listarAlunosBox(): Promise<
+  Array<{ aluno_id: string; nome: string }>
+> {
+  const { data, error } = await supabase
+    .from('alunos')
+    .select('id, usuarios ( nome )')
+    .eq('ativo', true)
+
+  if (error) throw error
+
+  const linhas = (data || []) as unknown as Array<{ id: string; usuarios: unknown }>
+  const resultado = linhas.map((r) => {
+    const usuario = Array.isArray(r.usuarios) ? r.usuarios[0] : r.usuarios
+    const nome =
+      usuario && typeof usuario === 'object'
+        ? (usuario as { nome?: string }).nome ?? null
+        : null
+    return { aluno_id: r.id, nome: nome ?? 'Aluno' }
+  })
+
+  return resultado.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
 }
