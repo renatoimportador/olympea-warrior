@@ -57,12 +57,17 @@ export default {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        slideInRight: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
       },
       animation: {
         shimmer: 'shimmer 2s linear infinite',
         'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
         'slide-up': 'slideUp 0.4s ease-out',
         'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-in-right': 'slideInRight 0.25s ease-out',
       },
     },
   },

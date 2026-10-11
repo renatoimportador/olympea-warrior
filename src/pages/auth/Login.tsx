@@ -33,7 +33,8 @@ export function Login() {
       } else if (user.role === 'coach') {
         navigate('/coach/dashboard', { replace: true })
       } else if (user.role === 'aluno') {
-        navigate('/aluno/dashboard', { replace: true })
+        // Etapa 4.3: a tela inicial do aluno e o Feed da Comunidade
+        navigate('/aluno/comunidade', { replace: true })
       } else {
         toast.error('Perfil nao reconhecido.')
       }
