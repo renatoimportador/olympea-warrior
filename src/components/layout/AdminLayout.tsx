@@ -21,6 +21,7 @@ const adminItems = [
   { label: 'Grade de Aulas', path: '/admin/box/grade', icon: 'CalendarClock' },
   { label: 'Aulas do Box', path: '/admin/box/aulas', icon: 'CalendarCheck' },
   { label: 'Frequencia do Box', path: '/admin/box/frequencia', icon: 'UserCheck' },
+  { label: 'Comunidade', path: '/admin/comunidade', icon: 'MessagesSquare' },
   { label: 'Auditoria', path: '/admin/auditoria', icon: 'Activity' },
 ]
 

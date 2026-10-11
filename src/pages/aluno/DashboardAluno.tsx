@@ -20,7 +20,7 @@ import { supabase } from '@/lib/supabase'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
   Zap, TrendingUp, CalendarCheck, Dumbbell, Flame, Trophy,
-  ChevronRight, Clock, ArrowUpRight, Users,
+  ChevronRight, Clock, ArrowUpRight, Users, MessagesSquare,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -312,6 +312,29 @@ export function DashboardAluno() {
           </div>
         </Link>
       )}
+
+      {/* Comunidade Olympea (independente da modalidade — Planilha e Box) */}
+      <Link
+        to="/aluno/comunidade"
+        className="block rounded-xl bg-accent/[0.06] border border-accent/20 p-4 hover:bg-accent/[0.1] transition"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center">
+              <MessagesSquare size={20} className="text-accent" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-text-primary">
+                Comunidade Olympea
+              </p>
+              <p className="text-xs text-text-secondary">
+                Fotos e novidades do seu Box — curta e comente
+              </p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-accent" />
+        </div>
+      </Link>
 
       {/* Ranking da Semana */}
       <GlassCard className="p-5 space-y-3">

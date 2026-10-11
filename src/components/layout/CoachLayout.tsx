@@ -12,6 +12,7 @@ const coachItems = [
   { label: 'Frequencia', path: '/coach/frequencia', icon: 'CalendarCheck' },
   { label: 'Rankings', path: '/coach/rankings', icon: 'Trophy' },
   { label: 'Relatorios', path: '/coach/relatorios', icon: 'FileBarChart' },
+  { label: 'Comunidade', path: '/coach/comunidade', icon: 'MessagesSquare' },
 ]
 
 export function CoachLayout() {

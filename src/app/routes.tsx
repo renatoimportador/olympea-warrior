@@ -33,9 +33,11 @@ import CampeonatosAdmin from '@/pages/admin/CampeonatosAdmin'
 import { BoxGradeAulas } from '@/pages/admin/BoxGradeAulas'
 import { BoxAulasAdmin } from '@/pages/admin/BoxAulasAdmin'
 import { BoxFrequenciaAdmin } from '@/pages/admin/BoxFrequenciaAdmin'
+import { ComunidadeAdmin } from '@/pages/admin/ComunidadeAdmin'
 
 import { DashboardCoach } from '@/pages/coach/DashboardCoach'
 import { BoxPresencaCoach } from '@/pages/coach/BoxPresencaCoach'
+import { ComunidadeCoach } from '@/pages/coach/ComunidadeCoach'
 import { AlunosVinculados } from '@/pages/coach/AlunosVinculados'
 import { AcompanharEvolucao } from '@/pages/coach/AcompanharEvolucao'
 import { CorrigirResultados } from '@/pages/coach/CorrigirResultados'
@@ -60,6 +62,7 @@ import { MeuPerfil } from '@/pages/aluno/MeuPerfil'
 import { ComentariosAluno } from '@/pages/aluno/ComentariosAluno'
 import { CheckIn } from '@/pages/aluno/CheckIn'
 import { CampeonatosAluno } from '@/pages/aluno/CampeonatosAluno'
+import { ComunidadeAluno } from '@/pages/aluno/ComunidadeAluno'
 
 import { BibliotecaMovimentos } from '@/pages/shared/BibliotecaMovimentos'
 import { DetalheMovimento } from '@/pages/shared/DetalheMovimento'
@@ -105,6 +108,7 @@ export function AppRoutes() {
         <Route path="/admin/box/frequencia" element={<BoxFrequenciaAdmin />} />
         <Route path="/admin/auditoria" element={<Auditoria />} />
         <Route path="/admin/campeonatos" element={<CampeonatosAdmin />} />
+        <Route path="/admin/comunidade" element={<ComunidadeAdmin />} />
       </Route>
 
       <Route
@@ -123,6 +127,7 @@ export function AppRoutes() {
         <Route path="/coach/frequencia" element={<FrequenciaAlunos />} />
         <Route path="/coach/rankings" element={<RankingsCoach />} />
         <Route path="/coach/relatorios" element={<RelatoriosCoach />} />
+        <Route path="/coach/comunidade" element={<ComunidadeCoach />} />
       </Route>
 
       <Route
@@ -148,6 +153,7 @@ export function AppRoutes() {
         <Route path="/aluno/comentarios" element={<ComentariosAluno />} />
         <Route path="/aluno/checkin" element={<CheckIn />} />
         <Route path="/aluno/box/aulas" element={<BoxAulasAluno />} />
+        <Route path="/aluno/comunidade" element={<ComunidadeAluno />} />
       </Route>
 
       <Route element={<AlunoLayout />}>

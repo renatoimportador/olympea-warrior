@@ -537,6 +537,47 @@ export interface Reserva {
 }
 
 /* =============================================================
+   Comunidade Olympea (Etapa 4) — feed social compartilhado
+   entre Planilha e Box Presencial, isolado por box_id.
+   ============================================================= */
+export type StatusPublicacao = 'RASCUNHO' | 'PUBLICADA';
+
+export interface Publicacao {
+  id: UUID;
+  box_id: UUID;
+  autor_id: UUID;
+  legenda: string;
+  status: StatusPublicacao;
+  ativo: boolean; // false = moderada pelo admin (soft-delete)
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PublicacaoFoto {
+  id: UUID;
+  publicacao_id: UUID;
+  storage_path: string; // {box_id}/{publicacao_id}/{arquivo} no bucket 'comunidade'
+  ordem: number; // 0..4
+  created_at: string;
+}
+
+export interface Curtida {
+  id: UUID;
+  publicacao_id: UUID;
+  autor_id: UUID;
+  created_at: string;
+}
+
+export interface ComentarioFeed {
+  id: UUID;
+  publicacao_id: UUID;
+  autor_id: UUID;
+  texto: string;
+  ativo: boolean; // false = moderado pelo admin (soft-delete)
+  created_at: string;
+}
+
+/* =============================================================
    Auxiliares para UI
    ============================================================= */
 export interface DashboardMetric {
