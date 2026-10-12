@@ -13,6 +13,7 @@ import {
   buscarResultadoDoDia,
   getAlunoByUsuarioId,
   getSemanaVigentePorData,
+  dataHojeFusoBR,
 } from '@/lib/api'
 import { useProgramacaoAtiva } from '@/hooks/useProgramacaoAtiva'
 import { encontrarFallbackPlanilha } from '@/lib/programacao'
@@ -42,8 +43,9 @@ export function TreinoDoDia() {
     erro: erroProgramacao,
   } = useProgramacaoAtiva(alunoId, programacaoFallback)
 
-  const hoje = new Date()
-  const hojeStr = hoje.toISOString().split('T')[0]
+  // Fuso America/Sao_Paulo: toISOString() (UTC) virava o dia as 21:00 locais
+  // e quebrava a resolucao da semana vigente no WOD.
+  const hojeStr = dataHojeFusoBR()
   const semanaNomes = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB']
 
   // Resolve aluno e fallback de programacao (primeira ativa na vigencia)
@@ -88,6 +90,12 @@ export function TreinoDoDia() {
         if (!faseAtiva) { setLoading(false); return }
         setFase(faseAtiva)
 
+        // Regra definitiva: somente a semana vigente (intervalo de datas que
+        // contem hoje, no fuso America/Sao_Paulo). Domingo ate 23h59 exibe a
+        // semana corrente; a partir de segunda 00h00 exige a nova semana. Se
+        // o coach ainda nao cadastrou/ativou a nova semana, os estados
+        // permanecem vazios e a interface exibe "Nenhum treino programado
+        // para esta semana" — sem reutilizar a semana anterior.
         const semanaVigente = await getSemanaVigentePorData(faseAtiva.id, hojeStr)
         if (!semanaVigente) { setLoading(false); return }
         setSemana(semanaVigente)
@@ -95,11 +103,17 @@ export function TreinoDoDia() {
         const diasDaSemana = await listarDiasBySemana(semanaVigente.id)
         setDias(diasDaSemana)
 
-        const diaHoje = semanaNomes[hoje.getDay()]
+        // Dia da semana derivado da data no fuso America/Sao_Paulo
+        const diaHoje = semanaNomes[new Date(`${hojeStr}T12:00:00Z`).getUTCDay()]
         const diaAtual = diasDaSemana.find(d => d.dia_semana === diaHoje)
 
         if (diaAtual) {
           setDiaAtivo(diaAtual.id)
+        } else if (diasDaSemana.length > 0) {
+          // A semana vigente nao tem o dia de hoje cadastrado (ex.: domingo
+          // ausente da grade): seleciona o ultimo dia disponivel da PROPRIA
+          // semana para exibir o treino mais recente e manter a navegacao.
+          setDiaAtivo(diasDaSemana[diasDaSemana.length - 1].id)
         }
       } catch (e) {
         console.error('Erro ao carregar treino do dia:', e)
@@ -176,6 +190,20 @@ const resultado = await buscarResultadoDoDia(aluno.id, t.id)
             Selecionar programação
           </Button>
         )}
+      </div>
+    )
+  }
+
+  // Semana vigente inexistente (ex.: segunda-feira sem a nova semana ainda
+  // cadastrada/ativada pelo coach) — nao reutiliza a semana anterior.
+  if (!semana || dias.length === 0) {
+    return (
+      <div className="space-y-5 animate-fade-in p-4 text-center">
+        <CalendarDays size={48} className="mx-auto text-text-secondary" />
+        <h2 className="text-lg font-semibold text-text-primary">Nenhum treino programado para esta semana</h2>
+        <p className="text-sm text-text-secondary">
+          Assim que a nova semana for cadastrada, os treinos aparecerão aqui.
+        </p>
       </div>
     )
   }

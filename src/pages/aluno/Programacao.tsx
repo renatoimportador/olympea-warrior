@@ -8,6 +8,7 @@ import {
   listarSemanasByFase,
   listarDiasBySemana,
   getAlunoByUsuarioId,
+  dataHojeFusoBR,
 } from '@/lib/api'
 import { useProgramacaoAtiva } from '@/hooks/useProgramacaoAtiva'
 import { encontrarFallbackPlanilha } from '@/lib/programacao'
@@ -51,7 +52,8 @@ export function Programacao() {
   // (compatibilidade apenas para alunos sem nenhuma inscricao)
   useEffect(() => {
     async function loadFallback() {
-      const hojeStr = new Date().toISOString().split('T')[0]
+      // Fuso America/Sao_Paulo (toISOString/UTC virava o dia as 21:00 locais)
+      const hojeStr = dataHojeFusoBR()
       const progs = await listarProgramacoes()
       setProgramacaoFallback(encontrarFallbackPlanilha(progs, hojeStr))
     }

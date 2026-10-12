@@ -533,8 +533,22 @@ export async function listarTreinosPorData(data: Date, boxId?: string): Promise<
   return treinos || []
 }
 
+/* Data de hoje (YYYY-MM-DD) no fuso America/Sao_Paulo.
+   new Date().toISOString() retorna a data em UTC, que "vira o dia" a partir
+   das 21:00 (20:00 no horario de verao) no Brasil. Isso fazia a busca da
+   semana vigente e o fallback de programacao falharem no fim da noite local,
+   desaparecendo com a navegacao semanal do WOD. */
+export function dataHojeFusoBR(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+}
+
 export async function getSemanaVigentePorData(faseId: string, dataStr?: string): Promise<Semana | null> {
-  const dataAlvo = dataStr || new Date().toISOString().split('T')[0]
+  const dataAlvo = dataStr || dataHojeFusoBR()
 
   const { data: semanas, error } = await supabase
     .from('semanas')
