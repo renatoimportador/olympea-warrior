@@ -35,6 +35,7 @@ interface TreinoView {
 export function ListarTreinos() {
   const navigate = useNavigate()
 
+  const [programacoes, setProgramacoes] = useState<Programacao[]>([])
   const [programacao, setProgramacao] = useState<Programacao | null>(null)
   const [fases, setFases] = useState<Fase[]>([])
   const [semanas, setSemanas] = useState<Semana[]>([])
@@ -61,6 +62,11 @@ export function ListarTreinos() {
 
       try {
         const progs = await listarProgramacoes()
+
+        if (!mounted.current) return
+
+        setProgramacoes(progs)
+
         const prog = progs.find((p) => p.ativa) || progs[0]
 
         if (!prog) {
@@ -184,6 +190,37 @@ export function ListarTreinos() {
     carregarTreinos()
   }, [semanaAtiva])
 
+  async function handleProgramacaoChange(id: string) {
+    const prog = programacoes.find((p) => p.id === id)
+    if (!prog) return
+
+    setProgramacao(prog)
+    setFaseAtiva('')
+    setSemanas([])
+    setDias([])
+    setTreinos([])
+    setLoading(true)
+
+    try {
+      const fasesData = await listarFasesByProg(prog.id)
+
+      if (!mounted.current) return
+
+      setFases(fasesData)
+
+      if (fasesData.length > 0) {
+        // Dispara o efeito encadeado de semanas -> treinos
+        setFaseAtiva(fasesData[0].id)
+      } else {
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Erro ao carregar fases')
+      if (mounted.current) setLoading(false)
+    }
+  }
+
   async function handleDelete(id: string) {
     if (!confirm('Deseja realmente excluir este treino?')) return
 
@@ -243,11 +280,26 @@ export function ListarTreinos() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
+        <select
+          value={programacao?.id || ''}
+          onChange={(e) => handleProgramacaoChange(e.target.value)}
+          className="glass-input w-full sm:w-auto text-sm px-3 py-2"
+          aria-label="Selecionar programação"
+        >
+          {programacoes.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.nome}{' '}
+              ({p.modalidade === 'BOX_PRESENCIAL' ? 'Box Presencial' : 'Planilha'})
+            </option>
+          ))}
+        </select>
+
         <select
           value={faseAtiva}
           onChange={(e) => setFaseAtiva(e.target.value)}
           className="glass-input w-full sm:w-auto text-sm px-3 py-2"
+          disabled={fases.length === 0}
         >
           {fases.map((f) => (
             <option key={f.id} value={f.id}>
