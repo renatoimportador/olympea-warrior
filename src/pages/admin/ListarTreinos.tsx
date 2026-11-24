@@ -58,48 +58,15 @@ export function ListarTreinos() {
 
   useEffect(() => {
     async function carregar() {
-      setLoading(true)
-
       try {
         const progs = await listarProgramacoes()
-
         if (!mounted.current) return
-
         setProgramacoes(progs)
-
-        const prog = progs.find((p) => p.ativa) || progs[0]
-
-        if (!prog) {
-          if (mounted.current) {
-            setProgramacao(null)
-            setFases([])
-            setSemanas([])
-            setDias([])
-            setTreinos([])
-            setLoading(false)
-          }
-          return
-        }
-
-        setProgramacao(prog)
-
-        const fasesData = await listarFasesByProg(prog.id)
-
-        if (!mounted.current) return
-
-        setFases(fasesData)
-
-        if (fasesData.length > 0) {
-          setFaseAtiva(fasesData[0].id)
-        } else {
-          setSemanas([])
-          setDias([])
-          setTreinos([])
-          setLoading(false)
-        }
+        if (progs.length === 1) setProgramacao(progs[0])
       } catch (error) {
         console.error(error)
-        toast.error('Erro ao carregar treinos')
+        toast.error('Erro ao carregar programações')
+      } finally {
         if (mounted.current) setLoading(false)
       }
     }
@@ -108,117 +75,113 @@ export function ListarTreinos() {
   }, [])
 
   useEffect(() => {
-    async function carregarSemanas() {
-      if (!faseAtiva) {
-        setSemanas([])
-        setDias([])
-        setTreinos([])
-        setLoading(false)
-        return
-      }
+    let cancelado = false
+    setFases([])
+    setFaseAtiva('')
+    setSemanas([])
+    setSemanaAtiva('')
+    setDias([])
+    setTreinos([])
 
+    if (!programacao) return
+
+    async function carregarFases(programacaoId: string) {
       setLoading(true)
-
       try {
-        const semanasData = await listarSemanasByFase(faseAtiva)
-
-        if (!mounted.current) return
-
-        setSemanas(semanasData)
-
-        if (semanasData.length > 0) {
-          setSemanaAtiva(semanasData[0].id)
-        } else {
-          setSemanaAtiva('')
-          setDias([])
-          setTreinos([])
-          setLoading(false)
-        }
+        const fasesData = await listarFasesByProg(programacaoId)
+        if (cancelado) return
+        setFases(fasesData)
+        setFaseAtiva(fasesData[0]?.id || '')
       } catch (error) {
+        if (cancelado) return
         console.error(error)
-        toast.error('Erro ao carregar semanas')
-        if (mounted.current) setLoading(false)
+        toast.error('Erro ao carregar fases')
+      } finally {
+        if (!cancelado) setLoading(false)
       }
     }
 
-    carregarSemanas()
+    carregarFases(programacao.id)
+    return () => { cancelado = true }
+  }, [programacao?.id])
+
+  useEffect(() => {
+    let cancelado = false
+    setSemanas([])
+    setSemanaAtiva('')
+    setDias([])
+    setTreinos([])
+
+    if (!faseAtiva) return
+
+    async function carregarSemanas(faseId: string) {
+      setLoading(true)
+      try {
+        const semanasData = await listarSemanasByFase(faseId)
+        if (cancelado) return
+        setSemanas(semanasData)
+        setSemanaAtiva(semanasData[0]?.id || '')
+      } catch (error) {
+        if (cancelado) return
+        console.error(error)
+        toast.error('Erro ao carregar semanas')
+      } finally {
+        if (!cancelado) setLoading(false)
+      }
+    }
+
+    carregarSemanas(faseAtiva)
+    return () => { cancelado = true }
   }, [faseAtiva])
 
   useEffect(() => {
-    async function carregarTreinos() {
-      if (!semanaAtiva) {
-        setTreinos([])
-        setLoading(false)
-        return
-      }
+    let cancelado = false
+    setDias([])
+    setTreinos([])
 
+    if (!semanaAtiva) return
+
+    async function carregarTreinos(semanaId: string) {
       setLoading(true)
-
       try {
-        const diasData = await listarDiasBySemana(semanaAtiva)
-        setDias(diasData)
-
-        const semanaAtual = await getSemanaById(semanaAtiva)
+        const diasData = await listarDiasBySemana(semanaId)
+        const semanaAtual = await getSemanaById(semanaId)
         const faseAtual = semanaAtual?.fase_id
           ? await getFaseById(semanaAtual.fase_id)
           : null
 
         const views: TreinoView[] = []
-
         for (const dia of diasData) {
           const ts = await listarTreinosByDia(dia.id)
-
           for (const treino of ts) {
             views.push({
               treino,
               dia,
-              semana: semanaAtual || { id: semanaAtiva, nome: 'Semana' } as Semana,
+              semana: semanaAtual || { id: semanaId, nome: 'Semana' } as Semana,
               fase: faseAtual || { id: '', nome: 'Fase' } as Fase,
             })
           }
         }
 
+        if (cancelado) return
+        setDias(diasData)
         setTreinos(views)
       } catch (error) {
+        if (cancelado) return
         console.error(error)
         toast.error('Erro ao carregar treinos')
       } finally {
-        if (mounted.current) setLoading(false)
+        if (!cancelado) setLoading(false)
       }
     }
 
-    carregarTreinos()
+    carregarTreinos(semanaAtiva)
+    return () => { cancelado = true }
   }, [semanaAtiva])
 
-  async function handleProgramacaoChange(id: string) {
-    const prog = programacoes.find((p) => p.id === id)
-    if (!prog) return
-
-    setProgramacao(prog)
-    setFaseAtiva('')
-    setSemanas([])
-    setDias([])
-    setTreinos([])
-    setLoading(true)
-
-    try {
-      const fasesData = await listarFasesByProg(prog.id)
-
-      if (!mounted.current) return
-
-      setFases(fasesData)
-
-      if (fasesData.length > 0) {
-        // Dispara o efeito encadeado de semanas -> treinos
-        setFaseAtiva(fasesData[0].id)
-      } else {
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error(error)
-      toast.error('Erro ao carregar fases')
-      if (mounted.current) setLoading(false)
-    }
+  function handleProgramacaoChange(id: string) {
+    if (!id) setLoading(false)
+    setProgramacao(programacoes.find((p) => p.id === id) || null)
   }
 
   async function handleDelete(id: string) {
@@ -287,9 +250,10 @@ export function ListarTreinos() {
           className="glass-input w-full sm:w-auto text-sm px-3 py-2"
           aria-label="Selecionar programação"
         >
+          <option value="">Selecione uma programação</option>
           {programacoes.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.nome}{' '}
+              {p.nome} — {p.tipo}{' '}
               ({p.modalidade === 'BOX_PRESENCIAL' ? 'Box Presencial' : 'Planilha'})
             </option>
           ))}
@@ -344,7 +308,7 @@ export function ListarTreinos() {
         <GlassCard className="p-8 text-center">
           <Dumbbell size={32} className="mx-auto text-text-secondary mb-3" />
           <p className="text-sm text-text-secondary">
-            Nenhum treino cadastrado para esta semana.
+            {programacao ? 'Nenhum treino cadastrado para esta semana.' : 'Selecione uma programação para visualizar os treinos.'}
           </p>
         </GlassCard>
       ) : (

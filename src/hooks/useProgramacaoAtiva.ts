@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useProgramacao } from '@/context/ProgramacaoContext'
 import { getProgramacoesByAluno } from '@/lib/api'
-import { selecionarProgramacaoAtiva, precisaSelecionarProgramacao } from '@/lib/programacao'
+import { isProgramacaoCrossfit, selecionarProgramacaoAtiva, precisaSelecionarProgramacao } from '@/lib/programacao'
 import type { Programacao } from '@/data/types'
 
 interface UseProgramacaoAtivaResult {
@@ -39,7 +39,7 @@ export function useProgramacaoAtiva(
       try {
         const progs = await getProgramacoesByAluno(alunoIdAtual)
         if (cancelado) return
-        setProgramacoes(progs)
+        setProgramacoes(progs.filter(isProgramacaoCrossfit))
       } catch (e) {
         if (cancelado) return
         console.error('Erro ao carregar programacoes do aluno:', e)

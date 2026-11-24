@@ -239,6 +239,7 @@ export function CriarProgramacao() {
               <option value="ENDURANCE">Endurance</option>
               <option value="MASTER40">Master 40+</option>
               <option value="COMPETIDOR">Competidores</option>
+              <option value="HIBRIDO">Híbrido</option>
             </select>
 
             <select

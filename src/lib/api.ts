@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { isProgramacaoCrossfit } from './programacao'
 import type {
   Usuario,
   Aluno,
@@ -503,7 +504,8 @@ export async function listarTreinosPorData(data: Date, boxId?: string): Promise<
   const dataStr = data.toISOString().split('T')[0]
 
   const programacoes = await listarProgramacoes()
-  const programacoesValidas = programacoes.filter((p: any) => {
+  const programacoesValidas = programacoes.filter((p) => {
+    if (!isProgramacaoCrossfit(p)) return false
     if (!p.ativa) return false
     if (boxId && p.box_id && p.box_id !== boxId) return false
     if (!p.data_inicio) return false

@@ -51,6 +51,7 @@ import { BoxAulasAluno } from '@/pages/aluno/BoxAulasAluno'
 import { SeletorProgramacao } from '@/pages/aluno/SeletorProgramacao'
 import { Programacao } from '@/pages/aluno/Programacao'
 import { TreinoDoDia } from '@/pages/aluno/TreinoDoDia'
+import { TreinoHibrido } from '@/pages/aluno/TreinoHibrido'
 import { RegistrarResultado } from '@/pages/aluno/RegistrarResultado'
 import { ResultadoDetalhe } from '@/pages/aluno/ResultadoDetalhe'
 import { Historico } from '@/pages/aluno/Historico'
@@ -141,6 +142,7 @@ export function AppRoutes() {
         <Route path="/aluno/seletor-programacao" element={<SeletorProgramacao />} />
         <Route path="/aluno/programacao" element={<Programacao />} />
         <Route path="/aluno/treino" element={<TreinoDoDia />} />
+        <Route path="/aluno/hibrido" element={<TreinoHibrido />} />
         <Route path="/aluno/resultado" element={<RegistrarResultado />} />
         <Route path="/aluno/resultado/:id" element={<ResultadoDetalhe />} />
         <Route path="/aluno/historico" element={<Historico />} />

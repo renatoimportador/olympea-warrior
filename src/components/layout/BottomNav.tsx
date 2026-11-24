@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { CalendarCheck, Dumbbell, Menu, MessagesSquare, User } from 'lucide-react'
+import { CalendarCheck, Dumbbell, Flame, Menu, MessagesSquare, User } from 'lucide-react'
 import { MenuLateral } from './MenuLateral'
 
 function cn(...classes: (string | false | undefined)[]) {
@@ -32,17 +32,18 @@ export function BottomNav() {
     location.pathname.startsWith('/aluno/box') ||
     location.pathname.startsWith('/aluno/checkin')
   const wodAtivo = WOD_PATHS.some((p) => location.pathname.startsWith(p))
+  const hibridoAtivo = location.pathname.startsWith('/aluno/hibrido')
   const perfilAtivo = location.pathname.startsWith('/aluno/perfil')
 
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-bg-secondary/90 backdrop-blur-xl border-t border-border-dark">
-        <div className="flex items-end justify-around py-2 max-w-md mx-auto">
+        <div className="flex items-end justify-around py-2 max-w-lg mx-auto">
           {/* 1. Feed */}
           <NavLink
             to="/aluno/comunidade"
             className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all',
+              'flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all',
               feedAtivo ? 'text-accent' : 'text-text-secondary'
             )}
           >
@@ -54,7 +55,7 @@ export function BottomNav() {
           <NavLink
             to="/aluno/box/aulas"
             className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all',
+              'flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all',
               checkinAtivo ? 'text-accent' : 'text-text-secondary'
             )}
           >
@@ -88,11 +89,23 @@ export function BottomNav() {
             </span>
           </NavLink>
 
-          {/* 4. Perfil */}
+          {/* 4. Híbrido */}
+          <NavLink
+            to="/aluno/hibrido"
+            className={cn(
+              'flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all',
+              hibridoAtivo ? 'text-accent' : 'text-text-secondary'
+            )}
+          >
+            <Flame size={20} />
+            <span className="text-[10px] font-medium">Híbrido</span>
+          </NavLink>
+
+          {/* 5. Perfil */}
           <NavLink
             to="/aluno/perfil"
             className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all',
+              'flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all',
               perfilAtivo ? 'text-accent' : 'text-text-secondary'
             )}
           >
@@ -100,11 +113,11 @@ export function BottomNav() {
             <span className="text-[10px] font-medium">Perfil</span>
           </NavLink>
 
-          {/* 5. Menu lateral */}
+          {/* 6. Menu lateral */}
           <button
             onClick={() => setMenuAberto(true)}
             className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all',
+              'flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all',
               menuAberto ? 'text-accent' : 'text-text-secondary'
             )}
             aria-label="Abrir menu"

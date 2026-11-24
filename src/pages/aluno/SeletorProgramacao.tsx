@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProgramacao } from '@/context/ProgramacaoContext'
 import { getAlunoByUsuarioId, getProgramacoesByAluno } from '@/lib/api'
+import { isProgramacaoCrossfit } from '@/lib/programacao'
 import { useAuth } from '@/context/AuthContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { Dumbbell, ChevronRight, Check } from 'lucide-react'
@@ -21,7 +22,7 @@ export function SeletorProgramacao() {
         const aluno = await getAlunoByUsuarioId(user.id)
         if (aluno) {
           const progs = await getProgramacoesByAluno(aluno.id)
-          setProgramacoes(progs || [])
+          setProgramacoes(progs.filter(isProgramacaoCrossfit))
         }
       } catch (e) {
         console.error('Erro ao carregar programacoes:', e)

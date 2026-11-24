@@ -1,5 +1,9 @@
 import type { Programacao } from '@/data/types'
 
+export function isProgramacaoCrossfit(p: Pick<Programacao, 'tipo'>): boolean {
+  return String(p.tipo) !== 'HIBRIDO'
+}
+
 function isModalidadePlanilha(p: Programacao): boolean {
   // Regra: somente programacoes da Planilha podem ser usadas como fallback.
   // BOX_PRESENCIAL nunca e apresentada a alunos sem inscricao.
@@ -13,8 +17,8 @@ export function selecionarProgramacaoAtiva(
 ): Programacao | null {
   // Se o contexto ja tem uma programacao valida e inscrita, mantem
   if (programacaoContexto) {
-    const aindaInscrito = programacoesInscritas.some((p) => p.id === programacaoContexto.id)
-    if (aindaInscrito) return programacaoContexto
+    const inscrita = programacoesInscritas.find((p) => p.id === programacaoContexto.id)
+    if (inscrita) return inscrita
   }
 
   // Se ha apenas uma programacao inscrita, entra nela automaticamente
@@ -28,7 +32,7 @@ export function selecionarProgramacaoAtiva(
   }
 
   // Fallback de compatibilidade: exclusivamente para programacoes da Planilha
-  if (programacaoFallback && isModalidadePlanilha(programacaoFallback)) {
+  if (programacaoFallback && isProgramacaoCrossfit(programacaoFallback) && isModalidadePlanilha(programacaoFallback)) {
     return programacaoFallback
   }
 
@@ -49,6 +53,7 @@ export function encontrarFallbackPlanilha(
 ): Programacao | null {
   const vigente = programacoes.find((p) => {
     if (!p.ativa) return false
+    if (!isProgramacaoCrossfit(p)) return false
     if (!isModalidadePlanilha(p)) return false
     if (!p.data_inicio) return false
     return dataAtual >= p.data_inicio && (!p.data_fim || dataAtual <= p.data_fim)

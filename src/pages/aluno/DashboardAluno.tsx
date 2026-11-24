@@ -12,10 +12,11 @@ import {
   listarResultadosByAluno,
   getProgramacoesByAluno,
   listarDiasBySemana,
-  getTreinoDoDia,
+  listarProgramacoes,
   listarTreinosByDia,
 } from '@/lib/api'
 import { formatarResultadoRanking, carregarRankingDoDia } from '@/lib/ranking'
+import { isProgramacaoCrossfit } from '@/lib/programacao'
 import { supabase } from '@/lib/supabase'
 import type { Aluno, PersonalRecord, Frequencia, Resultado, Programacao, DiaTreino, Treino } from '@/data/types'
 import {
@@ -55,6 +56,9 @@ export function DashboardAluno() {
   const [participantesPorCamp, setParticipantesPorCamp] = useState<Record<string, any[]>>({})
 
   useEffect(() => {
+    let cancelado = false
+    setProximoTreino(null)
+
     async function load() {
       if (!user) { setLoading(false); return }
       try {
@@ -112,9 +116,13 @@ export function DashboardAluno() {
         setRankingSemana(ranking)
 
         // Buscar próximo treino
-        if (programacaoAtiva?.id) {
+        const progSelecionada = programacaoAtiva
+          ? progs.find((p) => p.id === programacaoAtiva.id)
+            || (await listarProgramacoes()).find((p) => p.id === programacaoAtiva.id)
+          : null
+        if (progSelecionada && isProgramacaoCrossfit(progSelecionada)) {
           const { listarFasesByProg } = await import('@/lib/api')
-          const fases = await listarFasesByProg(programacaoAtiva.id)
+          const fases = await listarFasesByProg(progSelecionada.id)
           if (fases.length > 0) {
             const { listarSemanasByFase } = await import('@/lib/api')
             const semanas = await listarSemanasByFase(fases[0].id)
@@ -139,7 +147,7 @@ export function DashboardAluno() {
                       DOM: 'Domingo', SEG: 'Segunda', TER: 'Terça',
                       QUA: 'Quarta', QUI: 'Quinta', SEX: 'Sexta', SAB: 'Sábado'
                     }
-                    setProximoTreino({
+                    if (!cancelado) setProximoTreino({
                       dia: nomesLegivel[nomeDia] || nomeDia,
                       treino: treinos[0]
                     })
@@ -157,7 +165,8 @@ export function DashboardAluno() {
       }
     }
     load()
-  }, [user, programacaoAtiva])
+    return () => { cancelado = true }
+  }, [user, programacaoAtiva, box?.id])
 
   // Frequência do mês: contar dias únicos com resultado no mês atual
   const agora = new Date()
